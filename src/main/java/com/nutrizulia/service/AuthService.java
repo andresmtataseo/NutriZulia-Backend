@@ -1,10 +1,14 @@
 package com.nutrizulia.service;
 
 import com.nutrizulia.dto.auth.AuthResponse;
+import com.nutrizulia.dto.UsuarioInstitucionDto;
 import com.nutrizulia.dto.auth.LoginRequest;
 import com.nutrizulia.dto.auth.RegisterRequest;
 import com.nutrizulia.jwt.JwtService;
 import com.nutrizulia.model.Usuario;
+import com.nutrizulia.model.UsuarioInstitucion;
+import com.nutrizulia.repository.UsuarioInstitucionRepository;
+
 import com.nutrizulia.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,6 +16,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthService implements IAuthService {
@@ -25,13 +32,21 @@ public class AuthService implements IAuthService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private UsuarioInstitucionRepository usuarioInstitucionRepository;
+
     @Override
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave()));
-        UserDetails usuario = usuarioRepository.findByCedula(request.getCedula()).orElseThrow();
-        String token = jwtService.getToken(usuario);
+        Usuario usuario = usuarioRepository.findByCedula(request.getCedula()).orElseThrow();
+        String token = jwtService.getToken((UserDetails) usuario);
+
+        List<UsuarioIn stitucion> rolesPorInstitucion = usuarioInstitucionRepository.findByUsuario(usuario);
+
         return AuthResponse.builder()
                 .token(token)
+                .usuario(usuario)
+                .rolesPorInstitucion(rolesPorInstitucion)
                 .build();
     }
 
