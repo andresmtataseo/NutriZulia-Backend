@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -43,12 +44,17 @@ public class Usuario implements UserDetails {
     @Column(name = "clave", nullable = false)
     private String clave;
 
-    @Column(name = "is_active", nullable = false)
-    private boolean isActive = true;
+    @Column(name = "is_enabled", nullable = false)
+    private boolean isEnabled = true;
+
+    @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<UsuarioInstitucion> usuarioInstituciones;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ADMINISTRADOR_WEB"));  // el usuario puede tener diferentes roles dependiendo de la institucion
+        return this.usuarioInstituciones.stream()
+                .map(ui -> new SimpleGrantedAuthority(ui.getRol().getNombre()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -78,6 +84,6 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.isEnabled;
     }
 }

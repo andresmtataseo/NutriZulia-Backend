@@ -1,7 +1,7 @@
 package com.nutrizulia.service;
 
 import com.nutrizulia.dto.auth.AuthResponse;
-import com.nutrizulia.dto.UsuarioInstitucionDto;
+import com.nutrizulia.dto.auth.UsuarioInstitucionDto;
 import com.nutrizulia.dto.auth.LoginRequest;
 import com.nutrizulia.dto.auth.RegisterRequest;
 import com.nutrizulia.jwt.JwtService;

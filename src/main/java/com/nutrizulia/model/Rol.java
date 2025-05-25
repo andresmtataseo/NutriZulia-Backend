@@ -17,7 +17,7 @@ public class Rol {
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "nombre", nullable = false)
+    @Column(name = "nombre", nullable = false, unique = true)
     private String nombre;
 
 }

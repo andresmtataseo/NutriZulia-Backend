@@ -1,4 +1,4 @@
-package com.nutrizulia.dto;
+package com.nutrizulia.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

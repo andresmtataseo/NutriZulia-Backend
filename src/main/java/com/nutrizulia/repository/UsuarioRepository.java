@@ -2,11 +2,20 @@ package com.nutrizulia.repository;
 
 import com.nutrizulia.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     Optional<Usuario> findByCedula(String cedula);
+
+     @Query("SELECT u FROM Usuario u " +
+             "LEFT JOIN FETCH u.usuarioInstituciones ui " +
+             "LEFT JOIN FETCH ui.rol " +
+             "WHERE u.cedula = :cedula")
+     Optional<Usuario> findByCedulaWithRoles(@Param("cedula") String cedula);
+
 
 }
