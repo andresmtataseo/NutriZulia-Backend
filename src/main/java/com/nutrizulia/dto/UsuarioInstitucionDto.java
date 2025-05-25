@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UsuarioInstitucionDto {
 
+    private Integer id;
+    private Integer idUsuario;
     private Integer institucionId;
     private String institucionNombre;
     private Integer rolId;

@@ -45,6 +45,8 @@ public class AuthService implements IAuthService {
         // 5. Mapear la lista de entidades UsuarioInstitucion a DTOs
         List<UsuarioInstitucionDto> institucionesRolesDto = rolesPorInstitucion.stream()
                 .map(ui -> UsuarioInstitucionDto.builder()
+                        .id(ui.getId())
+                        .idUsuario(ui.getUsuario().getId())
                         .institucionId(ui.getInstitucion().getId())
                         .institucionNombre(ui.getInstitucion().getNombre())
                         .rolId(ui.getRol().getId())
