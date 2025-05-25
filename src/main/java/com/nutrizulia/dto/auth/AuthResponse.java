@@ -1,5 +1,7 @@
 package com.nutrizulia.dto.auth;
 
+import com.nutrizulia.dto.UsuarioInstitucionDto;
+import com.nutrizulia.model.UsuarioInstitucion;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

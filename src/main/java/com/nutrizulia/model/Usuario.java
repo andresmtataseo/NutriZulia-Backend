@@ -48,7 +48,7 @@ public class Usuario implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ADMINISTRADOR_WEB"));
+        return List.of(new SimpleGrantedAuthority("ADMINISTRADOR_WEB"));  // el usuario puede tener diferentes roles dependiendo de la institucion
     }
 
     @Override

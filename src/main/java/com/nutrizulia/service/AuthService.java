@@ -31,7 +31,6 @@ public class AuthService implements IAuthService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private AuthenticationManager authenticationManager;
-
     @Autowired
     private UsuarioInstitucionRepository usuarioInstitucionRepository;
 
@@ -41,12 +40,28 @@ public class AuthService implements IAuthService {
         Usuario usuario = usuarioRepository.findByCedula(request.getCedula()).orElseThrow();
         String token = jwtService.getToken((UserDetails) usuario);
 
-        List<UsuarioIn stitucion> rolesPorInstitucion = usuarioInstitucionRepository.findByUsuario(usuario);
+        List<UsuarioInstitucion> rolesPorInstitucion = usuarioInstitucionRepository.findByUsuario(usuario);
 
+        // 5. Mapear la lista de entidades UsuarioInstitucion a DTOs
+        List<UsuarioInstitucionDto> institucionesRolesDto = rolesPorInstitucion.stream()
+                .map(ui -> UsuarioInstitucionDto.builder()
+                        .institucionId(ui.getInstitucion().getId())
+                        .institucionNombre(ui.getInstitucion().getNombre())
+                        .rolId(ui.getRol().getId())
+                        .rolNombre(ui.getRol().getNombre())
+                        .build())
+                .collect(Collectors.toList());
+
+        // 6. Construir y devolver la respuesta de autenticación
         return AuthResponse.builder()
                 .token(token)
-                .usuario(usuario)
-                .rolesPorInstitucion(rolesPorInstitucion)
+                .id(usuario.getId())
+                .cedula(usuario.getCedula())
+                .nombres(usuario.getNombres())
+                .apellidos(usuario.getApellidos())
+                .telefono(usuario.getTelefono())
+                .correo(usuario.getCorreo())
+                .institucionesRoles(institucionesRolesDto) // Asigna la lista de DTOs mapeados
                 .build();
     }
 
