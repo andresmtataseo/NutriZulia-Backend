@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,14 @@ public class JwtService {
     @Value("${jwt.expiration.web}")
     private int expirationWeb;
 
-    public String getToken(UserDetails user) { return getToken(new HashMap<>(), user); }
+    public String getToken(UserDetails user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("roles", user.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList());
+
+        return getToken(claims, user);
+    }
 
     public String getToken(Map<String, Object> claims, UserDetails user) {
         return Jwts
@@ -52,7 +60,7 @@ public class JwtService {
         return (cedula.equals(userDetails.getUsername())&& !isTokenExpired(token));
     }
 
-    private Claims getAllClaims(String token)
+    public Claims getAllClaims(String token)
     {
         return Jwts
                 .parserBuilder()
