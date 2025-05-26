@@ -35,6 +35,11 @@ public class ParroquiaService implements IParroquiaService {
     }
 
     @Override
+    public Parroquia getParroquiaById(Integer idParroquia) {
+        return parroquiaRepository.findById(idParroquia).orElse(null);
+    }
+
+    @Override
     public Parroquia saveParroquia(Parroquia parroquia) {
         return parroquiaRepository.save(parroquia);
     }

@@ -9,6 +9,8 @@ public interface IEstadoService {
 
     public List<Estado> getEstados(Integer idEstado, String nombre);
 
+    public Estado getEstadoById(Integer idEstado);
+
     public Estado saveEstado(Estado estado);
 
     public void deleteEstado(Estado estado);

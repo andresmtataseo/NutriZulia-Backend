@@ -11,18 +11,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "tipos_instituciones")
-@Schema(description = "Entidad que representa el tipo de una institución")
-public class TipoInstitucion {
+@Table(name = "nacionalidad")
+@Schema(description = "Entidad que representa la nacionalidad de un paciente.")
+public class Nacionalidad {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    @Schema(description = "ID único del tipo de institución", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Identificador único de la nacionalidad", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
     private Integer id;
 
     @Column(name = "nombre", nullable = false)
-    @NotBlank(message = "El nombre del tipo de institución es obligatorio")
-    @Schema(description = "Nombre del tipo de institución", example = "Hospital", required = true)
+    @NotBlank(message = "El nombre de la nacionalidad no puede estar vacío")
+    @Schema(description = "Nombre de la nacionalidad", example = "Venezolana")
     private String nombre;
+
 }

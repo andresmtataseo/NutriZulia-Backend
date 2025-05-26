@@ -35,6 +35,11 @@ public class MunicipioService implements IMunicipioService {
     }
 
     @Override
+    public Municipio getMunicipioById(Integer idMunicipio) {
+        return municipioRepository.findById(idMunicipio).orElse(null);
+    }
+
+    @Override
     public Municipio saveMunicipio(Municipio municipio) {
         return municipioRepository.save(municipio);
     }

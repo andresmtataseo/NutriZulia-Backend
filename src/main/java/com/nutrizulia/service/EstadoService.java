@@ -34,6 +34,11 @@ public class EstadoService implements IEstadoService {
     }
 
     @Override
+    public Estado getEstadoById(Integer idEstado) {
+        return estadoRepository.findById(idEstado).orElse(null);
+    }
+
+    @Override
     public Estado saveEstado(Estado estado) {
         return estadoRepository.save(estado);
     }

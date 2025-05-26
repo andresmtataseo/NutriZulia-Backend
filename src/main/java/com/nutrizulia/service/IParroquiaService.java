@@ -6,10 +6,12 @@ import java.util.List;
 
 public interface IParroquiaService {
 
-    public List<Parroquia> getParroquias(Integer idMunicipio, Integer idParroquia, String nombre);
+    List<Parroquia> getParroquias(Integer idMunicipio, Integer idParroquia, String nombre);
 
-    public Parroquia saveParroquia(Parroquia parroquia);
+    Parroquia getParroquiaById(Integer idParroquia);
 
-    public void deleteParroquia(Parroquia parroquia);
+    Parroquia saveParroquia(Parroquia parroquia);
+
+    void deleteParroquia(Parroquia parroquia);
 
 }
