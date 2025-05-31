@@ -1,7 +1,7 @@
 package com.nutrizulia.controller;
 
-import com.nutrizulia.model.Municipio;
-import com.nutrizulia.model.Parroquia;
+import com.nutrizulia.dto.error.ErrorResponse;
+import com.nutrizulia.dto.pre.ParroquiaDto;
 import com.nutrizulia.service.IParroquiaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -10,87 +10,42 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("api")
 @CrossOrigin(value = "http://localhost:3000")
+@Tag(name = "Datos precargados", description = "API de datos precargados")
+@SecurityRequirement(name = "bearerAuth")
 public class ParroquiaController {
 
-    @Autowired
-    private IParroquiaService parroquiaService;
+    private final IParroquiaService parroquiaService;
 
-    // Listar
-    @Operation(summary = "Obtener lista de parroquias", description = "Devuelve una lista de parroquias opcionalmente filtradas por municipio, id o nombre")
+    @Operation(summary = "Obtener lista de parroquias por municipio", description = "Devuelve una lista de parroquias por municipio. **Requiere autenticación.**")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista obtenida exitosamente",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Parroquia.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content)
+            @ApiResponse(responseCode = "200", description = "Lista obtenida exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ParroquiaDto.class))),
+            @ApiResponse(responseCode = "400", description = "Faltan parámetros requeridos o son inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "No encontrado - El recurso solicitado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("parroquias")
-    public ResponseEntity<List<Parroquia>> getParroquias(
-            @Parameter(description = "ID del municipio al que pertenece la parroquia", required = true, example = "1")
-            @RequestParam Integer idMunicipio,
-            @Parameter(description = "ID de la parroquia", example = "1")
-            @RequestParam(required = false) Integer idParroquia,
-            @Parameter(description = "Nombre de la parroquia", example = "San Francisco")
-            @RequestParam(required = false) String nombre) {
+    public ResponseEntity<List<ParroquiaDto>> getParroquias( @Valid
+            @Parameter(description = "ID del municipio al que pertenece la parroquia", required = true, example = "326")
+            @RequestParam Integer idMunicipio) {
 
-        List<Parroquia> parroquias = parroquiaService.getParroquias(idMunicipio, idParroquia, nombre);
-        return new ResponseEntity<>(parroquias, HttpStatus.OK);
-    }
-
-    // Crear
-    @Operation(summary = "Crear una nueva parroquia", description = "Guarda una nueva parroquia en la base de datos")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Parroquia creada exitosamente",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Parroquia.class))),
-            @ApiResponse(responseCode = "400", description = "Datos inválidos", content = @Content)
-    })
-    @PreAuthorize("hasAuthority('ROLE_ADMIN_WEB')")
-    @PostMapping("parroquias")
-    public ResponseEntity<Parroquia> saveParroquia(@Valid @RequestBody Parroquia parroquia) {
-        Parroquia nuevaParroquia = parroquiaService.saveParroquia(parroquia);
-        return new ResponseEntity<>(nuevaParroquia, HttpStatus.CREATED);
-    }
-
-    // Actualizar
-    @Operation(summary = "Actualizar una parroquia existente", description = "Actualiza los datos de una parroquia existente")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Parroquia actualizada exitosamente",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Parroquia.class))),
-            @ApiResponse(responseCode = "400", description = "Datos inválidos", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Parroquia no encontrada", content = @Content)
-    })
-    @PreAuthorize("hasAuthority('ROLE_ADMIN_WEB')")
-    @PutMapping("parroquias/{id}")
-    public ResponseEntity<Parroquia> updateParroquia(
-            @Parameter(description = "ID de la parroquia a actualizar", required = true, example = "1")
-            @PathVariable Integer id,
-            @Valid @RequestBody Parroquia parroquia) {
-
-        if (!id.equals(parroquia.getId())) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
-        Parroquia existente = parroquiaService.getParroquiaById(id);
-        if (existente == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Parroquia parroquiaActualizada = parroquiaService.saveParroquia(parroquia);
-        return ResponseEntity.ok(parroquiaActualizada);
+        List<ParroquiaDto> parroquias = parroquiaService.getParroquias(idMunicipio);
+        return ResponseEntity.ok(parroquias);
     }
 
 }

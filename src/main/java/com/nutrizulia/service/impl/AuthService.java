@@ -1,4 +1,4 @@
-package com.nutrizulia.service;
+package com.nutrizulia.service.impl;
 
 import com.nutrizulia.dto.auth.AuthResponse;
 import com.nutrizulia.dto.auth.UsuarioInstitucionDto;
@@ -10,6 +10,8 @@ import com.nutrizulia.model.UsuarioInstitucion;
 import com.nutrizulia.repository.UsuarioInstitucionRepository;
 
 import com.nutrizulia.repository.UsuarioRepository;
+import com.nutrizulia.service.IAuthService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,19 +22,15 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Service
 public class AuthService implements IAuthService {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-    @Autowired
-    private JwtService jwtService;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private UsuarioInstitucionRepository usuarioInstitucionRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final UsuarioInstitucionRepository usuarioInstitucionRepository;
 
     @Override
     public AuthResponse login(LoginRequest request) {

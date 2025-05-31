@@ -6,8 +6,8 @@ import com.nutrizulia.dto.auth.RegisterRequest;
 
 public interface IAuthService {
 
-    public AuthResponse login(LoginRequest loginRequest);
+    AuthResponse login(LoginRequest loginRequest);
 
-    public AuthResponse register(RegisterRequest registerRequest);
+    AuthResponse register(RegisterRequest registerRequest);
 
 }

@@ -1,16 +1,16 @@
 package com.nutrizulia.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "estados")
-public class Estado {
+@Table(name = "especialidades")
+public class Especialidad {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,4 +19,5 @@ public class Estado {
 
     @Column(name = "nombre", nullable = false)
     private String nombre;
+
 }

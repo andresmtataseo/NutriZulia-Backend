@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,7 +30,8 @@ public class Institucion {
     private TipoInstitucion tipoInstitucion;
 
     @Column(name = "nombre", nullable = false)
-    @NotBlank(message = "El nombre de la institución es obligatorio")
+    @NotBlank(message = "El nombre no puede estar vacío")
+    @Size(max = 255, message = "El nombre es de máximo 255 caracteres")
     @Schema(description = "Nombre de la institución", example = "Hospital General del Sur", required = true)
     private String nombre;
 }

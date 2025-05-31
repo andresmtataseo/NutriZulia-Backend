@@ -1,18 +1,21 @@
 package com.nutrizulia.dto.auth;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
+@Schema(name = "Login Request", description = "Solicitud de inicio de sesión de usuario")
 public class LoginRequest {
-    @NotBlank(message = "La cedula es obligatoria")
-    String cedula;
-    @NotBlank(message = "La clave es obligatoria")
-    String clave;
+
+    @Schema(description = "Número de cédula del usuario", example = "V-12345678", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "La cédula no puede estar vacía")
+    @Size(min = 10, max = 10, message = "La cédula debe tener 10 caracteres")
+    private String cedula;
+
+    @Schema(description = "Contraseña del usuario", example = "miContraseñaSegura123", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "La contraseña no puede estar vacía")
+    @Size(min = 4, message = "La contraseña debe tener al menos 6 caracteres")
+    private String clave;
 }

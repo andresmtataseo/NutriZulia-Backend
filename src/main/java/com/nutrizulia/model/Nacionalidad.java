@@ -3,6 +3,7 @@ package com.nutrizulia.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Table(name = "nacionalidad")
-@Schema(description = "Entidad que representa la nacionalidad de un paciente.")
+@Schema(description = "Entidad que representa una nacionalidad")
 public class Nacionalidad {
 
     @Id
@@ -22,8 +23,9 @@ public class Nacionalidad {
     private Integer id;
 
     @Column(name = "nombre", nullable = false)
-    @NotBlank(message = "El nombre de la nacionalidad no puede estar vacío")
-    @Schema(description = "Nombre de la nacionalidad", example = "Venezolana")
+    @NotBlank(message = "El nombre no puede estar vacío")
+    @Size(max = 255, message = "El nombre es de máximo 255 caracteres")
+    @Schema(description = "Nombre de la nacionalidad", example = "Venezolano")
     private String nombre;
 
 }
