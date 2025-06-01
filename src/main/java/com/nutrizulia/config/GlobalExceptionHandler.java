@@ -14,6 +14,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.security.core.AuthenticationException; // Importar AuthenticationException
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -151,6 +153,45 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(errorResponse, ex.getStatusCode());
+    }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(
+            NoHandlerFoundException ex, HttpServletRequest request) {
+
+        String message = String.format("Recurso no encontrado: La ruta '%s' con el método '%s' no existe.",
+                ex.getRequestURL(), ex.getHttpMethod());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(message)
+                .path(request.getRequestURI())
+                .validationErrors(null)
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    // 9. NUEVO: Manejo de Recursos Estáticos no Encontrados (NoResourceFoundException) - HTTP 404 Not Found
+    // Esto es para recursos estáticos específicos que Spring no puede encontrar (menos común para APIs puras).
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFoundException(
+            NoResourceFoundException ex, HttpServletRequest request) {
+
+        String message = String.format("Recurso estático no encontrado: '%s'.", ex.getResourcePath());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(message)
+                .path(request.getRequestURI())
+                .validationErrors(null)
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     // Manejo de Excepciones Genéricas (Catch-all para cualquier otra excepción no manejada) - HTTP 500 Internal Server Error

@@ -22,16 +22,16 @@ public class UsuarioInstitucion {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", nullable = false)
-    @NotNull(message = "El usuario no puede ser nulo")
-    @Schema(description = "Usuario asociado a la institución")
-    private Usuario usuario;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "institucion_id", nullable = false)
     @NotNull(message = "La institución no puede ser nula")
     @Schema(description = "Institución a la que pertenece el usuario")
     private Institucion institucion;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    @NotNull(message = "El usuario no puede ser nulo")
+    @Schema(description = "Usuario asociado a la institución")
+    private Usuario usuario;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rol_id", nullable = false)

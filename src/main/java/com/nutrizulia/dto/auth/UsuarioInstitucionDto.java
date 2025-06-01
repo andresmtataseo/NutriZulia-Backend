@@ -28,7 +28,7 @@ public class UsuarioInstitucionDto {
     @Schema(description = "Identificador único del rol que el usuario tiene dentro de esta institución.", example = "3")
     private Integer rolId;
 
-    @Schema(description = "Nombre descriptivo del rol del usuario en la institución (ej. 'Administrador', 'Doctor', 'Paciente').", example = "DOCTOR")
+    @Schema(description = "Nombre descriptivo del rol del usuario en la institución.", example = "ROLE_NUTRICIONISTA_MOVIL")
     private String rolNombre;
 
 }

@@ -12,7 +12,7 @@ public class EstadoDto {
     @Schema(description = "Identificador único del estado", example = "23", accessMode = Schema.AccessMode.READ_ONLY)
     private Integer id;
 
-    @Schema(description = "Nombre del estado", example = "ZULIA", required = true)
+    @Schema(description = "Nombre del estado", example = "ZULIA")
     @NotBlank(message = "El nombre no puede estar en blanco")
     @Size(max = 255, message = "El nombre no puede exceder los 255 caracteres")
     private String nombre;

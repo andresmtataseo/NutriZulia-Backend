@@ -1,28 +1,18 @@
 package com.nutrizulia.model;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "tipos_instituciones")
-@Schema(description = "Entidad que representa el tipo de una institución")
 public class TipoInstitucion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    @Schema(description = "ID único del tipo de institución", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
     private Integer id;
 
     @Column(name = "nombre", nullable = false)
-    @NotBlank(message = "El nombre del tipo de institución es obligatorio")
-    @Schema(description = "Nombre del tipo de institución", example = "Hospital", required = true)
     private String nombre;
 }
