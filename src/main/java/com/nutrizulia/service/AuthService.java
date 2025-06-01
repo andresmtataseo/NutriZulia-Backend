@@ -1,4 +1,4 @@
-package com.nutrizulia.service.impl;
+package com.nutrizulia.service;
 
 import com.nutrizulia.dto.auth.AuthResponse;
 import com.nutrizulia.dto.auth.UsuarioInstitucionDto;
@@ -10,9 +10,7 @@ import com.nutrizulia.model.UsuarioInstitucion;
 import com.nutrizulia.repository.UsuarioInstitucionRepository;
 
 import com.nutrizulia.repository.UsuarioRepository;
-import com.nutrizulia.service.IAuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -36,7 +34,7 @@ public class AuthService implements IAuthService {
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave()));
         Usuario usuario = usuarioRepository.findByCedula(request.getCedula()).orElseThrow();
-        String token = jwtService.getToken((UserDetails) usuario);
+        String token = jwtService.getToken(usuario);
 
         List<UsuarioInstitucion> rolesPorInstitucion = usuarioInstitucionRepository.findByUsuario(usuario);
 
