@@ -1,4 +1,4 @@
-package com.nutrizulia.repository.pre;
+package com.nutrizulia.repository;
 
 import com.nutrizulia.model.Institucion;
 import org.springframework.data.jpa.repository.JpaRepository;

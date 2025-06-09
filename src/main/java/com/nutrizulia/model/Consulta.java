@@ -2,16 +2,15 @@ package com.nutrizulia.model;
 
 import com.nutrizulia.enums.Estado;
 import com.nutrizulia.enums.TipoConsulta;
+import com.nutrizulia.model.pre.Enfermedad;
+import com.nutrizulia.model.pre.Especialidad;
+import com.nutrizulia.model.pre.TipoActividad;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "consultas")
 public class Consulta {

@@ -1,17 +1,20 @@
-package com.nutrizulia.model;
+package com.nutrizulia.model.pre;
 
 import jakarta.persistence.*;
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "tipos_instituciones")
-public class TipoInstitucion {
-
+@Table(name = "municipios_sanitarios")
+public class MunicipioSanitario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
+
+    @ManyToOne
+    @JoinColumn(name = "estado_id", nullable = false)
+    private Estado estado;
 
     @Column(name = "nombre", nullable = false)
     private String nombre;

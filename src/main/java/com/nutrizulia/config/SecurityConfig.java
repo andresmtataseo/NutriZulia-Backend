@@ -1,7 +1,6 @@
 package com.nutrizulia.config;
 
 import com.nutrizulia.jwt.JwtAuthenticationFilter;
-// Elimina las importaciones de JwtAccessDeniedHandler y JwtAuthenticationEntryPoint si las manejas en GlobalExceptionHandler
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

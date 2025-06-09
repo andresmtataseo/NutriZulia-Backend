@@ -1,8 +1,8 @@
-package com.nutrizulia.controller.pre;
+package com.nutrizulia.controller;
 
 import com.nutrizulia.dto.error.ErrorResponse;
-import com.nutrizulia.dto.pre.InstitucionDto;
-import com.nutrizulia.service.pre.IInstitucionService;
+import com.nutrizulia.dto.InstitucionDto;
+import com.nutrizulia.service.IInstitucionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("api")
 @CrossOrigin(value = "http://localhost:3000")
-@Tag(name = "Datos precargados", description = "API de datos precargados")
+@Tag(name = "Administracion", description = "API Core")
 @SecurityRequirement(name = "bearerAuth")
 public class InstitucionController {
 

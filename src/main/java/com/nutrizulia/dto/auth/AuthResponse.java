@@ -1,5 +1,6 @@
 package com.nutrizulia.dto.auth;
 
+import com.nutrizulia.dto.UsuarioInstitucionDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

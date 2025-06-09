@@ -1,4 +1,4 @@
-package com.nutrizulia.model;
+package com.nutrizulia.model.pre;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -19,13 +19,13 @@ public class Enfermedad {
     @Column(name = "nombre", nullable = false)
     private String nombre;
 
-    @Column(name = "limite_genero", nullable = false, length = 6)
-    private String limiteGenero;
+    @Column(name = "genero", nullable = false)
+    private char genero;
 
-    @Column(name = "limite_inferior_edad", nullable = false, length = 4)
-    private String limiteInferiorEdad;
+    @Column(name = "edad_minima", nullable = false, length = 4)
+    private String edadMinima;
 
-    @Column(name = "limite_superior_edad", nullable = false, length = 4)
-    private String limiteSuperiorEdad;
+    @Column(name = "edad_maxima", nullable = false, length = 4)
+    private String edadMaxima;
 
 }

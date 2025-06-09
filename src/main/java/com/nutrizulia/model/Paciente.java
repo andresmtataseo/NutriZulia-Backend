@@ -1,18 +1,17 @@
 package com.nutrizulia.model;
 
 import com.nutrizulia.enums.Genero;
+import com.nutrizulia.model.pre.Etnia;
+import com.nutrizulia.model.pre.Nacionalidad;
+import com.nutrizulia.model.pre.Parroquia;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "pacientes")
 public class Paciente {
@@ -23,14 +22,10 @@ public class Paciente {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "institucion_id", nullable = false)
-    private Institucion institucion;
+    @JoinColumn(name = "usuario_institucion_id", nullable = false)
+    private UsuarioInstitucion usuarioInstitucion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", nullable = false)
-    private Usuario usuario;
-
-    @Column(name = "cedula", nullable = false)
+    @Column(name = "cedula", nullable = false, length = 13)
     private String cedula;
 
     @Column(name = "nombres", nullable = false)
@@ -58,10 +53,13 @@ public class Paciente {
     @JoinColumn(name = "parroquia_id", nullable = false)
     private Parroquia parroquiaId;
 
-    @Column(name = "telefono", nullable = false)
+    @Column(name = "domicilio", nullable = false)
+    private String domicilio;
+
+    @Column(name = "telefono", length = 12)
     private String telefono;
 
-    @Column(name = "correo", nullable = false)
+    @Column(name = "correo")
     private String correo;
 
     @Column(name = "fecha_hora_ingreso", nullable = false)

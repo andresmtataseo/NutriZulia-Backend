@@ -1,7 +1,7 @@
 package com.nutrizulia.mapper.pre;
 
 import com.nutrizulia.dto.pre.MunicipioDto;
-import com.nutrizulia.model.Municipio;
+import com.nutrizulia.model.pre.Municipio;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

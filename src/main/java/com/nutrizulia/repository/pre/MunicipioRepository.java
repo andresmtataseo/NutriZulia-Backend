@@ -1,6 +1,6 @@
 package com.nutrizulia.repository.pre;
 
-import com.nutrizulia.model.Municipio;
+import com.nutrizulia.model.pre.Municipio;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.nutrizulia.model;
+package com.nutrizulia.model.pre;
 
 import jakarta.persistence.*;
 import lombok.Data;

@@ -15,26 +15,26 @@ public class EnfermedadDto {
     @Schema(description = "Codigo internacional del CIE-10", example = "E11")
     @NotBlank(message = "El codigo no puede estar en blanco")
     @Size(max = 4, message = "El codigo internacional no puede exceder los 4 caracteres")
-    private String codigoInternacional;
+    private String codigo_internacional;
 
     @Schema(description = "Nombre de la enfermedad", example = "DIABETES MELLITUS TIPO 2")
     @NotBlank(message = "El nombre no puede estar en blanco")
     @Size(max = 255, message = "El nombre no puede exceder los 255 caracteres")
     private String nombre;
 
-    @Schema(description = "Género al que aplica la enfermedad", example = "HOMBRE")
+    @Schema(description = "Género al que aplica la enfermedad", example = "A")
     @NotBlank(message = "El limite del genero no puede estar en blanco")
-    @Size(max = 6, message = "El género no puede exceder los 6 caracteres")
-    private String limiteGenero;
+    @Size(max = 1, message = "El género no puede exceder de un caracter")
+    private char genero;
 
     @Schema(description = "Edad mínima a la que aplica la enfermedad", example = "028D")
     @NotBlank(message = "La edad mínima no puede estar en blanco")
     @Size(max = 4, message = "La edad mínima no puede exceder los 4 caracteres")
-    private String limiteInferiorEdad;
+    private String edad_minima;
 
     @Schema(description = "Edad máxima a la que aplica la enfermedad", example = "120A")
     @NotBlank(message = "La edad máxima no puede estar en blanco")
     @Size(max = 4, message = "La edad máxima no puede exceder los 4 caracteres")
-    private String limiteSuperiorEdad;
+    private String edad_maxima;
 
 }

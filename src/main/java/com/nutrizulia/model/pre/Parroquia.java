@@ -1,12 +1,12 @@
-package com.nutrizulia.model;
+package com.nutrizulia.model.pre;
 
 import jakarta.persistence.*;
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "municipios")
-public class Municipio {
+@Table(name = "parroquias")
+public class Parroquia {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,9 +14,10 @@ public class Municipio {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "estado_id", nullable = false)
-    private Estado estado;
+    @JoinColumn(name = "municipio_id", nullable = false)
+    private Municipio municipio;
 
     @Column(name = "nombre", nullable = false)
     private String nombre;
+
 }

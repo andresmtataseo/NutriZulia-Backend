@@ -1,6 +1,6 @@
 package com.nutrizulia.mapper.pre;
 
-import com.nutrizulia.model.Etnia;
+import com.nutrizulia.model.pre.Etnia;
 import com.nutrizulia.dto.pre.EtniaDto;
 import org.mapstruct.Mapper;
 

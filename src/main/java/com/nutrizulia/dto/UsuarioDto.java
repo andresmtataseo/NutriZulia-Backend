@@ -1,13 +1,12 @@
 package com.nutrizulia.dto;
 
-import com.nutrizulia.model.UsuarioInstitucion;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.util.List;
 
 @Data
 @Schema(name = "Usuario", description = "Entidad que representa a un usuario del sistema")
@@ -24,12 +23,12 @@ public class UsuarioDto {
     @Schema(description = "Nombres del usuario", example = "JOSE RAMON")
     @NotBlank(message = "El nombre no puede estar en blanco")
     @Size(max = 255, message = "El nombre no puede exceder los 255 caracteres")
-    private String nombre;
+    private String nombres;
 
     @Schema(description = "Apellidos del usuario", example = "PEREZ TORRES")
     @NotBlank(message = "El apellido no puede estar en blanco")
     @Size(max = 255, message = "El apellido no puede exceder los 255 caracteres")
-    private String apellido;
+    private String apellidos;
 
     @Schema(description = "Teléfono del usuario", example = "0412-1234567")
     @NotBlank(message = "El teléfono es obligatorio")
@@ -47,6 +46,10 @@ public class UsuarioDto {
     @Size(min = 8, message = "La clave debe tener al menos 8 caracteres")
     private String clave;
 
-    @Schema(description = "Lista de relaciones del usuario con instituciones")
-    private List<UsuarioInstitucion> usuarioInstituciones;
+    @Schema(description = "Estado del usuario", example = "true")
+    @NotNull(message = "El estado del usuario es obligatorio")
+    private Boolean is_enabled;
+
+//    @Schema(description = "Lista de relaciones del usuario con instituciones")
+//    private List<UsuarioInstitucion> usuarioInstituciones;
 }

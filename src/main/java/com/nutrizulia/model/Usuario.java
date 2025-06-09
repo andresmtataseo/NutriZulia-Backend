@@ -45,7 +45,7 @@ public class Usuario implements UserDetails {
     private String clave;
 
     @Column(name = "is_enabled", nullable = false)
-    private boolean isEnabled = true;
+    private Boolean isEnabled = true;
 
     @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<UsuarioInstitucion> usuarioInstituciones;
@@ -54,7 +54,11 @@ public class Usuario implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (this.usuarioInstituciones == null) {
+            return List.of();
+        }
         return this.usuarioInstituciones.stream()
+                .filter(ui -> ui.getRol() != null && ui.getRol().getNombre() != null)
                 .map(ui -> new SimpleGrantedAuthority(ui.getRol().getNombre()))
                 .collect(Collectors.toList());
     }
@@ -85,7 +89,5 @@ public class Usuario implements UserDetails {
     }
 
     @Override
-    public boolean isEnabled() {
-        return this.isEnabled;
-    }
+    public boolean isEnabled() { return this.isEnabled != null && this.isEnabled; }
 }

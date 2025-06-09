@@ -1,12 +1,12 @@
-package com.nutrizulia.model;
+package com.nutrizulia.model.pre;
 
 import jakarta.persistence.*;
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "parentescos")
-public class Parentesco {
+@Table(name = "nacionalidades")
+public class Nacionalidad {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
