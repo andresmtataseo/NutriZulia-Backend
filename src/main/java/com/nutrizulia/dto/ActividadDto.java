@@ -6,13 +6,14 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 @Schema(description = "Entidad que representa una actividad de salud realizada por un usuario en una institución")
 public class ActividadDto {
 
     @Schema(description = "Identificador único de la actividad", example = "2", accessMode = Schema.AccessMode.READ_ONLY)
-    private Integer id;
+    private UUID id;
 
     @Schema(description = "Identificador de la relación usuario-institución-rol a la que pertenece esta actividad. Es el enlace al contexto de seguridad del usuario dentro de una institución.", example = "14")
     @NotNull(message = "El identificador de la relación usuario-institución-rol no puede ser nulo")

@@ -2,13 +2,13 @@ package com.nutrizulia.model;
 
 import com.nutrizulia.enums.Estado;
 import com.nutrizulia.enums.TipoConsulta;
-import com.nutrizulia.model.pre.Enfermedad;
 import com.nutrizulia.model.pre.Especialidad;
 import com.nutrizulia.model.pre.TipoActividad;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Entity
@@ -16,17 +16,12 @@ import java.time.LocalDateTime;
 public class Consulta {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Integer id;
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "institucion_id", nullable = false)
-    private Institucion institucion;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", nullable = false)
-    private Usuario usuario;
+    @JoinColumn(name = "usuario_institucion_id", nullable = false)
+    private UsuarioInstitucion usuarioInstitucion;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "paciente_id", nullable = false)
@@ -50,14 +45,6 @@ public class Consulta {
     @Column(name = "fecha_hora_programada")
     private LocalDateTime fechaHoraProgramada;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "diagnostico_principal_id")
-    private Enfermedad enfermedadPrincipal;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "diagnostico_secundario_id")
-    private Enfermedad enfermedadSecundario;
-
     @Column(name = "observaciones")
     private String observaciones;
 
@@ -68,7 +55,7 @@ public class Consulta {
     @Column(name = "estado", nullable = false)
     private Estado estado;
 
-    @OneToOne(mappedBy = "consulta", cascade = CascadeType.ALL, orphanRemoval = true)
-    private SignoVital signosVitales;
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
 }

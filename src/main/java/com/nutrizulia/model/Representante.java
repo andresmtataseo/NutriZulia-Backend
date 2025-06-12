@@ -11,13 +11,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-
 @Data
 @Entity
-@Table(name = "pacientes", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_paciente_cedula_institucion", columnNames = {"cedula", "usuario_institucion_id"})
+@Table(name = "representantes", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_representante_cedula_institucion", columnNames = {"cedula", "usuario_institucion_id"})
 })
-public class Paciente {
+public class Representante {
 
     @Id
     @Column(name = "id")
@@ -27,7 +26,7 @@ public class Paciente {
     @JoinColumn(name = "usuario_institucion_id", nullable = false)
     private UsuarioInstitucion usuarioInstitucion;
 
-    @Column(name = "cedula", nullable = false, length = 13)
+    @Column(name = "cedula", nullable = false, length = 10)
     private String cedula;
 
     @Column(name = "nombres", nullable = false)

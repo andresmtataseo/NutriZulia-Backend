@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -44,7 +45,9 @@ public class Usuario implements UserDetails {
     @Column(name = "clave", nullable = false)
     private String clave;
 
+    @ColumnDefault("true")
     @Column(name = "is_enabled", nullable = false)
+    @Builder.Default
     private Boolean isEnabled = true;
 
     @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY, cascade = CascadeType.ALL)

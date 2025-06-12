@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Entity
@@ -12,9 +14,8 @@ import java.time.LocalDate;
 public class Actividad {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Integer id;
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_institucion_id", nullable = false)
@@ -50,4 +51,7 @@ public class Actividad {
 
     @Column(name = "url_evidencia")
     private String urlEvidencia;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 }
