@@ -4,6 +4,7 @@ import com.nutrizulia.enums.TipoLactancia;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -30,8 +31,8 @@ public class DetalleObstetricia {
     @Column(name = "semanas_gestacion")
     private Integer semanasGestacion;
 
-    @Column(name = "peso_pre_embarazo")
-    private Double pesoPreEmbarazo ;
+    @Column(name = "peso_pre_embarazo", precision = 12, scale = 6)
+    private BigDecimal pesoPreEmbarazo;
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;

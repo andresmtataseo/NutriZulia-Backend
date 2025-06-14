@@ -13,10 +13,6 @@ public class TipoIndicador {
     @Column(name = "id")
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "grupo_etario_id", nullable = false)
-    private GrupoEtario grupoEtario;
-
     @Column(name = "nombre", nullable = false)
     private String nombre;
 

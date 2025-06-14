@@ -38,9 +38,8 @@ public class Representante {
     @Column(name = "fecha_nacimiento", nullable = false)
     private LocalDate fechaNacimiento;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "genero", nullable = false)
-    private Genero genero;
+    private char genero;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "etnia_id", nullable = false)

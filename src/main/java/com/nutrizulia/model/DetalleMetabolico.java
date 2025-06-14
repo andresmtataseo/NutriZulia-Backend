@@ -3,6 +3,7 @@ package com.nutrizulia.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -28,8 +29,8 @@ public class DetalleMetabolico {
     @Column(name = "glicemia_aleatoria")
     private Integer glicemiaAleatoria;
 
-    @Column(name = "hemoglobina_glicosilada")
-    private Double hemoglobinaGlicosilada;
+    @Column(name = "hemoglobina_glicosilada", precision = 12, scale = 6)
+    private BigDecimal hemoglobinaGlicosilada;
 
     @Column(name = "trigliceridos")
     private Integer trigliceridos;

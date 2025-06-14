@@ -1,6 +1,7 @@
 package com.nutrizulia.model;
 
 import com.nutrizulia.model.pre.Enfermedad;
+import com.nutrizulia.model.pre.RiesgoBiologico;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -9,8 +10,8 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "riesgos_biologicos")
-public class RiesgoBiologico {
+@Table(name = "diagnosticos")
+public class Diagnostico {
 
     @Id
     @Column(name = "id")
@@ -21,7 +22,11 @@ public class RiesgoBiologico {
     private Consulta consulta;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "enfermedad_id", nullable = false)
+    @JoinColumn(name = "riesgo_biologico_id", nullable = false)
+    private RiesgoBiologico riesgoBiologico;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "enfermedad_id")
     private Enfermedad  enfermedad;
 
     @Column(name = "is_principal", nullable = false)

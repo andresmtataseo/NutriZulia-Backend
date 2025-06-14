@@ -9,8 +9,6 @@ import org.mapstruct.Mapping;
 public interface EnfermedadMapper {
 
     @Mapping(source = "codigoInternacional", target = "codigo_internacional")
-    @Mapping(source = "edadMinima", target = "edad_minima")
-    @Mapping(source = "edadMaxima", target = "edad_maxima")
     EnfermedadDto toDto(Enfermedad enfermedad);
 
 }

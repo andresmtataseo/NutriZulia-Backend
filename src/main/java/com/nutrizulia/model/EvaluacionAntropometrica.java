@@ -5,6 +5,7 @@ import com.nutrizulia.model.pre.TipoIndicador;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -30,9 +31,10 @@ public class EvaluacionAntropometrica {
     @JoinColumn(name = "tipo_indicador_id", nullable = false)
     private TipoIndicador tipoIndicador;
 
-    @Column(name = "valor_calculado", nullable = false)
-    private Double valorCalculado;
+    @Column(name = "valor_calculado", nullable = false, precision = 12, scale = 6)
+    private BigDecimal valorCalculado;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "tipo_valor_calculado", nullable = false)
     private TipoValorCalculado tipoValorCalculado;
 

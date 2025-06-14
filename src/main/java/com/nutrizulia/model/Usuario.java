@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,6 +36,12 @@ public class Usuario implements UserDetails {
 
     @Column(name = "apellidos", nullable = false)
     private String apellidos;
+
+    @Column(name = "fecha_nacimiento", nullable = false)
+    private LocalDate fechaNacimiento;
+
+    @Column(name = "genero", nullable = false)
+    private char genero;
 
     @Column(name = "telefono", nullable = false, length = 12, unique = true)
     private String telefono;

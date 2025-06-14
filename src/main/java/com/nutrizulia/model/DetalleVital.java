@@ -3,6 +3,7 @@ package com.nutrizulia.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -31,8 +32,8 @@ public class DetalleVital {
     @Column(name = "frecuencia_respiratoria")
     private Integer frecuenciaRespiratoria;
 
-    @Column(name = "temperatura")
-    private Double temperatura;
+    @Column(name = "temperatura", precision = 12, scale = 6)
+    private BigDecimal temperatura;
 
     @Column(name = "saturacion_oxigeno")
     private Integer saturacionOxigeno;
