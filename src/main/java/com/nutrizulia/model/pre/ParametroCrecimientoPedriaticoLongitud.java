@@ -7,8 +7,8 @@ import java.math.BigDecimal;
 
 @Data
 @Entity
-@Table(name = "parametros_crecimientos_pedriaticos")
-public class ParametroCrecimientoPedriatico {
+@Table(name = "parametros_crecimientos_pedriaticos_longitud")
+public class ParametroCrecimientoPedriaticoLongitud {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,8 +26,11 @@ public class ParametroCrecimientoPedriatico {
     @Column(name = "genero", nullable = false)
     private char genero;
 
-    @Column(name = "edad_dia", nullable = false)
-    private Integer edadDia;
+    @Column(name = "longitud_cm", nullable = false, precision = 12, scale = 6)
+    private BigDecimal longitudCm;
+
+    @Column(name = "tipo_medicion", nullable = false)
+    private char tipoMedicion;
 
     @Column(name = "lambda", nullable = false, precision = 12, scale = 6)
     private BigDecimal lambda;
