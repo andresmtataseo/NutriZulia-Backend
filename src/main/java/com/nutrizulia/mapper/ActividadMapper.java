@@ -1,7 +1,7 @@
 package com.nutrizulia.mapper;
 
 import com.nutrizulia.dto.ActividadDto;
-import com.nutrizulia.model.Actividad;
+import com.nutrizulia.model.movil.Actividad;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

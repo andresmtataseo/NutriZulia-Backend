@@ -1,7 +1,7 @@
 package com.nutrizulia.mapper;
 
 import com.nutrizulia.dto.InstitucionDto;
-import com.nutrizulia.model.Institucion;
+import com.nutrizulia.model.admin.Institucion;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

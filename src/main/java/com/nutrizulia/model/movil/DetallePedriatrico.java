@@ -1,4 +1,4 @@
-package com.nutrizulia.model;
+package com.nutrizulia.model.movil;
 
 import com.nutrizulia.enums.TipoLactancia;
 import jakarta.persistence.*;

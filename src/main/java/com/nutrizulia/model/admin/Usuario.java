@@ -1,4 +1,4 @@
-package com.nutrizulia.model;
+package com.nutrizulia.model.admin;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

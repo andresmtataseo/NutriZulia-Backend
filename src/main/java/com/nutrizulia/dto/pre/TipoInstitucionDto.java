@@ -12,7 +12,7 @@ public class TipoInstitucionDto {
     @Schema(description = "Identificador único del tipo de institución", example = "2", accessMode = Schema.AccessMode.READ_ONLY)
     private Integer id;
 
-    @Schema(description = "Nombre del tipo de institución", example = "HOSPITAL")
+    @Schema(description = "Nombre del tipo de institución", example = "HOSPITAL TIPO I")
     @NotBlank(message = "El nombre del tipo de institución es obligatorio")
     @Size(max = 255, message = "El nombre no puede exceder los 255 caracteres")
     private String nombre;

@@ -16,10 +16,10 @@ public class GrupoEtario {
     @Column(name = "nombre", nullable = false)
     private String nombre;
 
-    @Column(name = "edad_minima", nullable = false)
-    private Integer edadMinima;
+    @Column(name = "edad_mes_minima", nullable = false)
+    private Integer edadMesMinima;
 
-    @Column(name = "edad_maxima", nullable = false)
-    private Integer edadMaxima;
+    @Column(name = "edad_mes_maxima", nullable = false)
+    private Integer edadMesMaxima;
 
 }

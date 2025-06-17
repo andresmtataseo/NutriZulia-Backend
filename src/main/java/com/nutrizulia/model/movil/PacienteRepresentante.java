@@ -1,5 +1,6 @@
-package com.nutrizulia.model;
+package com.nutrizulia.model.movil;
 
+import com.nutrizulia.model.admin.UsuarioInstitucion;
 import com.nutrizulia.model.pre.Parentesco;
 import jakarta.persistence.*;
 import lombok.Data;

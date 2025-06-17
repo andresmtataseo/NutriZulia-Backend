@@ -1,4 +1,4 @@
-package com.nutrizulia.model;
+package com.nutrizulia.model.movil;
 
 import com.nutrizulia.model.pre.Enfermedad;
 import com.nutrizulia.model.pre.RiesgoBiologico;

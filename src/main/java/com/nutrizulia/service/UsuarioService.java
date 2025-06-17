@@ -2,7 +2,7 @@ package com.nutrizulia.service;
 
 import com.nutrizulia.dto.UsuarioDto;
 import com.nutrizulia.mapper.UsuarioMapper;
-import com.nutrizulia.model.Usuario;
+import com.nutrizulia.model.admin.Usuario;
 import com.nutrizulia.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

@@ -4,7 +4,7 @@ import com.nutrizulia.dto.auth.AuthResponse;
 import com.nutrizulia.dto.auth.LoginRequest;
 import com.nutrizulia.dto.auth.RegisterRequest;
 import com.nutrizulia.jwt.JwtService;
-import com.nutrizulia.model.Usuario;
+import com.nutrizulia.model.admin.Usuario;
 
 import com.nutrizulia.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;

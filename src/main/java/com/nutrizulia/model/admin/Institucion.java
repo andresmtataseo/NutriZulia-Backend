@@ -1,4 +1,4 @@
-package com.nutrizulia.model;
+package com.nutrizulia.model.admin;
 
 import com.nutrizulia.model.pre.MunicipioSanitario;
 import com.nutrizulia.model.pre.TipoInstitucion;

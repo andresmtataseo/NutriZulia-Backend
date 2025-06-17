@@ -1,7 +1,7 @@
 package com.nutrizulia.service;
 
 import com.nutrizulia.dto.UsuarioDto;
-import com.nutrizulia.model.Usuario;
+import com.nutrizulia.model.admin.Usuario;
 
 import java.util.List;
 import java.util.Optional;

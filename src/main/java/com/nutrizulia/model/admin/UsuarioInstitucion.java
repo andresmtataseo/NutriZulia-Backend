@@ -1,12 +1,8 @@
-package com.nutrizulia.model;
+package com.nutrizulia.model.admin;
 
 import com.nutrizulia.model.pre.Rol;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 

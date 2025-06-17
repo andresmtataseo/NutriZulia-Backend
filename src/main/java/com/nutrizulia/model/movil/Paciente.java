@@ -1,6 +1,6 @@
-package com.nutrizulia.model;
+package com.nutrizulia.model.movil;
 
-import com.nutrizulia.enums.Genero;
+import com.nutrizulia.model.admin.UsuarioInstitucion;
 import com.nutrizulia.model.pre.Etnia;
 import com.nutrizulia.model.pre.Nacionalidad;
 import com.nutrizulia.model.pre.Parroquia;

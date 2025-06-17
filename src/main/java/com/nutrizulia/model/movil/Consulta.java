@@ -1,7 +1,8 @@
-package com.nutrizulia.model;
+package com.nutrizulia.model.movil;
 
 import com.nutrizulia.enums.Estado;
 import com.nutrizulia.enums.TipoConsulta;
+import com.nutrizulia.model.admin.UsuarioInstitucion;
 import com.nutrizulia.model.pre.Especialidad;
 import com.nutrizulia.model.pre.TipoActividad;
 import jakarta.persistence.*;

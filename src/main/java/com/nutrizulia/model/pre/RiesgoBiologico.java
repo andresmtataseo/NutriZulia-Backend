@@ -20,9 +20,9 @@ public class RiesgoBiologico {
     private char genero;
 
     @Column(name = "edad_mes_minima")
-    private char edadMesMinima;
+    private Integer edadMesMinima;
 
     @Column(name = "edad_mes_maxima")
-    private char edadMesMaxima;
+    private Integer edadMesMaxima;
 
 }
