@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-@Schema(name = "GrupoEtario", description = "Entidad que representa un Grupo Etario para la Evaluacion Antropometrica")
+@Schema(name = "Grupo Etario", description = "Entidad que representa un Grupo Etario para la Evaluacion Antropometrica")
 public class GrupoEtarioDto {
 
     @Schema(description = "Identificador único del grupo etario", example = "1", accessMode = Schema.AccessMode.READ_ONLY)

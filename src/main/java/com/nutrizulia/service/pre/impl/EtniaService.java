@@ -17,6 +17,7 @@ public class EtniaService implements IEtniaService {
     private final EtniaRepository etniaRepository;
     private final EtniaMapper etniaMapper;
 
+    @Override
     public List<EtniaDto> getEtnias() {
         return etniaRepository.findAll()
                 .stream()
