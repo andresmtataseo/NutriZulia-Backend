@@ -1,9 +1,7 @@
 package com.nutrizulia.controller.pre;
 
-import com.nutrizulia.dto.error.ErrorResponse;
-import com.nutrizulia.dto.pre.ReglaInterpretacionZScoreDto;
+import com.nutrizulia.dto.error.ApiResponseDto;
 import com.nutrizulia.dto.pre.TipoIndicadorDto;
-import com.nutrizulia.service.pre.IReglaInterpretacionZScoreService;
 import com.nutrizulia.service.pre.ITipoIndicadorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,9 +32,9 @@ public class TipoIndicadorController {
     @Operation(summary = "Obtener todos los tipos de indicadores de crecimiento.", description = "Permite recuperar una lista de todos los tipos de indicadores de crecimiento. **Requiere autenticación.**")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista recuperada exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = TipoIndicadorDto.class))),
-            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
 
     @GetMapping("v1/tiposIndicadores")

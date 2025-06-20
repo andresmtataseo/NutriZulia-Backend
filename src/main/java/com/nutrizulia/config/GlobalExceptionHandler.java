@@ -1,10 +1,12 @@
 package com.nutrizulia.config;
 
-import com.nutrizulia.dto.error.ErrorResponse;
+import com.nutrizulia.dto.error.ApiResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -26,189 +28,61 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 1. Manejo de Errores de Validación (@Valid) - HTTP 400 Bad Request
+    // --- Maneja excepciones de validación (@Valid) ---
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(
-            MethodArgumentNotValidException ex, WebRequest request) {
-
-        List<Map<String, String>> errors = ex.getBindingResult().getFieldErrors().stream()
-                .map(error -> Map.of(
-                        "field", error.getField(),
-                        "message", Objects.requireNonNull(error.getDefaultMessage(), "Validation error")
-                ))
+    public ResponseEntity<ApiResponseDto> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
+        List<String> errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage) // Solo toma el mensaje de error
                 .collect(Collectors.toList());
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message("Error de validación de campos.")
+        ApiResponseDto apiError = ApiResponseDto.builder()
+                .status(HttpStatus.BAD_REQUEST.value()) // 400
+                .message("Error de validación en los campos de entrada.")
                 .path(request.getDescription(false).replace("uri=", ""))
-                .validationErrors(errors)
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    // 2. Manejo de JSON mal formado / Tipo de cuerpo de solicitud incorrecto - HTTP 400 Bad Request
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
-            HttpMessageNotReadableException ex, HttpServletRequest request) {
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message("Formato de solicitud JSON/XML inválido o campo con tipo de dato incorrecto.")
-                .path(request.getRequestURI())
+                .errors(errors) // Incluimos los mensajes de error de campo
                 .build();
 
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
-    // 3. Manejo de Tipo de Argumento de Metodo Incorrecto (ej. @PathVariable String id, pero pasas un número) - HTTP 400 Bad Request
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(
-            MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
-
-        String message = String.format("El parámetro '%s' debe ser del tipo '%s'. Valor recibido: '%s'",
-                ex.getName(), Objects.requireNonNull(ex.getRequiredType()).getSimpleName(), ex.getValue());
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
+    // --- Maneja IllegalArgumentException (ej. "email ya existe") ---
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponseDto> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+        ApiResponseDto apiError = ApiResponseDto.builder()
+                .status(HttpStatus.BAD_REQUEST.value()) // 400
+                .message(ex.getMessage()) // Mensaje específico de la excepción
+                .path(request.getDescription(false).replace("uri=", ""))
                 .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message(message)
-                .path(request.getRequestURI())
                 .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
-    // 4. Manejo de Parámetro de Solicitud Requerido Faltante - HTTP 400 Bad Request
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameter(
-            MissingServletRequestParameterException ex, HttpServletRequest request) {
-
-        String message = String.format("El parámetro requerido '%s' del tipo '%s' no está presente.",
-                ex.getParameterName(), ex.getParameterType());
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
+    // --- Maneja BadCredentialsException (autenticación fallida) ---
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiResponseDto> handleBadCredentialsException(BadCredentialsException ex, WebRequest request) {
+        ApiResponseDto apiError = ApiResponseDto.builder()
+                .status(HttpStatus.UNAUTHORIZED.value()) // 401
+                .message("Credenciales de autenticación inválidas. Verifique su email y contraseña.")
+                .path(request.getDescription(false).replace("uri=", ""))
                 .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message(message)
-                .path(request.getRequestURI())
                 .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
     }
 
-    // 5. NUEVO: Manejo de Errores de Autenticación (como BadCredentialsException) - HTTP 401 Unauthorized**
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleAuthenticationException(
-            AuthenticationException ex, HttpServletRequest request) {
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
-                .message(ex.getMessage() != null ? ex.getMessage() : "Credenciales inválidas o token de autenticación requerido.")
-                .path(request.getRequestURI())
-                .validationErrors(null) // No aplica errores de validación de campos aquí
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
-    }
-
-    // NUEVO: Manejo de Acceso Denegado - HTTP 403 Forbidden
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDeniedException(
-            AccessDeniedException ex, HttpServletRequest request) {
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.FORBIDDEN.value())
-                .error(HttpStatus.FORBIDDEN.getReasonPhrase())
-                .message("Acceso denegado: No tienes permisos suficientes para acceder a este recurso.")
-                .path(request.getRequestURI())
-                .validationErrors(null)
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
-    }
-
-        // NUEVO: Manejo de ResponseStatusException (para errores como 404, 409, etc.)**
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ErrorResponse> handleResponseStatusException(
-            ResponseStatusException ex, HttpServletRequest request) {
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(ex.getStatusCode().value())
-                .error(ex.getStatusCode().toString())
-                .message(ex.getReason() != null ? ex.getReason() : "Ha ocurrido un error inesperado.")
-                .path(request.getRequestURI())
-                .validationErrors(null)
-                .build();
-
-        return new ResponseEntity<>(errorResponse, ex.getStatusCode());
-    }
-
-    @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(
-            NoHandlerFoundException ex, HttpServletRequest request) {
-
-        String message = String.format("Recurso no encontrado: La ruta '%s' con el método '%s' no existe.",
-                ex.getRequestURL(), ex.getHttpMethod());
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.NOT_FOUND.value())
-                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
-                .message(message)
-                .path(request.getRequestURI())
-                .validationErrors(null)
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
-    }
-
-    // 9. NUEVO: Manejo de Recursos Estáticos no Encontrados (NoResourceFoundException) - HTTP 404 Not Found
-    // Esto es para recursos estáticos específicos que Spring no puede encontrar (menos común para APIs puras).
-    @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNoResourceFoundException(
-            NoResourceFoundException ex, HttpServletRequest request) {
-
-        String message = String.format("Recurso estático no encontrado: '%s'.", ex.getResourcePath());
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.NOT_FOUND.value())
-                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
-                .message(message)
-                .path(request.getRequestURI())
-                .validationErrors(null)
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
-    }
-
-    // Manejo de Excepciones Genéricas (Catch-all para cualquier otra excepción no manejada) - HTTP 500 Internal Server Error
+    // --- Manejador genérico para cualquier otra excepción no esperada ---
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGlobalException(
-            Exception ex, HttpServletRequest request) {
+    public ResponseEntity<ApiResponseDto> handleGlobalException(Exception ex, WebRequest request) {
+        // Loggear la excepción completa para depuración en el servidor, pero no enviar detalles sensibles al cliente
+        System.err.println("Error inesperado: " + ex.getClass().getName() + " - " + ex.getMessage());
+        ex.printStackTrace(); // Esto es bueno para la depuración en desarrollo, pero considera un logger en producción
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
+        ApiResponseDto apiError = ApiResponseDto.builder()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value()) // 500
+                .message("Ocurrió un error inesperado en el servidor. Por favor, inténtelo de nuevo más tarde.")
+                .path(request.getDescription(false).replace("uri=", ""))
                 .timestamp(LocalDateTime.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .message("Ocurrió un error inesperado en el servidor. Por favor, intente de nuevo más tarde.")
-                .path(request.getRequestURI())
                 .build();
-
-        ex.printStackTrace();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

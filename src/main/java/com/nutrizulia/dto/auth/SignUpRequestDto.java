@@ -9,11 +9,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegisterRequest {
+public class SignUpRequestDto {
 
     @NotBlank(message = "La cédula es obligatoria")
     private String cedula;
@@ -23,6 +25,10 @@ public class RegisterRequest {
 
     @NotBlank(message = "El apellido es obligatorio")
     private String apellidos;
+
+    private LocalDate fechaNacimiento;
+
+    private char genero;
 
     @NotBlank(message = "El teléfono es obligatorio")
     @Pattern(regexp = "^[0-9]{11}$", message = "El teléfono debe tener 11 dígitos numéricos")

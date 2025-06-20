@@ -1,26 +1,50 @@
 package com.nutrizulia.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.servers.Server;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 
 @Configuration
 @OpenAPIDefinition(
-        info = @Info(title = "API de Nutrizulia", version = "1.0", description = "Documentación de la API para la aplicación Nutrizulia"),
+        info = @Info(
+                title = "NUTRIZULIA",
+                description = "Documentación",
+                termsOfService = "Terminos de Servicios",
+                contact = @Contact(
+                        name = "ANDRES MORENO",
+                        url = "https://github.com/andresmtataseo",
+                        email = "andresmoreno2001@gmail.com"
+                ),
+                license =  @License(
+                        name = "Licencia",
+                        url = "https://github.com/andresmtataseo/barbershop-backend/blob/master/LICENSE"
+                ),
+                version = "1.0.0"),
         servers = {
-                @Server(url = "http://localhost:8080", description = "Servidor Local")
-        }
+                @Server(url = "http://localhost:8080", description = "Development server"),
+                @Server(url = "https://nutrizulia.com", description = "Production server")
+        },
+        security = @SecurityRequirement(
+                name = "Security Token",
+                scopes = {}
+        )
 )
 @SecurityScheme(
-        name = "bearerAuth",
+        name = "Security Token",
+        description = "Access token for API REST",
+        paramName = HttpHeaders.AUTHORIZATION,
+        in = SecuritySchemeIn.HEADER,
         type = SecuritySchemeType.HTTP,
         scheme = "bearer",
-        bearerFormat = "JWT",
-        description = "Autenticación JWT. Introduce tu token JWT aquí (sin el prefijo 'Bearer ')."
+        bearerFormat = "JWT"
 )
 public class SwaggerConfig {
-
 }

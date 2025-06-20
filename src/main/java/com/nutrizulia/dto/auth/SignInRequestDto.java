@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Schema(name = "Login Request", description = "Solicitud de inicio de sesión de usuario")
-public class LoginRequest {
+public class SignInRequestDto {
 
     @Schema(description = "Número de cédula del usuario", example = "V-12345678", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "La cédula no puede estar vacía")

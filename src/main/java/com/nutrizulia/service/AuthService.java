@@ -1,68 +1,52 @@
 package com.nutrizulia.service;
 
-import com.nutrizulia.dto.auth.AuthResponse;
-import com.nutrizulia.dto.auth.LoginRequest;
-import com.nutrizulia.dto.auth.RegisterRequest;
+import com.nutrizulia.dto.auth.AuthResponseDto;
+import com.nutrizulia.dto.auth.SignUpRequestDto;
+import com.nutrizulia.dto.auth.SignInRequestDto;
 import com.nutrizulia.jwt.JwtService;
-import com.nutrizulia.model.admin.Usuario;
 
+import com.nutrizulia.mapper.UsuarioMapper;
+import com.nutrizulia.model.admin.Usuario;
 import com.nutrizulia.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-@RequiredArgsConstructor
 @Service
-public class AuthService implements IAuthService {
+@RequiredArgsConstructor
+public class AuthService {
 
-    private final IUsuarioInstitucionService usuarioInstitucionService;
-    private final IUsuarioService usuarioService;
-
-    private final UsuarioRepository usuarioRepository;
+    private final UsuarioRepository userRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final UsuarioMapper userMapper;
 
-    @Override
-    public AuthResponse login(LoginRequest request) {
-
+    public AuthResponseDto signIn(SignInRequestDto request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave()));
-
-        Usuario usuario = usuarioRepository.findByCedula(request.getCedula()).orElseThrow();
-
-        String token = jwtService.getToken(usuario);
-
-        return AuthResponse.builder()
+        UserDetails user = userRepository.findByCedulaWithRoles(request.getCedula()).orElseThrow();
+        String token = jwtService.getToken(user);
+        return AuthResponseDto.builder()
                 .token(token)
-                .id(usuario.getId())
-                .cedula(usuario.getCedula())
-                .nombres(usuario.getNombres())
-                .apellidos(usuario.getApellidos())
-                .telefono(usuario.getTelefono())
-                .correo(usuario.getCorreo())
-                .institucionesRoles(usuarioInstitucionService.getInstitucionesByUsuarioId(usuario.getId()))
+                .type("Bearer")
+                .user(userMapper.toUserResponseDto(userRepository.findByCedula(request.getCedula()).orElseThrow()))
                 .build();
     }
 
-    @Override
-    public AuthResponse register(RegisterRequest request) {
-        Usuario usuario = Usuario.builder()
-                .cedula(request.getCedula())
-                .nombres(request.getNombres())
-                .apellidos(request.getApellidos())
-                .telefono(request.getTelefono())
-                .correo(request.getCorreo())
-                .clave(passwordEncoder.encode(request.getClave()))
+
+    public AuthResponseDto signUp(SignUpRequestDto request) {
+        Usuario user = userMapper.toUser(request);
+        user.setClave(passwordEncoder.encode(user.getPassword()));
+        user.setIsEnabled(true);
+        user = userRepository.save(user);
+
+        return AuthResponseDto.builder()
+                .token(jwtService.getToken(user))
+                .type("Bearer")
+                .user(userMapper.toUserResponseDto(user))
                 .build();
-
-        usuarioRepository.save(usuario);
-
-        return AuthResponse.builder()
-                .token(jwtService.getToken(usuario))
-                .build();
-
     }
-
 }

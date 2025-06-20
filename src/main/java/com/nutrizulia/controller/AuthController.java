@@ -1,57 +1,107 @@
 package com.nutrizulia.controller;
 
-import com.nutrizulia.dto.auth.AuthResponse;
-import com.nutrizulia.dto.error.ErrorResponse;
-import com.nutrizulia.service.IAuthService;
-import com.nutrizulia.dto.auth.LoginRequest;
+import com.nutrizulia.dto.auth.AuthResponseDto;
+import com.nutrizulia.dto.auth.SignUpRequestDto;
+import com.nutrizulia.dto.error.ApiResponseDto;
+import com.nutrizulia.service.AuthService;
+import com.nutrizulia.dto.auth.SignInRequestDto;
+import com.nutrizulia.util.ApiConstants;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RequiredArgsConstructor
 @RestController
-@RequestMapping("auth")
-@CrossOrigin(value = "http://localhost:3000")
+@RequestMapping(ApiConstants.AUTH_API_BASE_URL)
+@RequiredArgsConstructor
 @Tag(name = "Autenticación", description = "API para la autenticación de usuario")
 public class AuthController {
 
-    private final IAuthService authService;
+    private final AuthService authService;
 
     @Operation(
-            summary = "Iniciar sesión con cédula y contraseña",
-            description = "Permite a los usuarios iniciar sesión en el sistema utilizando su número de cédula y contraseña. Si las credenciales son válidas, se retorna un token de autenticación."
+            summary = "Inicia sesión de un usuario",
+            description = "Autentica a un usuario con su email y contraseña y devuelve un token JWT con los datos del usuario.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Inicio de sesión exitoso",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthResponseDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Datos de entrada inválidos (ej. formato de email, campos vacíos)",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Credenciales inválidas (email o contraseña incorrectos)",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Error interno del servidor",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
+                    )
+            }
     )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Inicio de sesión exitoso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Faltan parámetros requeridos o son inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    @PostMapping(value = "login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+    @PostMapping(ApiConstants.SIGN_IN_URL)
+    public ResponseEntity<AuthResponseDto> signIn(@Valid @RequestBody SignInRequestDto signInRequestDto){
+        return ResponseEntity.ok(authService.signIn(signInRequestDto));
+    }
+
+    @Operation(
+            summary = "Registra un nuevo usuario",
+            description = "Crea una nueva cuenta de usuario con el rol por defecto (CLIENTE) y devuelve un token JWT con los datos del usuario.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "Usuario registrado exitosamente",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthResponseDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Email ya registrado o datos de registro inválidos",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Error interno del servidor",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
+                    )
+            }
+    )
+    @PostMapping(ApiConstants.SIGN_UP_URL)
+    public ResponseEntity<AuthResponseDto> signUp(@Valid @RequestBody SignUpRequestDto signUpRequestDto){
+        return ResponseEntity.ok(authService.signUp(signUpRequestDto));
+    }
+
+    @Operation(
+            summary = "Verifica el estado de autenticación",
+            description = "Endpoint protegido que confirma si el usuario está autenticado. Requiere un token JWT válido.",
+            security = @SecurityRequirement(name = "bearerAuth"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Autenticado correctamente",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "No autorizado (token ausente o inválido)",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
+                    )
+            }
+    )
+    @GetMapping(ApiConstants.CHECK_AUTH_URL)
+    public String checkAuth(){
+        return "Hola mundo";
     }
 }
-
-//    @Operation(summary = "Registrar un nuevo usuario")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "Registro exitoso",
-//                    content = @Content(schema = @Schema(implementation = AuthResponse.class))),
-//            @ApiResponse(responseCode = "400", description = "Datos inválidos o usuario ya existe",
-//                    content = @Content)
-//    })
-//    @PostMapping(value = "register")
-//    public ResponseEntity<AuthResponse> register(
-//            @Valid @RequestBody RegisterRequest request
-//    ) {
-//        return ResponseEntity.ok(authService.register(request));
-//    }

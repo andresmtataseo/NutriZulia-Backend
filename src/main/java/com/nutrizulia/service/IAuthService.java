@@ -1,13 +1,13 @@
 package com.nutrizulia.service;
 
-import com.nutrizulia.dto.auth.AuthResponse;
-import com.nutrizulia.dto.auth.LoginRequest;
-import com.nutrizulia.dto.auth.RegisterRequest;
+import com.nutrizulia.dto.auth.AuthResponseDto;
+import com.nutrizulia.dto.auth.SignInRequestDto;
+import com.nutrizulia.dto.auth.SignUpRequestDto;
 
 public interface IAuthService {
 
-    AuthResponse login(LoginRequest loginRequest);
+    AuthResponseDto signIn(SignInRequestDto signInRequestDto);
 
-    AuthResponse register(RegisterRequest registerRequest);
+    AuthResponseDto signUp(SignUpRequestDto signUpRequestDto);
 
 }

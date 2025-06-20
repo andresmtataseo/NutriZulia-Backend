@@ -1,6 +1,6 @@
 package com.nutrizulia.controller.pre;
 
-import com.nutrizulia.dto.error.ErrorResponse;
+import com.nutrizulia.dto.error.ApiResponseDto;
 import com.nutrizulia.dto.pre.TipoInstitucionDto;
 import com.nutrizulia.service.pre.ITipoInstitucionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,9 +32,9 @@ public class TipoInstitucionController {
     @Operation(summary = "Obtener todos los tipos de instituciones", description = "Permite recuperar una lista de todos los tipos de instituciones disponibles en el sistema. **Requiere autenticación.**")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de tipos de instituciones recuperada exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = TipoInstitucionDto.class))),
-            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping("v1/tiposInstituciones")
     public ResponseEntity<List<TipoInstitucionDto>> getTiposActividades() {

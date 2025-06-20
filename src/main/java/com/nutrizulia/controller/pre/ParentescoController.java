@@ -1,6 +1,6 @@
 package com.nutrizulia.controller.pre;
 
-import com.nutrizulia.dto.error.ErrorResponse;
+import com.nutrizulia.dto.error.ApiResponseDto;
 import com.nutrizulia.dto.pre.ParentescoDto;
 import com.nutrizulia.service.pre.IParentescoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,9 +32,9 @@ public class ParentescoController {
     @Operation(summary = "Obtener todos los parentescos", description = "Permite recuperar una lista de todos los parentescos disponibles en el sistema. **Requiere autenticación.**")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de etnias recuperada exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ParentescoDto.class))),
-            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
 
     @GetMapping("v1/parentescos")

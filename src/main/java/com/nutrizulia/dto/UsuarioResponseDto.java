@@ -12,7 +12,7 @@ import java.time.LocalDate;
 
 @Data
 @Schema(name = "Usuario", description = "Entidad que representa a un usuario del sistema")
-public class UsuarioDto {
+public class UsuarioResponseDto {
 
     @Schema(description = "Identificador único del usuario", example = "4", accessMode = Schema.AccessMode.READ_ONLY)
     private Integer id;
@@ -47,9 +47,6 @@ public class UsuarioDto {
     @Email(message = "El correo debe tener un formato válido")
     private String correo;
 
-    @Schema(description = "Contraseña del usuario", example = "12345678")
-    @NotBlank(message = "La clave es obligatoria")
-    @Size(min = 8, message = "La clave debe tener al menos 8 caracteres")
     private String clave;
 
     @Schema(description = "Estado del usuario", example = "true")
