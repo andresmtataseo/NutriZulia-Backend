@@ -9,11 +9,7 @@ import lombok.Data;
 public class Regex {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Integer id;
-
-    @Column(name = "nombre", nullable = false)
+    @Column(name = "nombre")
     private String nombre;
 
     @Column(name = "expression", nullable = false)

@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,41 +18,38 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // --- Maneja excepciones de validación (@Valid) ---
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponseDto> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
         List<String> errors = ex.getBindingResult().getFieldErrors().stream()
-                .map(FieldError::getDefaultMessage) // Solo toma el mensaje de error
+                .map(FieldError::getDefaultMessage)
                 .collect(Collectors.toList());
 
         ApiResponseDto apiError = ApiResponseDto.builder()
-                .status(HttpStatus.BAD_REQUEST.value()) // 400
+                .status(HttpStatus.BAD_REQUEST.value())
                 .message("Error de validación en los campos de entrada.")
                 .path(request.getDescription(false).replace("uri=", ""))
                 .timestamp(LocalDateTime.now())
-                .errors(errors) // Incluimos los mensajes de error de campo
+                .errors(errors)
                 .build();
 
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
-    // --- Maneja IllegalArgumentException (ej. "email ya existe") ---
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponseDto> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
         ApiResponseDto apiError = ApiResponseDto.builder()
-                .status(HttpStatus.BAD_REQUEST.value()) // 400
-                .message(ex.getMessage()) // Mensaje específico de la excepción
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getMessage())
                 .path(request.getDescription(false).replace("uri=", ""))
                 .timestamp(LocalDateTime.now())
                 .build();
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
-    // --- Maneja BadCredentialsException (autenticación fallida) ---
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponseDto> handleBadCredentialsException(BadCredentialsException ex, WebRequest request) {
         ApiResponseDto apiError = ApiResponseDto.builder()
-                .status(HttpStatus.UNAUTHORIZED.value()) // 401
+                .status(HttpStatus.UNAUTHORIZED.value())
                 .message("Credenciales de autenticación inválidas. Verifique su email y contraseña.")
                 .path(request.getDescription(false).replace("uri=", ""))
                 .timestamp(LocalDateTime.now())
@@ -59,15 +57,26 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
     }
 
-    // --- Manejador genérico para cualquier otra excepción no esperada ---
+    // ✅ Manejador para rutas que no existen (404)
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponseDto> handleNoResourceFoundException(NoResourceFoundException ex, WebRequest request) {
+        ApiResponseDto apiError = ApiResponseDto.builder()
+                .status(HttpStatus.NOT_FOUND.value())
+                .message("Recurso no encontrado.")
+                .path(request.getDescription(false).replace("uri=", ""))
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(apiError, HttpStatus.NOT_FOUND);
+    }
+
+    // ✅ Manejador genérico para errores inesperados
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponseDto> handleGlobalException(Exception ex, WebRequest request) {
-        // Loggear la excepción completa para depuración en el servidor, pero no enviar detalles sensibles al cliente
         System.err.println("Error inesperado: " + ex.getClass().getName() + " - " + ex.getMessage());
-        ex.printStackTrace(); // Esto es bueno para la depuración en desarrollo, pero considera un logger en producción
+        ex.printStackTrace();
 
         ApiResponseDto apiError = ApiResponseDto.builder()
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value()) // 500
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .message("Ocurrió un error inesperado en el servidor. Por favor, inténtelo de nuevo más tarde.")
                 .path(request.getDescription(false).replace("uri=", ""))
                 .timestamp(LocalDateTime.now())

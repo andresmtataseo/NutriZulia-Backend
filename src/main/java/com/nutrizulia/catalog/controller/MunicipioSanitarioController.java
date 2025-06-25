@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.nutrizulia.common.util.ApiConstants.CATALOG_API_BASE_URL;
+import static com.nutrizulia.common.util.ApiConstants.MUNICIPIOS_SANITARIOS_ALL;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,7 +44,7 @@ public class MunicipioSanitarioController {
             @ApiResponse(responseCode = "404", description = "No encontrado - El recurso solicitado no existe.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping("v1/municipiosSanitarios")
+    @GetMapping(MUNICIPIOS_SANITARIOS_ALL)
     public ResponseEntity<List<MunicipioSanitarioDto>> getMunicipios(@Valid
                                                             @Parameter(description = "ID del estado al cual pertenecen los municipios", required = true, example = "23")
                                                             @RequestParam Integer idEstado) {

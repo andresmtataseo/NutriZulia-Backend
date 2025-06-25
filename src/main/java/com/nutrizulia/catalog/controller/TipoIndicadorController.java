@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 import static com.nutrizulia.common.util.ApiConstants.CATALOG_API_BASE_URL;
+import static com.nutrizulia.common.util.ApiConstants.TIPOS_INDICADORES_ALL;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,7 +41,7 @@ public class TipoIndicadorController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
 
-    @GetMapping("v1/tiposIndicadores")
+    @GetMapping(TIPOS_INDICADORES_ALL)
     public ResponseEntity<List<TipoIndicadorDto>> getTiposIndicadores() {
         return ResponseEntity.ok(tipoIndicadorService.getTiposIndicadores());
     }

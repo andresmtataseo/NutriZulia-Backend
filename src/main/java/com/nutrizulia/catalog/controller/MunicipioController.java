@@ -19,6 +19,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 import static com.nutrizulia.common.util.ApiConstants.CATALOG_API_BASE_URL;
+import static com.nutrizulia.common.util.ApiConstants.MUNICIPIOS_ALL;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,7 +44,7 @@ public class MunicipioController {
             @ApiResponse(responseCode = "404", description = "No encontrado - El recurso solicitado no existe.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping("v1/municipios")
+    @GetMapping(MUNICIPIOS_ALL)
     public ResponseEntity<List<MunicipioDto>> getMunicipios( @Valid
             @Parameter(description = "ID del estado al cual pertenecen los municipios", required = true, example = "23")
             @RequestParam Integer idEstado) {

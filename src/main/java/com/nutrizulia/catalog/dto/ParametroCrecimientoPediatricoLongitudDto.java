@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 
 @Data
 @Schema(name = "Parámetro de Crecimiento Pediátrico por Longitud", description = "Entidad que representa los parámetros de crecimiento pediátrico basados en la longitud, según la OMS, para niños de 0 a 5 años.")
-public class ParametroCrecimientoPedriaticoLongitudDto {
+public class ParametroCrecimientoPediatricoLongitudDto {
 
     @Schema(description = "Identificador único del parámetro", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
     private Integer id;

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.nutrizulia.common.util.ApiConstants.CATALOG_API_BASE_URL;
+import static com.nutrizulia.common.util.ApiConstants.ETNIAS_ALL;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,7 +39,7 @@ public class EtniaController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
 
-    @GetMapping("v1/etnias")
+    @GetMapping(ETNIAS_ALL)
     public ResponseEntity<List<EtniaDto>> getEtnias() {
         return ResponseEntity.ok(etniaService.getEtnias());
     }

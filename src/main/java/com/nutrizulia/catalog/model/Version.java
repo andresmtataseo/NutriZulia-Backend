@@ -9,11 +9,7 @@ import lombok.Data;
 public class Version {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Integer id;
-
-    @Column(name = "nombre_tabla", nullable = false)
+    @Column(name = "nombre_tabla")
     private String nombreTabla;
 
     @Column(name = "version", nullable = false)

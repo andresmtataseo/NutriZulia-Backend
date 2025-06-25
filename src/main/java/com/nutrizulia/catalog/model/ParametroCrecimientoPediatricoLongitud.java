@@ -7,8 +7,8 @@ import java.math.BigDecimal;
 
 @Data
 @Entity
-@Table(name = "parametros_crecimientos_pedriaticos_longitud")
-public class ParametroCrecimientoPedriaticoLongitud {
+@Table(name = "parametros_crecimientos_pediatricos_longitud")
+public class ParametroCrecimientoPediatricoLongitud {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
