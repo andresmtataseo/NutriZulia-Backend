@@ -4,17 +4,16 @@ import com.nutrizulia.auth.dto.AuthResponseDto;
 import com.nutrizulia.auth.dto.SignUpRequestDto;
 import com.nutrizulia.auth.dto.SignInRequestDto;
 import com.nutrizulia.auth.jwt.JwtService;
-
 import com.nutrizulia.common.dto.ApiResponseDto;
 import com.nutrizulia.common.util.ApiConstants;
 import com.nutrizulia.user.mapper.UsuarioMapper;
 import com.nutrizulia.user.model.Usuario;
 import com.nutrizulia.user.service.UsuarioService;
-import com.nutrizulia.userinstitution.service.UsuarioInstitucionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -28,12 +27,15 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UsuarioMapper userMapper;
 
+
     public AuthResponseDto signIn(SignInRequestDto request) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave()));
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave())
+        );
+        Usuario user = usuarioService.findByCedulaWithRoles(request.getCedula())
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con la cédula: " + request.getCedula()));
 
-        Usuario user = usuarioService.findByCedulaWithRoles(request.getCedula()).orElseThrow();
-
-        String token = jwtService.getToken(user);
+        String token = jwtService.generateToken(user);
 
         return AuthResponseDto.builder()
                 .token(token)
@@ -42,11 +44,10 @@ public class AuthService {
                 .build();
     }
 
-
     public ApiResponseDto signUp(SignUpRequestDto request) {
         usuarioService.save(request);
         return ApiResponseDto.builder()
-                .status(HttpStatus.OK.value())
+                .status(HttpStatus.CREATED.value())
                 .message("Usuario registrado exitosamente")
                 .timestamp(LocalDateTime.now())
                 .path(ApiConstants.SIGN_UP_URL)

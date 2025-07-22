@@ -19,20 +19,24 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    @Value("${jwt.secret}")
-    private String SECRET_KEY;
+    private final SecretKey secretKey;
+    private final long jwtExpirationInMillis;
 
-    @Value("${jwt.expiration}")
-    private Long EXPIRATION;
-
-    // Cambia el parámetro de UserDetails a Usuario
-    public String getToken(Usuario user) {
-        return getToken(new HashMap<>(), user);
+    public JwtService(
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.expiration-in-millis}") long jwtExpirationInMillis
+    ) {
+        this.jwtExpirationInMillis = jwtExpirationInMillis;
+        try {
+            byte[] keyBytes = Decoders.BASE64.decode(secret);
+            this.secretKey = Keys.hmacShaKeyFor(keyBytes);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("La clave JWT no es válida o no está en formato Base64", e);
+        }
     }
 
-    // Cambia el parámetro y añade el nuevo claim "idUsuario"
-    private String getToken(Map<String, Object> extraClaims, Usuario user) {
-        // Añade el id del usuario a los claims
+    public String generateToken(Usuario user) {
+        Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("idUsuario", user.getId());
         extraClaims.put("roles", user.getAuthorities()
                 .stream()
@@ -43,18 +47,9 @@ public class JwtService {
                 .claims(extraClaims)
                 .subject(user.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + EXPIRATION))
-                .signWith(getKey())
+                .expiration(new Date(System.currentTimeMillis() + jwtExpirationInMillis))
+                .signWith(this.secretKey) // Usa la clave ya procesada
                 .compact();
-    }
-
-    private SecretKey getKey() {
-        try {
-            byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
-            return Keys.hmacShaKeyFor(keyBytes);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Clave JWT no válida o mal codificada en Base64", e);
-        }
     }
 
     public String getUsernameFromToken(String token) {
@@ -66,12 +61,12 @@ public class JwtService {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    private Claims getAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+    private boolean isTokenExpired(String token) {
+        return getExpiration(token).before(new Date());
+    }
+
+    private Date getExpiration(String token) {
+        return getClaim(token, Claims::getExpiration);
     }
 
     public <T> T getClaim(String token, Function<Claims, T> claimsResolver) {
@@ -79,11 +74,11 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    private Date getExpiration(String token) {
-        return getClaim(token, Claims::getExpiration);
-    }
-
-    private boolean isTokenExpired(String token) {
-        return getExpiration(token).before(new Date());
+    private Claims getAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(this.secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }
