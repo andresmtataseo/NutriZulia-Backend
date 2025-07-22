@@ -1,5 +1,6 @@
 package com.nutrizulia.user.service;
 
+import com.nutrizulia.auth.dto.SignUpRequestDto;
 import com.nutrizulia.user.dto.UsuarioDto;
 import com.nutrizulia.user.model.Usuario;
 
@@ -14,5 +15,6 @@ public interface IUsuarioService {
 
     Optional<Usuario> findByCedulaWithRoles(String cedula);
 
+    Usuario save(SignUpRequestDto signUpRequestDto);
 
 }

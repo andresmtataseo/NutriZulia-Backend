@@ -42,7 +42,9 @@ public class ApiConstants {
 
     // Institution
     public static final String INSTITUTION_API_BASE_URL = "/institution";
+    public static final String INSTITUTION_ALL = "/v1/findAll";
 
     // User-Institution
     public static final String USER_INSTITUTION_API_BASE_URL = "/user-institution";
+    public static final String USER_INSTITUTION_ALL_BY_ID_USER = "/v1/findAll";
 }

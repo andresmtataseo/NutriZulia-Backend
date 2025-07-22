@@ -32,22 +32,6 @@ public class ApiResponseDto {
     private String path;
 
     @Schema(description = "Detalles específicos de errores, como errores de validación de campos")
-    private List<String> errors; // Usaremos una lista de strings para los mensajes de error
+    private List<String> errors;
 
-    // Constructor conveniente para crear respuestas
-    public ApiResponseDto(HttpStatus status, String message, String path) {
-        this.status = status.value();
-        this.message = message;
-        this.path = path;
-        this.timestamp = LocalDateTime.now();
-    }
-
-    // Constructor conveniente para errores de validación con lista de errores
-    public ApiResponseDto(HttpStatus status, String message, String path, List<String> errors) {
-        this.status = status.value();
-        this.message = message;
-        this.path = path;
-        this.timestamp = LocalDateTime.now();
-        this.errors = errors;
-    }
 }

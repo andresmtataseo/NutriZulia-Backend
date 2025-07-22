@@ -11,7 +11,7 @@ import org.mapstruct.Mapping;
 public interface UsuarioMapper {
 
     @Mapping(target = "isEnabled", ignore = true)
-    Usuario toUser(SignUpRequestDto usuario);
+    Usuario toEntity(SignUpRequestDto usuario);
 
     UsuarioResponseDto toUserResponseDto(Usuario usuario);
 

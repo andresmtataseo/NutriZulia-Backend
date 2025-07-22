@@ -8,4 +8,6 @@ public interface IInstitucionService {
 
     List<InstitucionDto> getInstituciones();
 
+    InstitucionDto getInstitucionesById(Integer id);
+
 }

@@ -8,4 +8,6 @@ public interface IRolService {
 
     List<RolDto> getRoles();
 
+    RolDto getRolById(Integer id);
+
 }

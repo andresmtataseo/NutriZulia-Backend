@@ -67,7 +67,7 @@ public class AuthController {
                     @ApiResponse(
                             responseCode = "201",
                             description = "Usuario registrado exitosamente",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthResponseDto.class))
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
                     ),
                     @ApiResponse(
                             responseCode = "400",
@@ -82,7 +82,7 @@ public class AuthController {
             }
     )
     @PostMapping(ApiConstants.SIGN_UP_URL)
-    public ResponseEntity<AuthResponseDto> signUp(@Valid @RequestBody SignUpRequestDto signUpRequestDto){
+    public ResponseEntity<ApiResponseDto> signUp(@Valid @RequestBody SignUpRequestDto signUpRequestDto){
         return ResponseEntity.ok(authService.signUp(signUpRequestDto));
     }
 

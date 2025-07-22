@@ -5,48 +5,51 @@ import com.nutrizulia.auth.dto.SignUpRequestDto;
 import com.nutrizulia.auth.dto.SignInRequestDto;
 import com.nutrizulia.auth.jwt.JwtService;
 
+import com.nutrizulia.common.dto.ApiResponseDto;
+import com.nutrizulia.common.util.ApiConstants;
 import com.nutrizulia.user.mapper.UsuarioMapper;
 import com.nutrizulia.user.model.Usuario;
-import com.nutrizulia.user.repository.UsuarioRepository;
+import com.nutrizulia.user.service.UsuarioService;
+import com.nutrizulia.userinstitution.service.UsuarioInstitucionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final UsuarioRepository userRepository;
+    private final UsuarioService usuarioService;
     private final JwtService jwtService;
-    private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final UsuarioMapper userMapper;
 
     public AuthResponseDto signIn(SignInRequestDto request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave()));
-        UserDetails user = userRepository.findByCedulaWithRoles(request.getCedula()).orElseThrow();
+
+        Usuario user = usuarioService.findByCedulaWithRoles(request.getCedula()).orElseThrow();
+
         String token = jwtService.getToken(user);
+
         return AuthResponseDto.builder()
                 .token(token)
                 .type("Bearer")
-                .user(userMapper.toUserResponseDto(userRepository.findByCedula(request.getCedula()).orElseThrow()))
+                .user(userMapper.toDto(user))
                 .build();
     }
 
 
-    public AuthResponseDto signUp(SignUpRequestDto request) {
-        Usuario user = userMapper.toUser(request);
-        user.setClave(passwordEncoder.encode(user.getPassword()));
-        user.setIsEnabled(true);
-        user = userRepository.save(user);
-
-        return AuthResponseDto.builder()
-                .token(jwtService.getToken(user))
-                .type("Bearer")
-                .user(userMapper.toUserResponseDto(user))
+    public ApiResponseDto signUp(SignUpRequestDto request) {
+        usuarioService.save(request);
+        return ApiResponseDto.builder()
+                .status(HttpStatus.OK.value())
+                .message("Usuario registrado exitosamente")
+                .timestamp(LocalDateTime.now())
+                .path(ApiConstants.SIGN_UP_URL)
                 .build();
     }
 }

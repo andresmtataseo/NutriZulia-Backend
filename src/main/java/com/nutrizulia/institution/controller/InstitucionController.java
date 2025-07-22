@@ -16,8 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.CATALOG_API_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.INSTITUTION_API_BASE_URL;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -39,7 +38,7 @@ public class InstitucionController {
             @ApiResponse(responseCode = "404", description = "No encontrado - El recurso solicitado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping("v1/instituciones")
+    @GetMapping(INSTITUTION_ALL)
     public ResponseEntity<List<InstitucionDto>> getInstituciones() {
         List<InstitucionDto> instituciones = institucionService.getInstituciones();
         return ResponseEntity.ok(instituciones);

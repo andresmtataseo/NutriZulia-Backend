@@ -20,4 +20,9 @@ public class InstitucionService implements IInstitucionService {
     public List<InstitucionDto> getInstituciones() {
         return institucionRepository.findAll().stream().map(institucionMapper::toDto).collect(Collectors.toList());
     }
+
+    @Override
+    public InstitucionDto getInstitucionesById(Integer id) {
+        return institucionRepository.findById(id).map(institucionMapper::toDto).orElse(null);
+    }
 }

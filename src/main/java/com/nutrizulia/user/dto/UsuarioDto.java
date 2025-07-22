@@ -56,6 +56,4 @@ public class UsuarioDto {
     @NotNull(message = "El estado del usuario es obligatorio")
     private Boolean is_enabled;
 
-//    @Schema(description = "Lista de relaciones del usuario con instituciones")
-//    private List<UsuarioInstitucion> usuarioInstituciones;
 }

@@ -21,4 +21,9 @@ public class RolService implements IRolService {
     public List<RolDto> getRoles() {
         return rolRepository.findAll().stream().map(rolMapper::toDto).collect(Collectors.toList());
     }
+
+    @Override
+    public RolDto getRolById(Integer id) {
+        return rolRepository.findById(id).map(rolMapper::toDto).orElse(null);
+    }
 }
