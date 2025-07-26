@@ -49,6 +49,9 @@ public class Consulta {
     @Column(name = "observaciones")
     private String observaciones;
 
+    @Column(name = "planes")
+    private String planes;
+
     @Column(name = "fecha_hora_real", nullable = false)
     private LocalDateTime fechaHoraReal;
 

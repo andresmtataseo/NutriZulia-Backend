@@ -1,5 +1,6 @@
 package com.nutrizulia.user.model;
 
+import com.nutrizulia.common.enums.Genero;
 import com.nutrizulia.userinstitution.model.UsuarioInstitucion;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -42,8 +43,9 @@ public class Usuario implements Serializable, UserDetails {
     @Column(name = "fecha_nacimiento", nullable = false)
     private LocalDate fechaNacimiento;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "genero", nullable = false)
-    private char genero;
+    private Genero genero;
 
     @Column(name = "telefono", nullable = false, length = 12, unique = true)
     private String telefono;

@@ -28,7 +28,7 @@ public class SignUpRequestDto {
 
     private LocalDate fechaNacimiento;
 
-    private char genero;
+    private String genero;
 
     @NotBlank(message = "El teléfono es obligatorio")
     @Pattern(regexp = "^[0-9]{11}$", message = "El teléfono debe tener 11 dígitos numéricos")

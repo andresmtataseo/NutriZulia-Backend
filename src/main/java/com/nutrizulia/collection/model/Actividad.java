@@ -38,8 +38,8 @@ public class Actividad {
     @Column(name = "cantidad_participantes")
     private Integer cantidadParticipantes;
 
-    @Column(name = "cantidad_sesiones_realizadas")
-    private Integer cantidadSesionesRealizadas;
+    @Column(name = "cantidad_sesiones")
+    private Integer cantidadSesiones;
 
     @Column(name = "duracion_minutos")
     private Integer duracionMinutos;

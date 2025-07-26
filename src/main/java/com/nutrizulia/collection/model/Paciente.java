@@ -1,5 +1,6 @@
 package com.nutrizulia.collection.model;
 
+import com.nutrizulia.common.enums.Genero;
 import com.nutrizulia.userinstitution.model.UsuarioInstitucion;
 import com.nutrizulia.catalog.model.Etnia;
 import com.nutrizulia.catalog.model.Nacionalidad;
@@ -39,8 +40,9 @@ public class Paciente {
     @Column(name = "fecha_nacimiento", nullable = false)
     private LocalDate fechaNacimiento;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "genero", nullable = false)
-    private char genero;
+    private Genero genero;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "etnia_id", nullable = false)
@@ -54,7 +56,7 @@ public class Paciente {
     @JoinColumn(name = "parroquia_id", nullable = false)
     private Parroquia parroquia;
 
-    @Column(name = "domicilio", nullable = false)
+    @Column(name = "domicilio")
     private String domicilio;
 
     @Column(name = "telefono", length = 12)

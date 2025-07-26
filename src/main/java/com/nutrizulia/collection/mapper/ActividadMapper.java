@@ -12,7 +12,7 @@ public interface ActividadMapper {
     @Mapping(source = "tipoActividad.id", target = "tipo_actividad_id")
     @Mapping(source = "descripcionGeneral", target = "descripcion_general")
     @Mapping(source = "cantidadParticipantes", target = "cantidad_participantes")
-    @Mapping(source = "cantidadSesionesRealizadas", target = "cantidad_sesiones_realizadas")
+    @Mapping(source = "cantidadSesiones", target = "cantidad_sesiones")
     @Mapping(source = "duracionMinutos", target = "duracion_minutos")
     @Mapping(source = "temaPrincipal", target = "tema_principal")
     @Mapping(source = "programasImplementados", target = "programas_implementados")
@@ -24,11 +24,12 @@ public interface ActividadMapper {
     @Mapping(target = "tipoActividad", ignore = true) // Debe ser cargado por el servicio
     @Mapping(source = "descripcion_general", target = "descripcionGeneral")
     @Mapping(source = "cantidad_participantes", target = "cantidadParticipantes")
-    @Mapping(source = "cantidad_sesiones_realizadas", target = "cantidadSesionesRealizadas")
+    @Mapping(source = "cantidad_sesiones", target = "cantidadSesiones")
     @Mapping(source = "duracion_minutos", target = "duracionMinutos")
     @Mapping(source = "tema_principal", target = "temaPrincipal")
     @Mapping(source = "programas_implementados", target = "programasImplementados")
     @Mapping(source = "url_evidencia", target = "urlEvidencia")
+    @Mapping(source = "updated_at", target = "updatedAt")
     Actividad toEntity(ActividadDto actividadDto);
 
 }

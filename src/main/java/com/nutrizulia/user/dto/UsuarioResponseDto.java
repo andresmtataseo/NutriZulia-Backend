@@ -34,7 +34,7 @@ public class UsuarioResponseDto {
 
     private LocalDate fechaNacimiento;
 
-    private char genero;
+    private String genero;
 
     @Schema(description = "Teléfono del usuario", example = "0412-1234567")
     @NotBlank(message = "El teléfono es obligatorio")

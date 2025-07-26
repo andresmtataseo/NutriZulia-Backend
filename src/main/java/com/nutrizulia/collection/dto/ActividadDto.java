@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -38,7 +39,7 @@ public class ActividadDto {
     private Integer cantidad_participantes;
 
     @Schema(description = "Número de sesiones o encuentros que se realizaron como parte de esta actividad.", example = "3")
-    private Integer cantidad_sesiones_realizadas;
+    private Integer cantidad_sesiones;
 
     @Schema(description = "Duración total de la actividad en minutos.", example = "120")
     private Integer duracion_minutos;
@@ -51,4 +52,6 @@ public class ActividadDto {
 
     @Schema(description = "URL o enlace a la evidencia de la actividad (ej. fotos, videos, documentos).", example = "https://ejemplo.com/evidencia/actividad_123.jpg")
     private String url_evidencia;
+
+    private LocalDateTime updated_at;
 }
