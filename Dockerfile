@@ -1,29 +1,33 @@
-# Stage 1: Build the application
+# Etapa 1: Construcción con Maven
 FROM eclipse-temurin:21-jdk AS builder
-
-# Set the working directory
 WORKDIR /app
 
-# Copy the application code
-COPY . .
+# Copia primero los archivos de construcción para cachear las dependencias
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
 
-# Given permissions to mvnw
-RUN chmod +x mvnw
+# --- AÑADE ESTA LÍNEA PARA DAR PERMISOS ---
+RUN chmod +x ./mvnw
 
-# Build the application (requires Maven or Gradle)
+# Ahora el script se puede ejecutar sin problemas
+RUN ./mvnw dependency:go-offline
+
+# Ahora copia el código fuente
+COPY src ./src
+
+# Construye la aplicación
 RUN ./mvnw clean package -DskipTests
 
-# Stage 2: Run the application
+# Etapa 2: Creación de la imagen final
 FROM eclipse-temurin:21-jre
-
-# Set the working directory
 WORKDIR /app
 
-# Copy the JAR file from the builder stage
+# Copia el JAR desde la etapa de construcción
 COPY --from=builder /app/target/*.jar app.jar
 
-# Expose the port the app will run on
+# Expone el puerto que Render usará
 EXPOSE 8080
 
-# Command to run the application
+# Comando para ejecutar la aplicación
 ENTRYPOINT ["java", "-jar", "app.jar"]
