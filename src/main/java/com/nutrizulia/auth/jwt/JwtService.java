@@ -24,7 +24,7 @@ public class JwtService {
 
     public JwtService(
             @Value("${jwt.secret}") String secret,
-            @Value("${jwt.expiration-in-millis}") long jwtExpirationInMillis
+            @Value("${jwt.expiration}") long jwtExpirationInMillis
     ) {
         this.jwtExpirationInMillis = jwtExpirationInMillis;
         try {
