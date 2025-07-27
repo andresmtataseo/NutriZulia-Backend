@@ -29,8 +29,7 @@ import org.springframework.http.HttpHeaders;
                 ),
                 version = "1.0.0"),
         servers = {
-                @Server(url = "http://localhost:8080", description = "Development server"),
-                @Server(url = "https://nutrizulia.com", description = "Production server")
+                @Server(url = "/", description = "Default Server URL")
         },
         security = @SecurityRequirement(
                 name = "Security Token",
