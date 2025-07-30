@@ -34,6 +34,13 @@ public abstract class BaseEntity {
     private LocalDateTime updatedAt;
 
     /**
+     * Indica si el registro ha sido eliminado lógicamente.
+     * Por defecto es false, lo que significa que el registro está activo.
+     */
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
+
+    /**
      * Método ejecutado antes de persistir la entidad.
      * Asegura que los timestamps se establezcan correctamente.
      */
@@ -45,6 +52,7 @@ public abstract class BaseEntity {
         if (updatedAt == null) {
             updatedAt = LocalDateTime.now();
         }
+        isDeleted = false;
     }
 
     /**

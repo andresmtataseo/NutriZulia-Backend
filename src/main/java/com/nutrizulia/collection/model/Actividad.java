@@ -25,7 +25,7 @@ public class Actividad extends BaseEntity {
     private UsuarioInstitucion usuarioInstitucion;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tipo_actividad", nullable = false)
+    @JoinColumn(name = "tipo_actividad_id", nullable = false)
     private TipoActividad tipoActividad;
 
     @Column(name = "fecha", nullable = false)
