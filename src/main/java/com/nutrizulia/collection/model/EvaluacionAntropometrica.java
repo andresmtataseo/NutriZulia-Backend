@@ -1,19 +1,21 @@
 package com.nutrizulia.collection.model;
 
+import com.nutrizulia.common.entity.BaseEntity;
 import com.nutrizulia.common.enums.TipoValorCalculado;
 import com.nutrizulia.catalog.model.TipoIndicador;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "evaluaciones_antropometricas")
-public class EvaluacionAntropometrica {
+public class EvaluacionAntropometrica extends BaseEntity {
 
     @Id
     @Column(name = "id")
@@ -43,8 +45,5 @@ public class EvaluacionAntropometrica {
 
     @Column(name = "fecha_evaluacion", nullable = false)
     private LocalDate fechaEvaluacion;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 
 }

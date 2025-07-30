@@ -1,17 +1,19 @@
 package com.nutrizulia.collection.model;
 
+import com.nutrizulia.common.entity.BaseEntity;
 import com.nutrizulia.catalog.model.Enfermedad;
 import com.nutrizulia.catalog.model.RiesgoBiologico;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "diagnosticos")
-public class Diagnostico {
+public class Diagnostico extends BaseEntity {
 
     @Id
     @Column(name = "id")
@@ -31,8 +33,5 @@ public class Diagnostico {
 
     @Column(name = "is_principal", nullable = false)
     private Boolean isPrincipal;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 
 }

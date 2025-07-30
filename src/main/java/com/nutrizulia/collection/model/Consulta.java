@@ -1,5 +1,6 @@
 package com.nutrizulia.collection.model;
 
+import com.nutrizulia.common.entity.BaseEntity;
 import com.nutrizulia.common.enums.Estado;
 import com.nutrizulia.common.enums.TipoConsulta;
 import com.nutrizulia.userinstitution.model.UsuarioInstitucion;
@@ -7,14 +8,16 @@ import com.nutrizulia.catalog.model.Especialidad;
 import com.nutrizulia.catalog.model.TipoActividad;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "consultas")
-public class Consulta {
+public class Consulta extends BaseEntity {
 
     @Id
     @Column(name = "id")
@@ -58,8 +61,5 @@ public class Consulta {
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)
     private Estado estado;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 
 }

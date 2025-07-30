@@ -1,17 +1,19 @@
 package com.nutrizulia.collection.model;
 
+import com.nutrizulia.common.entity.BaseEntity;
 import com.nutrizulia.userinstitution.model.UsuarioInstitucion;
 import com.nutrizulia.catalog.model.Parentesco;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "pacientes_representantes")
-public class PacienteRepresentante {
+public class PacienteRepresentante extends BaseEntity {
 
     @Id
     @Column(name = "id")
@@ -32,8 +34,5 @@ public class PacienteRepresentante {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parentesco_id", nullable = false)
     private Parentesco parentesco;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 
 }

@@ -1,16 +1,18 @@
 package com.nutrizulia.collection.model;
 
+import com.nutrizulia.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "detalles_metabolicos")
-public class DetalleMetabolico {
+public class DetalleMetabolico extends BaseEntity {
 
     @Id
     @Column(name = "id")
@@ -43,8 +45,5 @@ public class DetalleMetabolico {
 
     @Column(name = "colesterol_ldl")
     private Integer colesterolLdl;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 
 }

@@ -1,16 +1,18 @@
 package com.nutrizulia.collection.model;
 
+import com.nutrizulia.common.entity.BaseEntity;
 import com.nutrizulia.common.enums.TipoLactancia;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "detalles_pedriaticos")
-public class DetallePedriatrico {
+public class DetallePedriatrico extends BaseEntity {
 
     @Id
     @Column(name = "id")
@@ -25,8 +27,5 @@ public class DetallePedriatrico {
 
     @Column(name = "tipo_lactancia")
     private TipoLactancia tipoLactancia ;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 
 }

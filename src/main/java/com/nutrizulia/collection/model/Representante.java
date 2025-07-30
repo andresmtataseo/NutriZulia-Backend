@@ -1,5 +1,6 @@
 package com.nutrizulia.collection.model;
 
+import com.nutrizulia.common.entity.BaseEntity;
 import com.nutrizulia.common.enums.Genero;
 import com.nutrizulia.userinstitution.model.UsuarioInstitucion;
 import com.nutrizulia.catalog.model.Etnia;
@@ -7,17 +8,18 @@ import com.nutrizulia.catalog.model.Nacionalidad;
 import com.nutrizulia.catalog.model.Parroquia;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "representantes", uniqueConstraints = {
         @UniqueConstraint(name = "uk_representante_cedula_institucion", columnNames = {"cedula", "usuario_institucion_id"})
 })
-public class Representante {
+public class Representante extends BaseEntity {
 
     @Id
     @Column(name = "id")
@@ -63,8 +65,5 @@ public class Representante {
 
     @Column(name = "correo")
     private String correo;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 
 }

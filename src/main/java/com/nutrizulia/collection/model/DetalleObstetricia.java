@@ -1,17 +1,19 @@
 package com.nutrizulia.collection.model;
 
+import com.nutrizulia.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "detalles_obstetricia")
-public class DetalleObstetricia {
+public class DetalleObstetricia extends BaseEntity {
 
     @Id
     @Column(name = "id")
@@ -32,8 +34,5 @@ public class DetalleObstetricia {
 
     @Column(name = "peso_pre_embarazo", precision = 12, scale = 6)
     private BigDecimal pesoPreEmbarazo;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 
 }

@@ -1,16 +1,18 @@
 package com.nutrizulia.collection.model;
 
+import com.nutrizulia.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "detalles_antropometricos")
-public class DetalleAntropometrico {
+public class DetalleAntropometrico extends BaseEntity {
 
     @Id
     @Column(name = "id")
@@ -46,8 +48,5 @@ public class DetalleAntropometrico {
 
     @Column(name = "pliegue_subescapular", precision = 12, scale = 6)
     private BigDecimal pliegueSubescapular;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 
 }
