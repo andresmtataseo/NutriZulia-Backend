@@ -53,8 +53,13 @@ public class ActividadDto {
     @Schema(description = "URL o enlace a la evidencia de la actividad (ej. fotos, videos, documentos).", example = "https://ejemplo.com/evidencia/actividad_123.jpg")
     private String url_evidencia;
 
-    private LocalDateTime createdAt;
+    @Schema(description = "Fecha de creación del registro", accessMode = Schema.AccessMode.READ_ONLY)
+    private LocalDateTime created_at;
+
+    @Schema(description = "Fecha de última actualización del registro", accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDateTime updated_at;
-    private boolean isDeleted;
+
+    @Schema(description = "Indica si el registro ha sido eliminado lógicamente", accessMode = Schema.AccessMode.READ_ONLY)
+    private Boolean is_deleted;
 
 }

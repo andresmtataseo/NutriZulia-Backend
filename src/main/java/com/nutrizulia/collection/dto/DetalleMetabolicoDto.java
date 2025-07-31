@@ -1,5 +1,9 @@
 package com.nutrizulia.collection.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.DecimalMin;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -8,27 +12,49 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * DTO para sincronización de entidad DetalleMetabolico
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Entidad que representa los valores metabólicos y de laboratorio registrados durante una consulta")
 public class DetalleMetabolicoDto {
     
+    @Schema(description = "Identificador único del detalle metabólico", example = "550e8400-e29b-41d4-a716-446655440000", accessMode = Schema.AccessMode.READ_ONLY)
     private UUID id;
-    private UUID consultaId;
-    private Integer glicemiaBasal;
-    private Integer glicemaPostprandial;
-    private Integer glicemiaAleatoria;
-    private BigDecimal hemoglobinaGlicosilada;
-    private Integer trigliceridos;
-    private Integer colesterolTotal;
-    private Integer colesterolHdl;
-    private Integer colesterolLdl;
     
-    // Campos de auditoría para sincronización
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private boolean isDeleted;
+    @Schema(description = "Identificador único de la consulta a la que pertenecen estos valores", example = "550e8400-e29b-41d4-a716-446655440001")
+    @NotNull(message = "El identificador de la consulta no puede ser nulo")
+    private UUID consulta_id;
+    
+    @Schema(description = "Glicemia basal en mg/dL", example = "95")
+    private Integer glicemia_basal;
+    
+    @Schema(description = "Glicemia postprandial en mg/dL", example = "140")
+    private Integer glicemia_postprandial;
+    
+    @Schema(description = "Glicemia aleatoria en mg/dL", example = "110")
+    private Integer glicemia_aleatoria;
+    
+    @Schema(description = "Hemoglobina glicosilada en porcentaje", example = "5.8")
+    private BigDecimal hemoglobina_glicosilada;
+    
+    @Schema(description = "Triglicéridos en mg/dL", example = "150")
+    private Integer trigliceridos;
+    
+    @Schema(description = "Colesterol total en mg/dL", example = "200")
+    private Integer colesterol_total;
+    
+    @Schema(description = "Colesterol HDL (bueno) en mg/dL", example = "50")
+    private Integer colesterol_hdl;
+    
+    @Schema(description = "Colesterol LDL (malo) en mg/dL", example = "120")
+    private Integer colesterol_ldl;
+    
+    @Schema(description = "Fecha de creación del registro", accessMode = Schema.AccessMode.READ_ONLY)
+    private LocalDateTime created_at;
+    
+    @Schema(description = "Fecha de última actualización del registro", accessMode = Schema.AccessMode.READ_ONLY)
+    private LocalDateTime updated_at;
+    
+    @Schema(description = "Indica si el registro ha sido eliminado lógicamente", accessMode = Schema.AccessMode.READ_ONLY)
+    private Boolean is_deleted;
 }

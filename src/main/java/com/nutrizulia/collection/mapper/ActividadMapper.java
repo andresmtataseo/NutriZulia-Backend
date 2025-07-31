@@ -17,11 +17,15 @@ public interface ActividadMapper {
     @Mapping(source = "temaPrincipal", target = "tema_principal")
     @Mapping(source = "programasImplementados", target = "programas_implementados")
     @Mapping(source = "urlEvidencia", target = "url_evidencia")
+    @Mapping(source = "fecha", target = "fecha")
+    @Mapping(source = "direccion", target = "direccion")
+    @Mapping(source = "createdAt", target = "created_at")
+    @Mapping(source = "updatedAt", target = "updated_at")
+    @Mapping(source = "isDeleted", target = "is_deleted")
     ActividadDto toDto(Actividad actividad);
 
-    @Mapping(source = "id", target = "id", ignore = true) // Generalmente el ID se genera en la DB
-    @Mapping(target = "usuarioInstitucion", ignore = true) // Debe ser cargado por el servicio
-    @Mapping(target = "tipoActividad", ignore = true) // Debe ser cargado por el servicio
+    @Mapping(source = "usuario_institucion_id", target = "usuarioInstitucion.id")
+    @Mapping(source = "tipo_actividad_id", target = "tipoActividad.id")
     @Mapping(source = "descripcion_general", target = "descripcionGeneral")
     @Mapping(source = "cantidad_participantes", target = "cantidadParticipantes")
     @Mapping(source = "cantidad_sesiones", target = "cantidadSesiones")
@@ -29,7 +33,11 @@ public interface ActividadMapper {
     @Mapping(source = "tema_principal", target = "temaPrincipal")
     @Mapping(source = "programas_implementados", target = "programasImplementados")
     @Mapping(source = "url_evidencia", target = "urlEvidencia")
+    @Mapping(source = "fecha", target = "fecha")
+    @Mapping(source = "direccion", target = "direccion")
+    @Mapping(source = "created_at", target = "createdAt")
     @Mapping(source = "updated_at", target = "updatedAt")
+    @Mapping(source = "is_deleted", target = "isDeleted")
     Actividad toEntity(ActividadDto actividadDto);
 
 }
