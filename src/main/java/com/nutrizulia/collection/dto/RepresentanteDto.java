@@ -1,4 +1,4 @@
-package com.nutrizulia.sync.dto;
+package com.nutrizulia.collection.dto;
 
 import com.nutrizulia.common.enums.Genero;
 import lombok.Data;
@@ -10,12 +10,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * DTO para sincronización de entidad Paciente
+ * DTO para sincronización de entidad Representante
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PacienteSyncDto {
+public class RepresentanteDto {
     
     private UUID id;
     private Integer usuarioInstitucionId;

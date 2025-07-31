@@ -1,4 +1,4 @@
-package com.nutrizulia.sync.dto;
+package com.nutrizulia.collection.dto;
 
 import com.nutrizulia.common.enums.Estado;
 import com.nutrizulia.common.enums.TipoConsulta;
@@ -16,7 +16,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ConsultaSyncDto {
+public class ConsultaDto {
     
     private UUID id;
     private Integer usuarioInstitucionId;

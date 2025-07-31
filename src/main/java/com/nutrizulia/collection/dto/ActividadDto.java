@@ -53,5 +53,8 @@ public class ActividadDto {
     @Schema(description = "URL o enlace a la evidencia de la actividad (ej. fotos, videos, documentos).", example = "https://ejemplo.com/evidencia/actividad_123.jpg")
     private String url_evidencia;
 
+    private LocalDateTime createdAt;
     private LocalDateTime updated_at;
+    private boolean isDeleted;
+
 }

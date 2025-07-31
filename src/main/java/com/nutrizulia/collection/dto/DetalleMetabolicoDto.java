@@ -1,4 +1,4 @@
-package com.nutrizulia.sync.dto;
+package com.nutrizulia.collection.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,22 +9,23 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * DTO para sincronización de entidad DetalleVital
+ * DTO para sincronización de entidad DetalleMetabolico
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DetalleVitalSyncDto {
+public class DetalleMetabolicoDto {
     
     private UUID id;
     private UUID consultaId;
-    private Integer tensionArterialSistolica;
-    private Integer tensionArterialDiastolica;
-    private Integer frecuenciaCardiaca;
-    private Integer frecuenciaRespiratoria;
-    private BigDecimal temperatura;
-    private Integer saturacionOxigeno;
-    private Integer pulso;
+    private Integer glicemiaBasal;
+    private Integer glicemaPostprandial;
+    private Integer glicemiaAleatoria;
+    private BigDecimal hemoglobinaGlicosilada;
+    private Integer trigliceridos;
+    private Integer colesterolTotal;
+    private Integer colesterolHdl;
+    private Integer colesterolLdl;
     
     // Campos de auditoría para sincronización
     private LocalDateTime createdAt;

@@ -1,4 +1,4 @@
-package com.nutrizulia.sync.dto;
+package com.nutrizulia.collection.dto;
 
 import com.nutrizulia.common.enums.TipoValorCalculado;
 import lombok.Data;
@@ -16,7 +16,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EvaluacionAntropometricaSyncDto {
+public class EvaluacionAntropometricaDto {
     
     private UUID id;
     private UUID consultaId;
