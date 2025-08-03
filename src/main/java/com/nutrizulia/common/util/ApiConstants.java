@@ -6,6 +6,8 @@ public class ApiConstants {
     public static final String SIGN_IN_URL = "/sign-in";
     public static final String SIGN_UP_URL = "/sign-up";
     public static final String CHECK_AUTH_URL = "/check-auth";
+    public static final String FORGOT_PASSWORD_URL = "/forgot-password";
+    public static final String CHANGE_PASSWORD_URL = "/change-password";
 
     // User
     public static final String USER_API_BASE_URL = "/user";

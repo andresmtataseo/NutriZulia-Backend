@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -31,5 +32,5 @@ public class ApiResponseDto<T> {
     private String path;
 
     @Schema(description = "Detalles específicos de errores, como errores de validación de campos")
-    private List<String> errors;
+    private Map<String, String> errors;
 }
