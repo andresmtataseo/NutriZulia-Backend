@@ -7,14 +7,15 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @Schema(description = "Entidad que representa una actividad de salud realizada por un usuario en una institución")
 public class ActividadDto {
 
-    @Schema(description = "Identificador único de la actividad", example = "2", accessMode = Schema.AccessMode.READ_ONLY)
-    private UUID id;
+    @Schema(description = "Identificador único", example = "550e8400-e29b-41d4-a716-446655440000")
+    @NotNull(message = "El identificador no puede ser nulo")
+    @Size(max = 36, message = "El identificador no puede tener más de 36 caracteres")
+    private String id;
 
     @Schema(description = "Identificador de la relación usuario-institución-rol a la que pertenece esta actividad. Es el enlace al contexto de seguridad del usuario dentro de una institución.", example = "14")
     @NotNull(message = "El identificador de la relación usuario-institución-rol no puede ser nulo")
@@ -56,10 +57,12 @@ public class ActividadDto {
     @Schema(description = "Fecha de creación del registro", accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDateTime created_at;
 
-    @Schema(description = "Fecha de última actualización del registro", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Fecha de última actualización del registro")
+    @NotNull(message = "La fecha de actualización es obligatoria")
     private LocalDateTime updated_at;
 
-    @Schema(description = "Indica si el registro ha sido eliminado lógicamente", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Indica si el registro ha sido eliminado lógicamente")
+    @NotNull(message = "Debe especificarse si el registro ha sido eliminado")
     private Boolean is_deleted;
 
 }

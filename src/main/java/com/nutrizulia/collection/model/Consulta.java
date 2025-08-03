@@ -11,7 +11,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @Entity
@@ -19,8 +18,8 @@ import java.util.UUID;
 public class Consulta {
 
     @Id
-    @Column(name = "id")
-    private UUID id;
+    @Column(name = "id", length = 36)
+    private String id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_institucion_id", nullable = false)

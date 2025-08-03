@@ -3,6 +3,7 @@ package com.nutrizulia.collection.dto;
 import com.nutrizulia.common.enums.TipoValorCalculado;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -17,9 +18,11 @@ import java.util.UUID;
 @AllArgsConstructor
 @Schema(description = "Entidad que representa la evaluación antropométrica calculada a partir de las medidas registradas")
 public class EvaluacionAntropometricaDto {
-    
-    @Schema(description = "Identificador único de la evaluación antropométrica", example = "550e8400-e29b-41d4-a716-446655440000", accessMode = Schema.AccessMode.READ_ONLY)
-    private UUID id;
+
+    @Schema(description = "Identificador único", example = "550e8400-e29b-41d4-a716-446655440000")
+    @NotNull(message = "El identificador no puede ser nulo")
+    @Size(max = 36, message = "El identificador no puede tener más de 36 caracteres")
+    private String id;
     
     @Schema(description = "Identificador único de la consulta asociada", example = "550e8400-e29b-41d4-a716-446655440001")
     @NotNull(message = "El identificador de la consulta no puede ser nulo")
@@ -45,13 +48,15 @@ public class EvaluacionAntropometricaDto {
     @Schema(description = "Fecha en que se realizó la evaluación", example = "2024-05-20")
     @NotNull(message = "La fecha de evaluación es obligatoria")
     private LocalDate fecha_evaluacion;
-    
+
     @Schema(description = "Fecha de creación del registro", accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDateTime created_at;
-    
-    @Schema(description = "Fecha de última actualización del registro", accessMode = Schema.AccessMode.READ_ONLY)
+
+    @Schema(description = "Fecha de última actualización del registro")
+    @NotNull(message = "La fecha de actualización es obligatoria")
     private LocalDateTime updated_at;
-    
-    @Schema(description = "Indica si el registro ha sido eliminado lógicamente", accessMode = Schema.AccessMode.READ_ONLY)
+
+    @Schema(description = "Indica si el registro ha sido eliminado lógicamente")
+    @NotNull(message = "Debe especificarse si el registro ha sido eliminado")
     private Boolean is_deleted;
 }

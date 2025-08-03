@@ -8,7 +8,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @Entity
@@ -16,8 +15,8 @@ import java.util.UUID;
 public class DetalleObstetricia {
 
     @Id
-    @Column(name = "id")
-    private UUID id;
+    @Column(name = "id", length = 36)
+    private String id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "consulta_id", nullable = false)

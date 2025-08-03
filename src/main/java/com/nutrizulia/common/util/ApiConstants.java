@@ -39,6 +39,7 @@ public class ApiConstants {
 
     // Collection
     public static final String RECORD_API_BASE_URL = "/collection";
+    public static final String RECORD_PACIENTES = "/sync/pacientes";
 
     // Institution
     public static final String INSTITUTION_API_BASE_URL = "/institution";
