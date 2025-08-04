@@ -8,7 +8,7 @@ import com.nutrizulia.common.dto.ApiResponseDto;
 import com.nutrizulia.features.auth.dto.SignInRequestDto;
 import com.nutrizulia.common.util.ApiConstants;
 import com.nutrizulia.features.auth.service.IAuthService;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,7 +40,7 @@ public class AuthController {
                     @ApiResponse(
                             responseCode = "200",
                             description = "Inicio de sesión exitoso",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthResponseDto.class))
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
                     ),
                     @ApiResponse(
                             responseCode = "400",
@@ -60,7 +60,8 @@ public class AuthController {
             }
     )
     @PostMapping(ApiConstants.SIGN_IN_URL)
-    public ResponseEntity<AuthResponseDto> signIn(@Valid @RequestBody SignInRequestDto signInRequestDto){
+    @SecurityRequirements({})
+    public ResponseEntity<ApiResponseDto<AuthResponseDto>> signIn(@Valid @RequestBody SignInRequestDto signInRequestDto){
         return ResponseEntity.ok(authService.signIn(signInRequestDto));
     }
 
@@ -86,6 +87,7 @@ public class AuthController {
             }
     )
     @PostMapping(ApiConstants.SIGN_UP_URL)
+    @SecurityRequirements({})
     public ResponseEntity<ApiResponseDto<Object>> signUp(@Valid @RequestBody SignUpRequestDto signUpRequestDto){
         return ResponseEntity.ok(authService.signUp(signUpRequestDto));
     }
@@ -93,7 +95,6 @@ public class AuthController {
     @Operation(
             summary = "Verifica el estado de autenticación",
             description = "Endpoint protegido que confirma si el usuario está autenticado y si el token JWT aún no ha expirado. Retorna información del usuario autenticado.",
-            security = @SecurityRequirement(name = "bearerAuth"),
             responses = {
                     @ApiResponse(
                             responseCode = "200",
@@ -140,6 +141,7 @@ public class AuthController {
             }
     )
     @PostMapping(ApiConstants.FORGOT_PASSWORD_URL)
+    @SecurityRequirements({})
     public ResponseEntity<ApiResponseDto<Object>> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDto request) {
         ApiResponseDto<Object> response = authService.forgotPassword(request);
         return ResponseEntity.ok(response);
@@ -148,7 +150,6 @@ public class AuthController {
     @Operation(
             summary = "Cambiar contraseña",
             description = "Permite al usuario autenticado cambiar su contraseña actual por una nueva. Requiere autenticación JWT.",
-            security = @SecurityRequirement(name = "bearerAuth"),
             responses = {
                     @ApiResponse(
                             responseCode = "200",

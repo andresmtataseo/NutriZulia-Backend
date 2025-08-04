@@ -37,7 +37,7 @@ public class AuthService implements IAuthService {
     private final PasswordEncoder passwordEncoder;
 
 
-    public AuthResponseDto signIn(SignInRequestDto request) {
+    public ApiResponseDto<AuthResponseDto> signIn(SignInRequestDto request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave())
         );
@@ -46,10 +46,18 @@ public class AuthService implements IAuthService {
 
         String token = jwtService.generateToken(user);
 
-        return AuthResponseDto.builder()
+        AuthResponseDto authData = AuthResponseDto.builder()
                 .token(token)
                 .type("Bearer")
                 .user(userMapper.toDto(user))
+                .build();
+
+        return ApiResponseDto.<AuthResponseDto>builder()
+                .status(HttpStatus.OK.value())
+                .message("Inicio de sesión exitoso")
+                .data(authData)
+                .timestamp(LocalDateTime.now())
+                .path(ApiConstants.AUTH_API_BASE_URL + ApiConstants.SIGN_IN_URL)
                 .build();
     }
 
@@ -109,17 +117,17 @@ public class AuthService implements IAuthService {
                     .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con la cédula: " + cedula));
 
             // Verificar que la contraseña actual sea correcta
-            if (!passwordEncoder.matches(request.getClaveActual(), user.getClave())) {
+            if (!passwordEncoder.matches(request.getClave_actual(), user.getClave())) {
                 throw new IllegalArgumentException("La contraseña actual es incorrecta");
             }
 
             // Verificar que la nueva contraseña sea diferente a la actual
-            if (passwordEncoder.matches(request.getClaveNueva(), user.getClave())) {
+            if (passwordEncoder.matches(request.getClave_nueva(), user.getClave())) {
                 throw new IllegalArgumentException("La nueva contraseña debe ser diferente a la actual");
             }
 
             // Codificar la nueva contraseña
-            String claveEncriptada = passwordEncoder.encode(request.getClaveNueva());
+            String claveEncriptada = passwordEncoder.encode(request.getClave_nueva());
             
             // Actualizar la contraseña en la base de datos
             usuarioService.updatePassword(user.getId(), claveEncriptada);

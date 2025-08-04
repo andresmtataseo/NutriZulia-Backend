@@ -5,7 +5,7 @@ import com.nutrizulia.features.auth.dto.*;
 
 public interface IAuthService {
 
-    AuthResponseDto signIn(SignInRequestDto signInRequestDto);
+    ApiResponseDto<AuthResponseDto> signIn(SignInRequestDto signInRequestDto);
 
     ApiResponseDto<Object> signUp(SignUpRequestDto signUpRequestDto);
 

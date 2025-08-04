@@ -24,7 +24,7 @@ public class ChangePasswordRequestDto {
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     @NotBlank(message = "La contraseña actual es obligatoria")
-    private String claveActual;
+    private String clave_actual;
 
     @Schema(
             description = "Nueva contraseña del usuario. Debe tener al menos 8 caracteres, incluir al menos una letra mayúscula, una minúscula, un número y un carácter especial",
@@ -37,7 +37,7 @@ public class ChangePasswordRequestDto {
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
             message = "La nueva contraseña debe contener al menos: una letra minúscula, una mayúscula, un número y un carácter especial (@$!%*?&)"
     )
-    private String claveNueva;
+    private String clave_nueva;
 
     @Schema(
             description = "Confirmación de la nueva contraseña. Debe coincidir exactamente con la nueva contraseña",
@@ -45,5 +45,5 @@ public class ChangePasswordRequestDto {
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     @NotBlank(message = "La confirmación de la nueva contraseña es obligatoria")
-    private String claveNuevaConfirmacion;
+    private String clave_nueva_confirmacion;
 }

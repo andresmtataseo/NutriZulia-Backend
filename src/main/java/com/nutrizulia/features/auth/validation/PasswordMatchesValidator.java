@@ -17,11 +17,11 @@ public class PasswordMatchesValidator implements ConstraintValidator<PasswordMat
             return true; // Dejar que @NotNull maneje los valores nulos
         }
 
-        if (dto.getClaveNueva() == null || dto.getClaveNuevaConfirmacion() == null) {
+        if (dto.getClave_nueva() == null || dto.getClave_nueva_confirmacion() == null) {
             return true; // Dejar que @NotBlank maneje los valores nulos
         }
 
-        boolean isValid = dto.getClaveNueva().equals(dto.getClaveNuevaConfirmacion());
+        boolean isValid = dto.getClave_nueva().equals(dto.getClave_nueva_confirmacion());
 
         if (!isValid) {
             // Personalizar el mensaje de error
