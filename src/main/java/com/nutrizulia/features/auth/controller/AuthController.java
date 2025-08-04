@@ -23,7 +23,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping(ApiConstants.AUTH_API_BASE_URL)
+@RequestMapping(ApiConstants.AUTH_BASE_URL)
 @RequiredArgsConstructor
 @Tag(
         name = "Autenticación y Seguridad",
@@ -59,7 +59,7 @@ public class AuthController {
                     )
             }
     )
-    @PostMapping(ApiConstants.SIGN_IN_URL)
+    @PostMapping(ApiConstants.AUTH_SIGN_IN)
     @SecurityRequirements({})
     public ResponseEntity<ApiResponseDto<AuthResponseDto>> signIn(@Valid @RequestBody SignInRequestDto signInRequestDto){
         return ResponseEntity.ok(authService.signIn(signInRequestDto));
@@ -86,7 +86,7 @@ public class AuthController {
                     )
             }
     )
-    @PostMapping(ApiConstants.SIGN_UP_URL)
+    @PostMapping(ApiConstants.AUTH_SIGN_UP)
     @SecurityRequirements({})
     public ResponseEntity<ApiResponseDto<Object>> signUp(@Valid @RequestBody SignUpRequestDto signUpRequestDto){
         return ResponseEntity.ok(authService.signUp(signUpRequestDto));
@@ -108,7 +108,7 @@ public class AuthController {
                     )
             }
     )
-    @GetMapping(ApiConstants.CHECK_AUTH_URL)
+    @GetMapping(ApiConstants.AUTH_CHECK)
     public ResponseEntity<ApiResponseDto<Object>> checkAuth(Authentication authentication){
         // Obtener la cédula del usuario autenticado
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -140,7 +140,7 @@ public class AuthController {
                     )
             }
     )
-    @PostMapping(ApiConstants.FORGOT_PASSWORD_URL)
+    @PostMapping(ApiConstants.AUTH_FORGOT_PASSWORD)
     @SecurityRequirements({})
     public ResponseEntity<ApiResponseDto<Object>> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDto request) {
         ApiResponseDto<Object> response = authService.forgotPassword(request);
@@ -173,7 +173,7 @@ public class AuthController {
                     )
             }
     )
-    @PostMapping(ApiConstants.CHANGE_PASSWORD_URL)
+    @PostMapping(ApiConstants.AUTH_CHANGE_PASSWORD)
     public ResponseEntity<ApiResponseDto<Object>> changePassword(
             @Valid @RequestBody ChangePasswordRequestDto request,
             Authentication authentication) {

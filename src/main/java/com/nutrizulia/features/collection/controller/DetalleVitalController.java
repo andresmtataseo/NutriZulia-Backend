@@ -1,7 +1,7 @@
 package com.nutrizulia.features.collection.controller;
 
-import com.nutrizulia.features.collection.dto.PacienteDto;
-import com.nutrizulia.features.collection.service.IPacienteService;
+import com.nutrizulia.features.collection.dto.DetalleVitalDto;
+import com.nutrizulia.features.collection.service.IDetalleVitalService;
 import com.nutrizulia.common.dto.ApiResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.nutrizulia.common.util.ApiConstants.COLLECTION_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_PATIENTS;
+import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_VITAL_DETAILS;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,33 +28,32 @@ import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_PATIENTS;
         name = "Recolección de Datos",
         description = "Endpoints para recibir, consultar y procesar los datos recolectados desde la aplicación móvil, como actividades realizadas, pacientes, consultas y otros registros clínicos."
 )
-public class PacienteController {
+public class DetalleVitalController {
 
-    private final IPacienteService pacienteService;
+    private final IDetalleVitalService detalleVitalService;
 
-    @Operation(summary = "Sincronizar lista de pacientes", description = "Recibe y sincroniza una lista de pacientes desde la aplicación móvil. **Requiere autenticación.**")
+    @Operation(summary = "Sincronizar lista de detalles vitales", description = "Recibe y sincroniza una lista de detalles vitales desde la aplicación móvil. **Requiere autenticación.**")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pacientes sincronizados exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "200", description = "Detalles vitales sincronizados exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Datos inválidos en la solicitud", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "401", description = "No autorizado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "403", description = "Prohibido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @PostMapping(COLLECTION_SYNC_PATIENTS)
-    public ResponseEntity<ApiResponseDto<List<PacienteDto>>> syncPacientes(
-            @RequestBody List<PacienteDto> pacientes, HttpServletRequest request) {
+    @PostMapping(COLLECTION_SYNC_VITAL_DETAILS)
+    public ResponseEntity<ApiResponseDto<List<DetalleVitalDto>>> syncDetallesVitales(
+            @RequestBody List<DetalleVitalDto> detallesVitales, HttpServletRequest request) {
 
-        List<PacienteDto> pacientesDesdeServidor = pacienteService.sycnPacientes(pacientes);
+        List<DetalleVitalDto> detallesDesdeServidor = detalleVitalService.syncDetallesVital(detallesVitales);
 
         return ResponseEntity.ok(
-                ApiResponseDto.<List<PacienteDto>>builder()
+                ApiResponseDto.<List<DetalleVitalDto>>builder()
                         .status(HttpStatus.OK.value())
-                        .message("Sincronización de pacientes completada")
+                        .message("Sincronización de detalles vitales completada")
                         .timestamp(LocalDateTime.now())
                         .path(request.getRequestURI())
-                        .data(pacientesDesdeServidor)
+                        .data(detallesDesdeServidor)
                         .build()
         );
     }
-
 }

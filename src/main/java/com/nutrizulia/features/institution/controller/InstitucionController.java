@@ -19,7 +19,7 @@ import static com.nutrizulia.common.util.ApiConstants.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(INSTITUTION_API_BASE_URL)
+@RequestMapping(INSTITUTIONS_BASE_URL)
 @Tag(
         name = "Gestión de Instituciones",
         description = "Creación y mantenimiento de instituciones de salud."
@@ -37,7 +37,7 @@ public class InstitucionController {
             @ApiResponse(responseCode = "404", description = "No encontrado - El recurso solicitado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping(INSTITUTION_ALL)
+    @GetMapping(INSTITUTIONS_GET_ALL)
     public ResponseEntity<List<InstitucionDto>> getInstituciones() {
         List<InstitucionDto> instituciones = institucionService.getInstituciones();
         return ResponseEntity.ok(instituciones);

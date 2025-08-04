@@ -24,7 +24,7 @@ import static com.nutrizulia.common.util.ApiConstants.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(USER_INSTITUTION_API_BASE_URL)
+@RequestMapping(USER_INSTITUTIONS_BASE_URL)
 @Tag(
         name = "Gestión Usuario-Institución",
         description = "Gestión de asignaciones entre usuarios del sistema e instituciones registradas."
@@ -42,7 +42,7 @@ public class UsuarioInstitucionController {
             @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping(USER_INSTITUTION_ALL_BY_ID_USER)
+    @GetMapping(USER_INSTITUTIONS_GET_BY_USER)
     public ResponseEntity<List<UsuarioInstitucionDto>> getInstitucionesByUsuarioId(
             @Valid
             @Parameter(description = "ID del usuario", required = true, example = "1")

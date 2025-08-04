@@ -17,11 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.CATALOG_API_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.PARAMETROS_PEDIATRICOS_LONGITUD_ALL;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @RestController
-@RequestMapping(CATALOG_API_BASE_URL)
+@RequestMapping(CATALOG_BASE_URL)
 @RequiredArgsConstructor
 @Tag(
         name = "Catálogos del Sistema",
@@ -39,7 +38,7 @@ public class ParametroCrecimientoPediatricoLongitudController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
 
-    @GetMapping(PARAMETROS_PEDIATRICOS_LONGITUD_ALL)
+    @GetMapping(CATALOG_PEDIATRIC_LENGTH_PARAMETERS)
     public ResponseEntity<List<ParametroCrecimientoPediatricoLongitudDto>> getParametrosCrecimientosPediatricoLongitud() {
         return ResponseEntity.ok(parametroCrecimientoPedriaticoLongitudService.getParametrosCrecimientosPedriaticosLongitud());
     }

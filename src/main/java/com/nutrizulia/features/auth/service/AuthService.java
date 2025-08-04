@@ -57,7 +57,7 @@ public class AuthService implements IAuthService {
                 .message("Inicio de sesión exitoso")
                 .data(authData)
                 .timestamp(LocalDateTime.now())
-                .path(ApiConstants.AUTH_API_BASE_URL + ApiConstants.SIGN_IN_URL)
+                .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_SIGN_IN)
                 .build();
     }
 
@@ -67,7 +67,7 @@ public class AuthService implements IAuthService {
                 .status(HttpStatus.CREATED.value())
                 .message("Usuario registrado exitosamente")
                 .timestamp(LocalDateTime.now())
-                .path(ApiConstants.SIGN_UP_URL)
+                .path(ApiConstants.AUTH_SIGN_UP)
                 .build();
     }
 
@@ -94,7 +94,7 @@ public class AuthService implements IAuthService {
                     .status(HttpStatus.OK.value())
                     .message("Si la cédula existe en nuestro sistema, se ha enviado una nueva contraseña temporal a su correo electrónico.")
                     .timestamp(LocalDateTime.now())
-                    .path(ApiConstants.AUTH_API_BASE_URL + ApiConstants.FORGOT_PASSWORD_URL)
+                    .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_FORGOT_PASSWORD)
                     .build();
                     
         } catch (UsernameNotFoundException e) {
@@ -102,7 +102,7 @@ public class AuthService implements IAuthService {
                     .status(HttpStatus.OK.value())
                     .message("Si la cédula existe en nuestro sistema, se ha enviado una nueva contraseña temporal a su correo electrónico.")
                     .timestamp(LocalDateTime.now())
-                    .path(ApiConstants.AUTH_API_BASE_URL + ApiConstants.FORGOT_PASSWORD_URL)
+                    .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_FORGOT_PASSWORD)
                     .build();
         } catch (Exception e) {
             throw new RuntimeException("Error interno del servidor al procesar la solicitud de recuperación de contraseña");
@@ -136,7 +136,7 @@ public class AuthService implements IAuthService {
                     .status(HttpStatus.OK.value())
                     .message("Contraseña cambiada exitosamente")
                     .timestamp(LocalDateTime.now())
-                    .path(ApiConstants.AUTH_API_BASE_URL + ApiConstants.CHANGE_PASSWORD_URL)
+                    .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_CHANGE_PASSWORD)
                     .build();
             
         } catch (UsernameNotFoundException | IllegalArgumentException e) {
@@ -166,7 +166,7 @@ public class AuthService implements IAuthService {
                             "tokenValid", true
                     ))
                     .timestamp(LocalDateTime.now())
-                    .path(ApiConstants.AUTH_API_BASE_URL + ApiConstants.CHECK_AUTH_URL)
+                    .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_CHECK)
                     .build();
                     
         } catch (UsernameNotFoundException e) {

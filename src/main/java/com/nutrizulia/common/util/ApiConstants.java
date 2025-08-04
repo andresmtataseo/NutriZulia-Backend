@@ -1,53 +1,70 @@
 package com.nutrizulia.common.util;
 
+/**
+ * Constantes para las rutas de la API REST.
+ * Siguiendo las mejores prácticas de REST y convenciones de nomenclatura.
+ */
 public class ApiConstants {
-    // Auth
-    public static final String AUTH_API_BASE_URL = "/auth";
-    public static final String SIGN_IN_URL = "/sign-in";
-    public static final String SIGN_UP_URL = "/sign-up";
-    public static final String CHECK_AUTH_URL = "/check-auth";
-    public static final String FORGOT_PASSWORD_URL = "/forgot-password";
-    public static final String CHANGE_PASSWORD_URL = "/change-password";
 
-    // User
-    public static final String USER_API_BASE_URL = "/user";
-    public static final String USER_ALL_URL = "/findAll";
+    // ========== AUTHENTICATION API ==========
+    public static final String AUTH_BASE_URL = "/api/v1/auth";
+    public static final String AUTH_SIGN_IN = "/sign-in";
+    public static final String AUTH_SIGN_UP = "/sign-up";
+    public static final String AUTH_CHECK = "/check";
+    public static final String AUTH_FORGOT_PASSWORD = "/forgot-password";
+    public static final String AUTH_CHANGE_PASSWORD = "/change-password";
 
-    // Catalog
-    public static final String CATALOG_API_BASE_URL = "/catalog";
-    public static final String ENFERMEDADES_ALL = "/v1/enfermedades";
-    public static final String ESPECIALIDADES_ALL = "/v1/especialidades";
-    public static final String ESTADOS_ALL = "/v1/estados";
-    public static final String ETNIAS_ALL = "/v1/etnias";
-    public static final String GRUPOS_ETARIOS_ALL = "/v1/gruposEtarios";
-    public static final String MUNICIPIOS_ALL = "/v1/municipios";
-    public static final String MUNICIPIOS_SANITARIOS_ALL = "/v1/municipiosSanitarios";
-    public static final String NACIONALIDADES_ALL = "/v1/nacionalidades";
-    public static final String PARAMETROS_NINOS_EDAD_ALL = "/v1/parametrosCrecimientosNinosEdad";
-    public static final String PARAMETROS_PEDIATRICOS_EDAD_ALL = "/v1/parametrosCrecimientosPediatricoEdad";
-    public static final String PARAMETROS_PEDIATRICOS_LONGITUD_ALL = "/v1/parametrosCrecimientosPediatricoLongitud";
-    public static final String PARENTESCOS_ALL = "/v1/parentescos";
-    public static final String PARROQUIAS_ALL = "/v1/parroquias";
-    public static final String REGEX_ALL = "/v1/regex";
-    public static final String REGLAS_IMC_ALL = "/v1/reglasInterpretacionesImc";
-    public static final String REGLAS_PERCENTIL_ALL = "/v1/reglasInterpretacionesPercentil";
-    public static final String REGLAS_Z_SCORE_ALL = "v1/reglasInterpretacionesZScore";
-    public static final String RIESGOS_BIOLOGICOS_ALL = "/v1/riesgosBiologicos";
-    public static final String ROLES_ALL = "/v1/roles";
-    public static final String TIPOS_ACTIVIDADES_ALL = "/v1/tiposActividades";
-    public static final String TIPOS_INDICADORES_ALL = "/v1/tiposIndicadores";
-    public static final String TIPOS_INSTITUCIONES_ALL = "/v1/tiposInstituciones";
-    public static final String VERSIONES_ALL = "/v1/versiones";
+    // ========== CATALOG API ==========
+    public static final String CATALOG_BASE_URL = "/api/v1/catalog";
+    public static final String CATALOG_DISEASES = "/diseases";
+    public static final String CATALOG_SPECIALTIES = "/specialties";
+    public static final String CATALOG_STATES = "/states";
+    public static final String CATALOG_ETHNICITIES = "/ethnicities";
+    public static final String CATALOG_AGE_GROUPS = "/age-groups";
+    public static final String CATALOG_MUNICIPALITIES = "/municipalities";
+    public static final String CATALOG_HEALTH_MUNICIPALITIES = "/health-municipalities";
+    public static final String CATALOG_NATIONALITIES = "/nationalities";
+    public static final String CATALOG_CHILDREN_AGE_PARAMETERS = "/children-age-parameters";
+    public static final String CATALOG_PEDIATRIC_AGE_PARAMETERS = "/pediatric-age-parameters";
+    public static final String CATALOG_PEDIATRIC_LENGTH_PARAMETERS = "/pediatric-length-parameters";
+    public static final String CATALOG_RELATIONSHIPS = "/relationships";
+    public static final String CATALOG_PARISHES = "/parishes";
+    public static final String CATALOG_REGEX = "/regex";
+    public static final String CATALOG_BMI_INTERPRETATION_RULES = "/bmi-interpretation-rules";
+    public static final String CATALOG_PERCENTILE_INTERPRETATION_RULES = "/percentile-interpretation-rules";
+    public static final String CATALOG_Z_SCORE_INTERPRETATION_RULES = "/z-score-interpretation-rules";
+    public static final String CATALOG_BIOLOGICAL_RISKS = "/biological-risks";
+    public static final String CATALOG_ROLES = "/roles";
+    public static final String CATALOG_ACTIVITY_TYPES = "/activity-types";
+    public static final String CATALOG_INDICATOR_TYPES = "/indicator-types";
+    public static final String CATALOG_INSTITUTION_TYPES = "/institution-types";
+    public static final String CATALOG_VERSIONS = "/versions";
 
-    // Collection
-    public static final String RECORD_API_BASE_URL = "/collection";
-    public static final String RECORD_PACIENTES = "/sync/pacientes";
+    // ========== DATA COLLECTION API ==========
+    public static final String COLLECTION_BASE_URL = "/api/v1/collection";
+    public static final String COLLECTION_SYNC_PATIENTS = "/sync/patients";
+    public static final String COLLECTION_SYNC_REPRESENTATIVES = "/sync/representatives";
+    public static final String COLLECTION_SYNC_PATIENT_REPRESENTATIVES = "/sync/patient-representatives";
+    public static final String COLLECTION_SYNC_CONSULTATIONS = "/sync/consultations";
+    public static final String COLLECTION_SYNC_DIAGNOSES = "/sync/diagnoses";
+    public static final String COLLECTION_SYNC_ANTHROPOMETRIC_EVALUATIONS = "/sync/anthropometric-evaluations";
+    public static final String COLLECTION_SYNC_ANTHROPOMETRIC_DETAILS = "/sync/anthropometric-details";
+    public static final String COLLECTION_SYNC_VITAL_DETAILS = "/sync/vital-details";
+    public static final String COLLECTION_SYNC_METABOLIC_DETAILS = "/sync/metabolic-details";
+    public static final String COLLECTION_SYNC_PEDIATRIC_DETAILS = "/sync/pediatric-details";
+    public static final String COLLECTION_SYNC_OBSTETRIC_DETAILS = "/sync/obstetric-details";
+    public static final String COLLECTION_SYNC_ACTIVITIES = "/sync/activities";
 
-    // Institution
-    public static final String INSTITUTION_API_BASE_URL = "/institution";
-    public static final String INSTITUTION_ALL = "/v1/findAll";
+    // ========== INSTITUTIONS API ==========
+    public static final String INSTITUTIONS_BASE_URL = "/api/v1/institutions";
+    public static final String INSTITUTIONS_GET_ALL = "";
 
-    // User-Institution
-    public static final String USER_INSTITUTION_API_BASE_URL = "/user-institution";
-    public static final String USER_INSTITUTION_ALL_BY_ID_USER = "/v1/findAll";
+    // ========== USERS API ==========
+    public static final String USERS_BASE_URL = "/api/v1/users";
+    public static final String USERS_GET_ALL = "";
+
+    // ========== USER-INSTITUTIONS API ==========
+    public static final String USER_INSTITUTIONS_BASE_URL = "/api/v1/user-institutions";
+    public static final String USER_INSTITUTIONS_GET_BY_USER = "/by-user";
+
 }

@@ -17,12 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.CATALOG_API_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.PARAMETROS_NINOS_EDAD_ALL;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(CATALOG_API_BASE_URL)
+@RequestMapping(CATALOG_BASE_URL)
 @Tag(
         name = "Catálogos del Sistema",
         description = "Consulta de catálogos predefinidos como etnias, grupos etarios, parroquias, entre otros."
@@ -39,7 +38,7 @@ public class ParametroCrecimientoNinoEdadController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
 
-    @GetMapping(PARAMETROS_NINOS_EDAD_ALL)
+    @GetMapping(CATALOG_CHILDREN_AGE_PARAMETERS)
     public ResponseEntity<List<ParametroCrecimientoNinoEdadDto>> getParametrosCrecimientosNinosEdad() {
         return ResponseEntity.ok(parametroCrecimientoNinoEdadService.getParametrosCrecimientosNinosEdad());
     }

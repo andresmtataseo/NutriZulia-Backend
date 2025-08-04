@@ -17,12 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.USER_ALL_URL;
-import static com.nutrizulia.common.util.ApiConstants.USER_API_BASE_URL;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(USER_API_BASE_URL)
+@RequestMapping(USERS_BASE_URL)
 @Tag(
         name = "Gestión de Usuarios",
         description = "Operaciones para crear, editar, desactivar usuarios y asignar roles o permisos."
@@ -40,7 +39,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "404", description = "No encontrado - El recurso solicitado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping(USER_ALL_URL)
+    @GetMapping(USERS_GET_ALL)
     public ResponseEntity<List<UsuarioDto>> getUsuarios() {
         List<UsuarioDto> usuarios = usuarioService.getUsuarios();
         return ResponseEntity.ok(usuarios);

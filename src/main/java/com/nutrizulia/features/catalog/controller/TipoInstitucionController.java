@@ -17,12 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.CATALOG_API_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.TIPOS_INSTITUCIONES_ALL;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(CATALOG_API_BASE_URL)
+@RequestMapping(CATALOG_BASE_URL)
 @Tag(
         name = "Catálogos del Sistema",
         description = "Consulta de catálogos predefinidos como etnias, grupos etarios, parroquias, entre otros."
@@ -38,7 +37,7 @@ public class TipoInstitucionController {
             @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping(TIPOS_INSTITUCIONES_ALL)
+    @GetMapping(CATALOG_INSTITUTION_TYPES)
     public ResponseEntity<List<TipoInstitucionDto>> getTiposActividades() {
         return ResponseEntity.ok(tipoInstitucionService.getTiposInstituciones());
     }

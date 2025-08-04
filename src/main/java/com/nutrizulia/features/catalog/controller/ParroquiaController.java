@@ -19,12 +19,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.CATALOG_API_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.PARROQUIAS_ALL;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(CATALOG_API_BASE_URL)
+@RequestMapping(CATALOG_BASE_URL)
 @Tag(
         name = "Catálogos del Sistema",
         description = "Consulta de catálogos predefinidos como etnias, grupos etarios, parroquias, entre otros."
@@ -42,7 +41,7 @@ public class ParroquiaController {
             @ApiResponse(responseCode = "404", description = "No encontrado - El recurso solicitado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping(PARROQUIAS_ALL)
+    @GetMapping(CATALOG_PARISHES)
     public ResponseEntity<List<ParroquiaDto>> getParroquias( @Valid
             @Parameter(description = "ID del municipio al que pertenece la parroquia", required = true, example = "326")
             @RequestParam Integer idMunicipio) {
