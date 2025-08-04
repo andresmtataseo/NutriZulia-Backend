@@ -9,12 +9,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.nutrizulia.common.util.ApiConstants.*;
@@ -39,8 +42,19 @@ public class ParentescoController {
     })
 
     @GetMapping(CATALOG_RELATIONSHIPS)
-    public ResponseEntity<List<ParentescoDto>> getParentescos() {
-        return ResponseEntity.ok(parentescoService.getParentescos());
+    public ResponseEntity<ApiResponseDto<List<ParentescoDto>>> getParentescos(HttpServletRequest request) {
+        List<ParentescoDto> parentescos = parentescoService.getParentescos();
+        
+        ApiResponseDto<List<ParentescoDto>> response = ApiResponseDto.<List<ParentescoDto>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Lista de parentescos recuperada exitosamente")
+                .data(parentescos)
+                .timestamp(LocalDateTime.now())
+                .path(request.getRequestURI())
+                .status(HttpStatus.OK.value())
+                .build();
+        
+        return ResponseEntity.ok(response);
     }
 
 }

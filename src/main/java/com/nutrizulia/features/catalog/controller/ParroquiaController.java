@@ -11,12 +11,15 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.nutrizulia.common.util.ApiConstants.*;
@@ -42,12 +45,24 @@ public class ParroquiaController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(CATALOG_PARISHES)
-    public ResponseEntity<List<ParroquiaDto>> getParroquias( @Valid
+    public ResponseEntity<ApiResponseDto<List<ParroquiaDto>>> getParroquias(
+            @Valid
             @Parameter(description = "ID del municipio al que pertenece la parroquia", required = true, example = "326")
-            @RequestParam Integer idMunicipio) {
+            @RequestParam Integer idMunicipio,
+            HttpServletRequest request) {
 
         List<ParroquiaDto> parroquias = parroquiaService.getParroquias(idMunicipio);
-        return ResponseEntity.ok(parroquias);
+        
+        ApiResponseDto<List<ParroquiaDto>> response = ApiResponseDto.<List<ParroquiaDto>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Lista de parroquias recuperada exitosamente")
+                .data(parroquias)
+                .timestamp(LocalDateTime.now())
+                .path(request.getRequestURI())
+                .status(HttpStatus.OK.value())
+                .build();
+        
+        return ResponseEntity.ok(response);
     }
 
 }

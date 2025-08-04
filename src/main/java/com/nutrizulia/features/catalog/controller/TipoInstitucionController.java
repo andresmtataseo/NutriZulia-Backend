@@ -9,12 +9,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.nutrizulia.common.util.ApiConstants.*;
@@ -38,8 +41,19 @@ public class TipoInstitucionController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(CATALOG_INSTITUTION_TYPES)
-    public ResponseEntity<List<TipoInstitucionDto>> getTiposActividades() {
-        return ResponseEntity.ok(tipoInstitucionService.getTiposInstituciones());
+    public ResponseEntity<ApiResponseDto<List<TipoInstitucionDto>>> getTiposInstituciones(HttpServletRequest request) {
+        List<TipoInstitucionDto> tiposInstituciones = tipoInstitucionService.getTiposInstituciones();
+        
+        ApiResponseDto<List<TipoInstitucionDto>> response = ApiResponseDto.<List<TipoInstitucionDto>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Lista de tipos de instituciones recuperada exitosamente")
+                .data(tiposInstituciones)
+                .timestamp(LocalDateTime.now())
+                .path(request.getRequestURI())
+                .status(HttpStatus.OK.value())
+                .build();
+        
+        return ResponseEntity.ok(response);
     }
 
 }

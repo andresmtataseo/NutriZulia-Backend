@@ -9,10 +9,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.nutrizulia.common.util.ApiConstants.*;
@@ -39,7 +42,18 @@ public class EtniaController {
     })
 
     @GetMapping(CATALOG_ETHNICITIES)
-    public ResponseEntity<List<EtniaDto>> getEtnias() {
-        return ResponseEntity.ok(etniaService.getEtnias());
+    public ResponseEntity<ApiResponseDto<List<EtniaDto>>> getEtnias(HttpServletRequest request) {
+        List<EtniaDto> etnias = etniaService.getEtnias();
+        
+        ApiResponseDto<List<EtniaDto>> response = ApiResponseDto.<List<EtniaDto>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Lista de etnias recuperada exitosamente")
+                .data(etnias)
+                .timestamp(LocalDateTime.now())
+                .path(request.getRequestURI())
+                .status(HttpStatus.OK.value())
+                .build();
+        
+        return ResponseEntity.ok(response);
     }
 }

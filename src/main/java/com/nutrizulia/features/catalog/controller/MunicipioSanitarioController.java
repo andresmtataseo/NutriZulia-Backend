@@ -10,11 +10,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.nutrizulia.common.util.ApiConstants.*;
@@ -43,12 +46,24 @@ public class MunicipioSanitarioController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(CATALOG_HEALTH_MUNICIPALITIES)
-    public ResponseEntity<List<MunicipioSanitarioDto>> getMunicipios(@Valid
-                                                            @Parameter(description = "ID del estado al cual pertenecen los municipios", required = true, example = "23")
-                                                            @RequestParam Integer idEstado) {
+    public ResponseEntity<ApiResponseDto<List<MunicipioSanitarioDto>>> getMunicipios(
+            @Valid
+            @Parameter(description = "ID del estado al cual pertenecen los municipios", required = true, example = "23")
+            @RequestParam Integer idEstado,
+            HttpServletRequest request) {
 
         List<MunicipioSanitarioDto> municipios = municipioSanitarioService.getMunicipiosSanitarios(idEstado);
-        return ResponseEntity.ok(municipios);
+        
+        ApiResponseDto<List<MunicipioSanitarioDto>> response = ApiResponseDto.<List<MunicipioSanitarioDto>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Lista de municipios sanitarios recuperada exitosamente")
+                .data(municipios)
+                .timestamp(LocalDateTime.now())
+                .path(request.getRequestURI())
+                .status(HttpStatus.OK.value())
+                .build();
+        
+        return ResponseEntity.ok(response);
     }
 
 }
