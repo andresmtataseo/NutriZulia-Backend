@@ -8,4 +8,6 @@ public interface IActividadService {
 
     List<ActividadDto> getActividades();
 
+    List<ActividadDto> sycnActividades(List<ActividadDto> actividades);
+
 }

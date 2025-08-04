@@ -1,9 +1,10 @@
-package com.nutrizulia.features.collection.service;
+package com.nutrizulia.features.collection.service.impl;
 
 import com.nutrizulia.features.collection.dto.PacienteDto;
 import com.nutrizulia.features.collection.mapper.PacienteMapper;
 import com.nutrizulia.features.collection.model.Paciente;
 import com.nutrizulia.features.collection.repository.PacienteRepository;
+import com.nutrizulia.features.collection.service.IPacienteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
