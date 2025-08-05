@@ -34,7 +34,7 @@ public class Consulta {
     private TipoActividad tipoActividad;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "especialidad_remiente_id")
+    @JoinColumn(name = "especialidad_remitente_id")
     private Especialidad especialidad;
 
     @Enumerated(EnumType.STRING)

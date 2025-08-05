@@ -35,7 +35,7 @@ public class ConsultaDto {
     private Integer tipo_actividad_id;
     
     @Schema(description = "Identificador de la especialidad que remite al paciente", example = "5")
-    private Integer especialidad_remiente_id;
+    private Integer especialidad_remitente_id;
     
     @Schema(description = "Tipo de consulta realizada", example = "PRIMERA_CONSULTA")
     @NotNull(message = "El tipo de consulta es obligatorio")
