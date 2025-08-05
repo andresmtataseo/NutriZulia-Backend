@@ -1,5 +1,6 @@
 package com.nutrizulia.features.collection.mapper;
 
+import com.nutrizulia.features.catalog.model.Enfermedad;
 import com.nutrizulia.features.collection.dto.DiagnosticoDto;
 import com.nutrizulia.features.collection.model.Diagnostico;
 import org.mapstruct.Mapper;
@@ -19,10 +20,14 @@ public interface DiagnosticoMapper {
     
     @Mapping(source = "consulta_id", target = "consulta.id")
     @Mapping(source = "riesgo_biologico_id", target = "riesgoBiologico.id")
-    @Mapping(source = "enfermedad_id", target = "enfermedad.id")
+    @Mapping(target = "enfermedad", expression = "java(mapEnfermedad(diagnosticoDto.getEnfermedad_id()))")
     @Mapping(source = "is_principal", target = "isPrincipal")
     @Mapping(source = "created_at", target = "createdAt")
     @Mapping(source = "updated_at", target = "updatedAt")
     @Mapping(source = "is_deleted", target = "isDeleted")
     Diagnostico toEntity(DiagnosticoDto diagnosticoDto);
+
+    default Enfermedad mapEnfermedad(Integer id) {
+        return id == null ? null : new Enfermedad(id);
+    }
 }
