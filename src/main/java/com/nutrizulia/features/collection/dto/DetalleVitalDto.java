@@ -9,7 +9,6 @@ import lombok.AllArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -24,7 +23,8 @@ public class DetalleVitalDto {
     
     @Schema(description = "Identificador único de la consulta a la que pertenecen estos signos vitales", example = "550e8400-e29b-41d4-a716-446655440001")
     @NotNull(message = "El identificador de la consulta no puede ser nulo")
-    private UUID consulta_id;
+    @Size(max = 36, message = "El identificador no puede tener más de 36 caracteres")
+    private String consulta_id;
     
     @Schema(description = "Tensión arterial sistólica en mmHg", example = "120")
     private Integer tension_arterial_sistolica;

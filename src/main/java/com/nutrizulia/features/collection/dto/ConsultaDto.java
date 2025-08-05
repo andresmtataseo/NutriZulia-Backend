@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -29,7 +28,8 @@ public class ConsultaDto {
     
     @Schema(description = "Identificador único del paciente que recibe la consulta", example = "550e8400-e29b-41d4-a716-446655440001")
     @NotNull(message = "El identificador del paciente no puede ser nulo")
-    private UUID paciente_id;
+    @Size(max = 36, message = "El identificador no puede tener más de 36 caracteres")
+    private String paciente_id;
     
     @Schema(description = "Identificador del tipo de actividad asociada a la consulta", example = "2")
     private Integer tipo_actividad_id;

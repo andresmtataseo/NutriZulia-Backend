@@ -28,6 +28,6 @@ public interface DiagnosticoMapper {
     Diagnostico toEntity(DiagnosticoDto diagnosticoDto);
 
     default Enfermedad mapEnfermedad(Integer id) {
-        return id == null ? null : new Enfermedad(id);
+        return id == null ? null : new Enfermedad();
     }
 }

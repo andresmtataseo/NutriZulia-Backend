@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -27,11 +26,13 @@ public class PacienteRepresentanteDto {
     
     @Schema(description = "Identificador único del paciente", example = "550e8400-e29b-41d4-a716-446655440001")
     @NotNull(message = "El identificador del paciente no puede ser nulo")
-    private UUID paciente_id;
+    @Size(max = 36, message = "El identificador no puede tener más de 36 caracteres")
+    private String paciente_id;
     
     @Schema(description = "Identificador único del representante", example = "550e8400-e29b-41d4-a716-446655440002")
     @NotNull(message = "El identificador del representante no puede ser nulo")
-    private UUID representante_id;
+    @Size(max = 36, message = "El identificador no puede tener más de 36 caracteres")
+    private String representante_id;
     
     @Schema(description = "Identificador del tipo de parentesco entre el paciente y el representante", example = "1")
     @NotNull(message = "El parentesco es obligatorio")

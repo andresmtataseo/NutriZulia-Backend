@@ -1,8 +1,12 @@
 package com.nutrizulia.features.catalog.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 @Entity
 @Table(name = "enfermedades")
@@ -22,8 +26,4 @@ public class Enfermedad {
     @Column(name = "genero", nullable = false)
     private char genero;
 
-    // 🔧 Constructor extra para usar en mapeo
-    public Enfermedad(Integer id) {
-        this.id = id;
-    }
 }

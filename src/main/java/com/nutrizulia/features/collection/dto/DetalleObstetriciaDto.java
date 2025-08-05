@@ -10,7 +10,6 @@ import lombok.AllArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -25,7 +24,8 @@ public class DetalleObstetriciaDto {
     
     @Schema(description = "Identificador único de la consulta a la que pertenecen estos datos", example = "550e8400-e29b-41d4-a716-446655440001")
     @NotNull(message = "El identificador de la consulta no puede ser nulo")
-    private UUID consulta_id;
+    @Size(max = 36, message = "El identificador no puede tener más de 36 caracteres")
+    private String consulta_id;
     
     @Schema(description = "Indica si la paciente está actualmente embarazada", example = "true")
     private Boolean esta_embarazada;
