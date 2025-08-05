@@ -1,6 +1,7 @@
 package com.nutrizulia.features.userinstitution.controller;
 
 import com.nutrizulia.common.dto.ApiResponseDto;
+import com.nutrizulia.features.catalog.dto.EnfermedadDto;
 import com.nutrizulia.features.userinstitution.dto.UsuarioInstitucionDto;
 import com.nutrizulia.features.userinstitution.service.UsuarioInstitucionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,14 +11,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.nutrizulia.common.util.ApiConstants.*;
@@ -43,11 +47,21 @@ public class UsuarioInstitucionController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(USER_INSTITUTIONS_GET_BY_USER)
-    public ResponseEntity<List<UsuarioInstitucionDto>> getInstitucionesByUsuarioId(
+    public ResponseEntity<ApiResponseDto<List<UsuarioInstitucionDto>>> getInstitucionesByUsuarioId(
             @Valid
             @Parameter(description = "ID del usuario", required = true, example = "1")
-            @RequestParam Integer idUsuario) {
-        return ResponseEntity.ok(usuarioInstitucionService.getInstitucionesByUsuarioId(idUsuario));
+            @RequestParam Integer idUsuario,
+            HttpServletRequest request) {
+        List<UsuarioInstitucionDto> usuarioInstitucionesDtos = usuarioInstitucionService.getInstitucionesByUsuarioId(idUsuario);
+        return ResponseEntity.ok(
+                ApiResponseDto.<List<UsuarioInstitucionDto>>builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Lista de insticuiones asignadas recuperada exitosamente")
+                        .timestamp(LocalDateTime.now())
+                        .path(request.getRequestURI())
+                        .data(usuarioInstitucionesDtos)
+                        .build()
+        );
     }
 
 }

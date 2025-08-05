@@ -35,7 +35,7 @@ public class AuthController {
 
     @Operation(
             summary = "Inicia sesión de un usuario",
-            description = "Autentica a un usuario con su email y contraseña y devuelve un token JWT con los datos del usuario.",
+            description = "Autentica a un usuario con su cédula y contraseña y devuelve un token JWT con los datos del usuario.",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
@@ -44,12 +44,12 @@ public class AuthController {
                     ),
                     @ApiResponse(
                             responseCode = "400",
-                            description = "Datos de entrada inválidos (ej. formato de email, campos vacíos)",
+                            description = "Datos de entrada inválidos (ej. formato de cédula, campos vacíos)",
                             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
                     ),
                     @ApiResponse(
                             responseCode = "401",
-                            description = "Credenciales inválidas (email o contraseña incorrectos)",
+                            description = "Credenciales inválidas (cédula o contraseña incorrectos)",
                             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
                     ),
                     @ApiResponse(

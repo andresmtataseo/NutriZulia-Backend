@@ -1,5 +1,6 @@
 package com.nutrizulia.config;
 
+import com.nutrizulia.common.util.ApiConstants;
 import com.nutrizulia.features.auth.jwt.JwtAuthenticationFilter;
 import com.nutrizulia.features.auth.jwt.JwtEntryPoint;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authRequest ->
                         authRequest
-                                .requestMatchers("/auth/sign-in", "/auth/sign-up", "/auth/forgot-password").permitAll()
+                                .requestMatchers(
+                                        ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_SIGN_IN,
+                                        ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_SIGN_UP,
+                                        ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_FORGOT_PASSWORD
+                                ).permitAll()
                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**").permitAll()
                                 .anyRequest().authenticated()
                 )

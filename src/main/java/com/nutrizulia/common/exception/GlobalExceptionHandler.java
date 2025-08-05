@@ -71,7 +71,7 @@ public class GlobalExceptionHandler {
     // ✅ Credenciales inválidas
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponseDto<Void>> handleBadCredentials(BadCredentialsException ex, WebRequest request) {
-        return buildResponse(HttpStatus.UNAUTHORIZED, "Credenciales inválidas. Verifique su email y contraseña.", request, null, null);
+        return buildResponse(HttpStatus.UNAUTHORIZED, "Credenciales inválidas. Verifique su cédula y contraseña.", request, null, null);
     }
 
     // ✅ Ruta no encontrada

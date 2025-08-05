@@ -1,6 +1,7 @@
 package com.nutrizulia.features.institution.controller;
 
 import com.nutrizulia.common.dto.ApiResponseDto;
+import com.nutrizulia.features.catalog.dto.EnfermedadDto;
 import com.nutrizulia.features.institution.dto.InstitucionDto;
 import com.nutrizulia.features.institution.service.IInstitucionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,10 +10,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.nutrizulia.common.util.ApiConstants.*;
@@ -38,9 +42,19 @@ public class InstitucionController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(INSTITUTIONS_GET_ALL)
-    public ResponseEntity<List<InstitucionDto>> getInstituciones() {
+    public ResponseEntity<ApiResponseDto<List<InstitucionDto>>> getInstituciones(
+            HttpServletRequest request
+    ) {
         List<InstitucionDto> instituciones = institucionService.getInstituciones();
-        return ResponseEntity.ok(instituciones);
+        return ResponseEntity.ok(
+                ApiResponseDto.<List<InstitucionDto>>builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Lista de instituciones recuperada exitosamente")
+                        .timestamp(LocalDateTime.now())
+                        .path(request.getRequestURI())
+                        .data(instituciones)
+                        .build()
+        );
     }
 
 }
