@@ -14,6 +14,7 @@ import com.nutrizulia.features.user.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,78 +40,84 @@ public class AuthService implements IAuthService {
 
 
     public ApiResponseDto<AuthResponseDto> signIn(SignInRequestDto request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave())
-        );
-        Usuario user = usuarioService.findByCedulaWithRoles(request.getCedula())
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con la cédula: " + request.getCedula()));
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave())
+            );
+            Usuario user = usuarioService.findByCedulaWithRoles(request.getCedula())
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con la cédula: " + request.getCedula()));
 
-        String token = jwtService.generateToken(user);
+            String token = jwtService.generateToken(user);
 
-        AuthResponseDto authData = AuthResponseDto.builder()
-                .token(token)
-                .type("Bearer")
-                .user(userMapper.toDto(user))
-                .build();
+            AuthResponseDto authData = AuthResponseDto.builder()
+                    .token(token)
+                    .type("Bearer")
+                    .user(userMapper.toDto(user))
+                    .build();
 
-        return ApiResponseDto.<AuthResponseDto>builder()
-                .status(HttpStatus.OK.value())
-                .message("Inicio de sesión exitoso")
-                .data(authData)
-                .timestamp(LocalDateTime.now())
-                .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_SIGN_IN)
-                .build();
+            return ApiResponseDto.<AuthResponseDto>builder()
+                    .status(HttpStatus.OK.value())
+                    .message("Inicio de sesión exitoso")
+                    .data(authData)
+                    .timestamp(LocalDateTime.now())
+                    .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_SIGN_IN)
+                    .build();
+        } catch (BadCredentialsException e) {
+            throw new BadCredentialsException("Credenciales inválidas. Verifique su cédula y contraseña.");
+        } catch (UsernameNotFoundException e) {
+            throw new BadCredentialsException("Credenciales inválidas. Verifique su cédula y contraseña.");
+        } catch (Exception e) {
+            throw new RuntimeException("Error interno del servidor al procesar el inicio de sesión");
+        }
     }
 
     @Override
     public ApiResponseDto<AuthAdminResponseDto> signInAdmin(SignInRequestDto request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave())
-        );
-        Usuario user = usuarioService.findByCedulaWithRoles(request.getCedula())
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con la cédula: " + request.getCedula()));
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave())
+            );
+            Usuario user = usuarioService.findByCedulaWithRoles(request.getCedula())
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con la cédula: " + request.getCedula()));
 
-        String token = jwtService.generateToken(user);
+            String token = jwtService.generateToken(user);
 
-        // Búsqueda del rol de administrador y manejo de la excepción
-        Optional<UsuarioInstitucion> usuarioInstitucionOptional = usuarioInstitucionService.getUsuarioAdmin(user.getId());
+            // Búsqueda del rol de administrador y manejo de la excepción
+            Optional<UsuarioInstitucion> usuarioInstitucionOptional = usuarioInstitucionService.getUsuarioAdmin(user.getId());
 
-        if (usuarioInstitucionOptional.isEmpty()) {
-            // En caso de que no se encuentre el rol de admin, se devuelve un mensaje de error
+            if (usuarioInstitucionOptional.isEmpty()) {
+                // En caso de que no se encuentre el rol de admin, se devuelve un mensaje de error
+                return ApiResponseDto.<AuthAdminResponseDto>builder()
+                        .status(HttpStatus.FORBIDDEN.value())
+                        .message("Acceso denegado: el usuario no tiene rol de administrador en la institución requerida.")
+                        .timestamp(LocalDateTime.now())
+                        .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_SIGN_IN_ADMIN)
+                        .build();
+            }
+
+            Rol rol = usuarioInstitucionOptional.get().getRol();
+
+            AuthAdminResponseDto authData = AuthAdminResponseDto.builder()
+                    .token(token)
+                    .type("Bearer")
+                    .user(userMapper.toDto(user))
+                    .rol(rol)
+                    .build();
+
             return ApiResponseDto.<AuthAdminResponseDto>builder()
-                    .status(HttpStatus.FORBIDDEN.value())
-                    .message("Acceso denegado: el usuario no tiene rol de administrador en la institución requerida.")
+                    .status(HttpStatus.OK.value())
+                    .message("Inicio de sesión de administrador exitoso")
+                    .data(authData)
                     .timestamp(LocalDateTime.now())
                     .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_SIGN_IN_ADMIN)
                     .build();
+        } catch (BadCredentialsException e) {
+            throw new BadCredentialsException("Credenciales inválidas. Verifique su cédula y contraseña.");
+        } catch (UsernameNotFoundException e) {
+            throw new BadCredentialsException("Credenciales inválidas. Verifique su cédula y contraseña.");
+        } catch (Exception e) {
+            throw new RuntimeException("Error interno del servidor al procesar el inicio de sesión de administrador");
         }
-
-        Rol rol = usuarioInstitucionOptional.get().getRol();
-
-        AuthAdminResponseDto authData = AuthAdminResponseDto.builder()
-                .token(token)
-                .type("Bearer")
-                .user(userMapper.toDto(user))
-                .rol(rol)
-                .build();
-
-        return ApiResponseDto.<AuthAdminResponseDto>builder()
-                .status(HttpStatus.OK.value())
-                .message("Inicio de sesión de administrador exitoso")
-                .data(authData)
-                .timestamp(LocalDateTime.now())
-                .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_SIGN_IN_ADMIN)
-                .build();
-    }
-
-    public ApiResponseDto<Object> signUp(SignUpRequestDto request) {
-        usuarioService.save(request);
-        return ApiResponseDto.builder()
-                .status(HttpStatus.CREATED.value())
-                .message("Usuario registrado exitosamente")
-                .timestamp(LocalDateTime.now())
-                .path(ApiConstants.AUTH_SIGN_UP)
-                .build();
     }
 
     @Transactional
@@ -140,6 +147,7 @@ public class AuthService implements IAuthService {
                     .build();
                     
         } catch (UsernameNotFoundException e) {
+            // Por seguridad, devolvemos el mismo mensaje aunque el usuario no exista
             return ApiResponseDto.builder()
                     .status(HttpStatus.OK.value())
                     .message("Si la cédula existe en nuestro sistema, se ha enviado una nueva contraseña temporal a su correo electrónico.")
@@ -181,8 +189,10 @@ public class AuthService implements IAuthService {
                     .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_CHANGE_PASSWORD)
                     .build();
             
-        } catch (UsernameNotFoundException | IllegalArgumentException e) {
-            throw e;
+        } catch (UsernameNotFoundException e) {
+            throw new BadCredentialsException("Usuario no encontrado");
+        } catch (IllegalArgumentException e) {
+            throw e; // Re-lanzar para que el GlobalExceptionHandler lo maneje
         } catch (Exception e) {
             throw new RuntimeException("Error interno del servidor al cambiar la contraseña");
         }
@@ -212,7 +222,7 @@ public class AuthService implements IAuthService {
                     .build();
                     
         } catch (UsernameNotFoundException e) {
-            throw e;
+            throw new BadCredentialsException("Usuario no encontrado o token inválido");
         } catch (Exception e) {
             throw new RuntimeException("Error interno del servidor al verificar la autenticación");
         }

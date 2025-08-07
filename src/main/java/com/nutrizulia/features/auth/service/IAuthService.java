@@ -9,8 +9,6 @@ public interface IAuthService {
 
     ApiResponseDto<AuthAdminResponseDto> signInAdmin(SignInRequestDto signInRequestDto);
 
-    ApiResponseDto<Object> signUp(SignUpRequestDto signUpRequestDto);
-
     ApiResponseDto<Object> forgotPassword(ForgotPasswordRequestDto request);
 
     ApiResponseDto<Object> changePassword(ChangePasswordRequestDto request, String cedula);

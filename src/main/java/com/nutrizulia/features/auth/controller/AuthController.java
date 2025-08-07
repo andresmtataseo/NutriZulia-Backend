@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -59,34 +60,8 @@ public class AuthController {
     @PostMapping(ApiConstants.AUTH_SIGN_IN)
     @SecurityRequirements({})
     public ResponseEntity<ApiResponseDto<AuthResponseDto>> signIn(@Valid @RequestBody SignInRequestDto signInRequestDto){
-        return ResponseEntity.ok(authService.signIn(signInRequestDto));
-    }
-
-    @Operation(
-            summary = "Registra un nuevo usuario",
-            description = "Crea una nueva cuenta de usuario con el rol por defecto (CLIENTE) y devuelve un token JWT con los datos del usuario.",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "201",
-                            description = "Usuario registrado exitosamente",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Email ya registrado o datos de registro inválidos",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
-                    ),
-                    @ApiResponse(
-                            responseCode = "500",
-                            description = "Error interno del servidor",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
-                    )
-            }
-    )
-    @PostMapping(ApiConstants.AUTH_SIGN_UP)
-    @SecurityRequirements({})
-    public ResponseEntity<ApiResponseDto<Object>> signUp(@Valid @RequestBody SignUpRequestDto signUpRequestDto){
-        return ResponseEntity.ok(authService.signUp(signUpRequestDto));
+        ApiResponseDto<AuthResponseDto> response = authService.signIn(signInRequestDto);
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 
     @Operation(
@@ -113,7 +88,7 @@ public class AuthController {
         
         // Verificar el estado de autenticación
         ApiResponseDto<Object> response = authService.checkAuthStatus(cedula);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 
     @Operation(
@@ -141,7 +116,7 @@ public class AuthController {
     @SecurityRequirements({})
     public ResponseEntity<ApiResponseDto<Object>> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDto request) {
         ApiResponseDto<Object> response = authService.forgotPassword(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 
     @Operation(
@@ -181,7 +156,7 @@ public class AuthController {
         
         // Cambiar la contraseña
         ApiResponseDto<Object> response = authService.changePassword(request, cedula);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 
     @Operation(
@@ -213,9 +188,9 @@ public class AuthController {
         // Extraer token del header Authorization
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(401).body(
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 ApiResponseDto.builder()
-                    .status(401)
+                    .status(HttpStatus.UNAUTHORIZED.value())
                     .message("Token de autorización requerido")
                     .build()
             );
@@ -229,7 +204,7 @@ public class AuthController {
         
         // Procesar logout
         ApiResponseDto<Object> response = authService.logout(token, cedula);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 
     @Operation(
@@ -261,6 +236,7 @@ public class AuthController {
     @PostMapping(ApiConstants.AUTH_SIGN_IN_ADMIN)
     @SecurityRequirements({})
     public ResponseEntity<ApiResponseDto<AuthAdminResponseDto>> signInAdmin(@Valid @RequestBody SignInRequestDto signInRequestDto){
-        return ResponseEntity.ok(authService.signInAdmin(signInRequestDto));
+        ApiResponseDto<AuthAdminResponseDto> response = authService.signInAdmin(signInRequestDto);
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 }
