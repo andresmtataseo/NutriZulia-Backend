@@ -189,4 +189,37 @@ public class AuthService implements IAuthService {
         
         return password.toString();
     }
+
+    @Override
+    public ApiResponseDto<Object> logout(String token, String cedula) {
+        try {
+            // Agregar el token a la blacklist
+            jwtService.blacklistToken(token, cedula);
+            
+            return ApiResponseDto.builder()
+                    .status(HttpStatus.OK.value())
+                    .message("Sesión cerrada exitosamente")
+                    .data(Map.of(
+                            "logoutTime", LocalDateTime.now(),
+                            "message", "Token invalidado correctamente"
+                    ))
+                    .timestamp(LocalDateTime.now())
+                    .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_LOGOUT)
+                    .build();
+                    
+        } catch (Exception e) {
+            // Incluso si hay error al agregar a blacklist, consideramos el logout exitoso
+            // ya que el token expirará naturalmente
+            return ApiResponseDto.builder()
+                    .status(HttpStatus.OK.value())
+                    .message("Sesión cerrada exitosamente")
+                    .data(Map.of(
+                            "logoutTime", LocalDateTime.now(),
+                            "message", "Logout procesado (token expirará naturalmente)"
+                    ))
+                    .timestamp(LocalDateTime.now())
+                    .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_LOGOUT)
+                    .build();
+        }
+    }
 }

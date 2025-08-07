@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping(ApiConstants.AUTH_BASE_URL)
@@ -184,6 +185,54 @@ public class AuthController {
         
         // Cambiar la contraseña
         ApiResponseDto<Object> response = authService.changePassword(request, cedula);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+            summary = "Cerrar sesión",
+            description = "Invalida el token JWT actual del usuario, cerrando su sesión de forma segura. El token se agrega a una blacklist para prevenir su uso posterior.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Sesión cerrada exitosamente",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "No autorizado (token ausente, inválido o expirado)",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Error interno del servidor",
+                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
+                    )
+            }
+    )
+    @PostMapping(ApiConstants.AUTH_LOGOUT)
+    public ResponseEntity<ApiResponseDto<Object>> logout(
+            HttpServletRequest request,
+            Authentication authentication) {
+        
+        // Extraer token del header Authorization
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body(
+                ApiResponseDto.builder()
+                    .status(401)
+                    .message("Token de autorización requerido")
+                    .build()
+            );
+        }
+        
+        String token = authHeader.substring(7); // Remover "Bearer "
+        
+        // Obtener cédula del usuario autenticado
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String cedula = userDetails.getUsername();
+        
+        // Procesar logout
+        ApiResponseDto<Object> response = authService.logout(token, cedula);
         return ResponseEntity.ok(response);
     }
 }

@@ -13,6 +13,7 @@ public class ApiConstants {
     public static final String AUTH_CHECK = "/check";
     public static final String AUTH_FORGOT_PASSWORD = "/forgot-password";
     public static final String AUTH_CHANGE_PASSWORD = "/change-password";
+    public static final String AUTH_LOGOUT = "/logout";
 
     // ========== CATALOG API ==========
     public static final String CATALOG_BASE_URL = "/api/v1/catalog";

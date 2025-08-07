@@ -15,4 +15,6 @@ public interface IAuthService {
 
     ApiResponseDto<Object> checkAuthStatus(String cedula);
 
+    ApiResponseDto<Object> logout(String token, String cedula);
+
 }
