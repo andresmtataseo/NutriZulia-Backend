@@ -1,7 +1,7 @@
 package com.nutrizulia.features.collection.model;
 
 import com.nutrizulia.common.enums.Genero;
-import com.nutrizulia.features.userinstitution.model.UsuarioInstitucion;
+import com.nutrizulia.features.user.model.UsuarioInstitucion;
 import com.nutrizulia.features.catalog.model.Etnia;
 import com.nutrizulia.features.catalog.model.Nacionalidad;
 import com.nutrizulia.features.catalog.model.Parroquia;

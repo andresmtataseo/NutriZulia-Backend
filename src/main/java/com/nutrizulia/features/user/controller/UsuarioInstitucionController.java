@@ -1,9 +1,8 @@
-package com.nutrizulia.features.userinstitution.controller;
+package com.nutrizulia.features.user.controller;
 
 import com.nutrizulia.common.dto.ApiResponseDto;
-import com.nutrizulia.features.catalog.dto.EnfermedadDto;
-import com.nutrizulia.features.userinstitution.dto.UsuarioInstitucionDto;
-import com.nutrizulia.features.userinstitution.service.UsuarioInstitucionService;
+import com.nutrizulia.features.user.dto.UsuarioInstitucionDto;
+import com.nutrizulia.features.user.service.UsuarioInstitucionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -28,10 +27,10 @@ import static com.nutrizulia.common.util.ApiConstants.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(USER_INSTITUTIONS_BASE_URL)
+@RequestMapping(USERS_BASE_URL)
 @Tag(
-        name = "Gestión Usuario-Institución",
-        description = "Gestión de asignaciones entre usuarios del sistema e instituciones registradas."
+        name = "Gestión de Usuarios",
+        description = "Operaciones para crear, editar, desactivar usuarios, asignar instituciones de salud y roles."
 )
 public class UsuarioInstitucionController {
 

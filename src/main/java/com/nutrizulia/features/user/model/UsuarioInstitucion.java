@@ -1,8 +1,7 @@
-package com.nutrizulia.features.userinstitution.model;
+package com.nutrizulia.features.user.model;
 
 import com.nutrizulia.features.catalog.model.Rol;
-import com.nutrizulia.features.institution.model.Institucion;
-import com.nutrizulia.features.user.model.Usuario;
+import com.nutrizulia.features.catalog.model.Institucion;
 import jakarta.persistence.*;
 import lombok.Data;
 

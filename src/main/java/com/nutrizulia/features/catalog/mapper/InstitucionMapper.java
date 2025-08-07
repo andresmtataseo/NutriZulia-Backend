@@ -1,7 +1,7 @@
-package com.nutrizulia.features.institution.mapper;
+package com.nutrizulia.features.catalog.mapper;
 
-import com.nutrizulia.features.institution.dto.InstitucionDto;
-import com.nutrizulia.features.institution.model.Institucion;
+import com.nutrizulia.features.catalog.dto.InstitucionDto;
+import com.nutrizulia.features.catalog.model.Institucion;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

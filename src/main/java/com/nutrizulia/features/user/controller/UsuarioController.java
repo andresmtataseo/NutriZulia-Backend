@@ -24,7 +24,7 @@ import static com.nutrizulia.common.util.ApiConstants.*;
 @RequestMapping(USERS_BASE_URL)
 @Tag(
         name = "Gestión de Usuarios",
-        description = "Operaciones para crear, editar, desactivar usuarios y asignar roles o permisos."
+        description = "Operaciones para crear, editar, desactivar usuarios, asignar instituciones de salud y roles."
 )
 public class UsuarioController {
 

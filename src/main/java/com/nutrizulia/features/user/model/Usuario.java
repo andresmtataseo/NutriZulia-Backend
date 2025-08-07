@@ -1,7 +1,6 @@
 package com.nutrizulia.features.user.model;
 
 import com.nutrizulia.common.enums.Genero;
-import com.nutrizulia.features.userinstitution.model.UsuarioInstitucion;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

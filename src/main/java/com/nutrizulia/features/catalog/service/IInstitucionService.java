@@ -1,6 +1,6 @@
-package com.nutrizulia.features.institution.service;
+package com.nutrizulia.features.catalog.service;
 
-import com.nutrizulia.features.institution.dto.InstitucionDto;
+import com.nutrizulia.features.catalog.dto.InstitucionDto;
 
 import java.util.List;
 

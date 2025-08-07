@@ -1,7 +1,6 @@
 package com.nutrizulia.features.user.mapper;
 
 import com.nutrizulia.features.user.dto.UsuarioDto;
-import com.nutrizulia.features.user.dto.UsuarioResponseDto;
 import com.nutrizulia.features.auth.dto.SignUpRequestDto;
 import com.nutrizulia.features.user.model.Usuario;
 import org.mapstruct.Mapper;
@@ -12,8 +11,6 @@ public interface UsuarioMapper {
 
     @Mapping(target = "isEnabled", ignore = true)
     Usuario toEntity(SignUpRequestDto usuario);
-
-    UsuarioResponseDto toUserResponseDto(Usuario usuario);
 
     @Mapping(source = "isEnabled", target = "is_enabled")
     UsuarioDto toDto(Usuario usuario);

@@ -40,6 +40,7 @@ public class ApiConstants {
     public static final String CATALOG_INDICATOR_TYPES = "/indicator-types";
     public static final String CATALOG_INSTITUTION_TYPES = "/institution-types";
     public static final String CATALOG_VERSIONS = "/versions";
+    public static final String CATALOG_INSTITUTIONS = "/institutions";
 
     // ========== DATA COLLECTION API ==========
     public static final String COLLECTION_BASE_URL = "/api/v1/collection";
@@ -56,16 +57,9 @@ public class ApiConstants {
     public static final String COLLECTION_SYNC_OBSTETRIC_DETAILS = "/sync/obstetric-details";
     public static final String COLLECTION_SYNC_ACTIVITIES = "/sync/activities";
 
-    // ========== INSTITUTIONS API ==========
-    public static final String INSTITUTIONS_BASE_URL = "/api/v1/institutions";
-    public static final String INSTITUTIONS_GET_ALL = "";
-
     // ========== USERS API ==========
-    public static final String USERS_BASE_URL = "/api/v1/users";
-    public static final String USERS_GET_ALL = "";
-
-    // ========== USER-INSTITUTIONS API ==========
-    public static final String USER_INSTITUTIONS_BASE_URL = "/api/v1/user-institutions";
-    public static final String USER_INSTITUTIONS_GET_BY_USER = "/by-user";
+    public static final String USERS_BASE_URL = "/api/v1/user";
+    public static final String USERS_GET_ALL = "/get-all";
+    public static final String USER_INSTITUTIONS_GET_BY_USER = "/institutions-by-user";
 
 }

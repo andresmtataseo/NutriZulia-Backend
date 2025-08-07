@@ -1,4 +1,4 @@
-package com.nutrizulia.features.institution.dto;
+package com.nutrizulia.features.catalog.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

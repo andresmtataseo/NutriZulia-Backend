@@ -1,6 +1,6 @@
 package com.nutrizulia.features.collection.model;
 
-import com.nutrizulia.features.userinstitution.model.UsuarioInstitucion;
+import com.nutrizulia.features.user.model.UsuarioInstitucion;
 import com.nutrizulia.features.catalog.model.TipoActividad;
 import jakarta.persistence.*;
 import lombok.Data;

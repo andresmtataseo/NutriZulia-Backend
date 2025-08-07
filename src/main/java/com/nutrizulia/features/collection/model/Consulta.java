@@ -2,7 +2,7 @@ package com.nutrizulia.features.collection.model;
 
 import com.nutrizulia.common.enums.Estado;
 import com.nutrizulia.common.enums.TipoConsulta;
-import com.nutrizulia.features.userinstitution.model.UsuarioInstitucion;
+import com.nutrizulia.features.user.model.UsuarioInstitucion;
 import com.nutrizulia.features.catalog.model.Especialidad;
 import com.nutrizulia.features.catalog.model.TipoActividad;
 import jakarta.persistence.*;

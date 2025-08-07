@@ -1,8 +1,8 @@
-package com.nutrizulia.features.userinstitution.service;
+package com.nutrizulia.features.user.service;
 
-import com.nutrizulia.features.userinstitution.dto.UsuarioInstitucionDto;
-import com.nutrizulia.features.userinstitution.mapper.UsuarioInstitucionMapper;
-import com.nutrizulia.features.userinstitution.repository.UsuarioInstitucionRepository;
+import com.nutrizulia.features.user.dto.UsuarioInstitucionDto;
+import com.nutrizulia.features.user.mapper.UsuarioInstitucionMapper;
+import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
 import com.nutrizulia.features.user.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

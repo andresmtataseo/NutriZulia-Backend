@@ -1,7 +1,5 @@
-package com.nutrizulia.features.institution.model;
+package com.nutrizulia.features.catalog.model;
 
-import com.nutrizulia.features.catalog.model.MunicipioSanitario;
-import com.nutrizulia.features.catalog.model.TipoInstitucion;
 import jakarta.persistence.*;
 import lombok.Data;
 

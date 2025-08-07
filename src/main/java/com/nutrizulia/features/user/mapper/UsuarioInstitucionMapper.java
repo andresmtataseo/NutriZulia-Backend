@@ -1,7 +1,7 @@
-package com.nutrizulia.features.userinstitution.mapper;
+package com.nutrizulia.features.user.mapper;
 
-import com.nutrizulia.features.userinstitution.dto.UsuarioInstitucionDto;
-import com.nutrizulia.features.userinstitution.model.UsuarioInstitucion;
+import com.nutrizulia.features.user.dto.UsuarioInstitucionDto;
+import com.nutrizulia.features.user.model.UsuarioInstitucion;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

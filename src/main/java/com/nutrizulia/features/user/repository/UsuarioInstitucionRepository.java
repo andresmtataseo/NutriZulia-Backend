@@ -1,6 +1,6 @@
-package com.nutrizulia.features.userinstitution.repository;
+package com.nutrizulia.features.user.repository;
 
-import com.nutrizulia.features.userinstitution.model.UsuarioInstitucion;
+import com.nutrizulia.features.user.model.UsuarioInstitucion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,8 +1,9 @@
-package com.nutrizulia.features.institution.service;
+package com.nutrizulia.features.catalog.service.impl;
 
-import com.nutrizulia.features.institution.dto.InstitucionDto;
-import com.nutrizulia.features.institution.mapper.InstitucionMapper;
-import com.nutrizulia.features.institution.repository.InstitucionRepository;
+import com.nutrizulia.features.catalog.dto.InstitucionDto;
+import com.nutrizulia.features.catalog.mapper.InstitucionMapper;
+import com.nutrizulia.features.catalog.repository.InstitucionRepository;
+import com.nutrizulia.features.catalog.service.IInstitucionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

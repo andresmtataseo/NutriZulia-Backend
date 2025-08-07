@@ -1,6 +1,6 @@
-package com.nutrizulia.features.institution.repository;
+package com.nutrizulia.features.catalog.repository;
 
-import com.nutrizulia.features.institution.model.Institucion;
+import com.nutrizulia.features.catalog.model.Institucion;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface InstitucionRepository extends JpaRepository<Institucion, Integer> {

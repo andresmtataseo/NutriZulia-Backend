@@ -1,4 +1,4 @@
-package com.nutrizulia.features.userinstitution.dto;
+package com.nutrizulia.features.user.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;

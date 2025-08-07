@@ -1,9 +1,8 @@
-package com.nutrizulia.features.institution.controller;
+package com.nutrizulia.features.catalog.controller;
 
 import com.nutrizulia.common.dto.ApiResponseDto;
-import com.nutrizulia.features.catalog.dto.EnfermedadDto;
-import com.nutrizulia.features.institution.dto.InstitucionDto;
-import com.nutrizulia.features.institution.service.IInstitucionService;
+import com.nutrizulia.features.catalog.dto.InstitucionDto;
+import com.nutrizulia.features.catalog.service.IInstitucionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -23,10 +22,10 @@ import static com.nutrizulia.common.util.ApiConstants.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(INSTITUTIONS_BASE_URL)
+@RequestMapping(CATALOG_BASE_URL)
 @Tag(
-        name = "Gestión de Instituciones",
-        description = "Creación y mantenimiento de instituciones de salud."
+        name = "Catálogos del Sistema",
+        description = "Consulta de catálogos predefinidos como etnias, grupos etarios, parroquias, entre otros."
 )
 public class InstitucionController {
 
@@ -41,7 +40,7 @@ public class InstitucionController {
             @ApiResponse(responseCode = "404", description = "No encontrado - El recurso solicitado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping(INSTITUTIONS_GET_ALL)
+    @GetMapping(CATALOG_INSTITUTIONS)
     public ResponseEntity<ApiResponseDto<List<InstitucionDto>>> getInstituciones(
             HttpServletRequest request
     ) {
