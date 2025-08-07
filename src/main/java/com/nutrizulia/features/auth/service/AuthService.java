@@ -1,16 +1,15 @@
 package com.nutrizulia.features.auth.service;
 
 import com.nutrizulia.common.service.EmailService;
-import com.nutrizulia.features.auth.dto.AuthResponseDto;
-import com.nutrizulia.features.auth.dto.ChangePasswordRequestDto;
-import com.nutrizulia.features.auth.dto.ForgotPasswordRequestDto;
-import com.nutrizulia.features.auth.dto.SignUpRequestDto;
-import com.nutrizulia.features.auth.dto.SignInRequestDto;
+import com.nutrizulia.features.auth.dto.*;
 import com.nutrizulia.features.auth.jwt.JwtService;
 import com.nutrizulia.common.dto.ApiResponseDto;
 import com.nutrizulia.common.util.ApiConstants;
+import com.nutrizulia.features.catalog.model.Rol;
 import com.nutrizulia.features.user.mapper.UsuarioMapper;
 import com.nutrizulia.features.user.model.Usuario;
+import com.nutrizulia.features.user.model.UsuarioInstitucion;
+import com.nutrizulia.features.user.service.UsuarioInstitucionService;
 import com.nutrizulia.features.user.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,12 +23,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService implements IAuthService {
 
     private final UsuarioService usuarioService;
+    private final UsuarioInstitucionService usuarioInstitucionService;
     private final EmailService emailService;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -58,6 +59,47 @@ public class AuthService implements IAuthService {
                 .data(authData)
                 .timestamp(LocalDateTime.now())
                 .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_SIGN_IN)
+                .build();
+    }
+
+    @Override
+    public ApiResponseDto<AuthAdminResponseDto> signInAdmin(SignInRequestDto request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave())
+        );
+        Usuario user = usuarioService.findByCedulaWithRoles(request.getCedula())
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con la cédula: " + request.getCedula()));
+
+        String token = jwtService.generateToken(user);
+
+        // Búsqueda del rol de administrador y manejo de la excepción
+        Optional<UsuarioInstitucion> usuarioInstitucionOptional = usuarioInstitucionService.getUsuarioAdmin(user.getId());
+
+        if (usuarioInstitucionOptional.isEmpty()) {
+            // En caso de que no se encuentre el rol de admin, se devuelve un mensaje de error
+            return ApiResponseDto.<AuthAdminResponseDto>builder()
+                    .status(HttpStatus.FORBIDDEN.value())
+                    .message("Acceso denegado: el usuario no tiene rol de administrador en la institución requerida.")
+                    .timestamp(LocalDateTime.now())
+                    .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_SIGN_IN_ADMIN)
+                    .build();
+        }
+
+        Rol rol = usuarioInstitucionOptional.get().getRol();
+
+        AuthAdminResponseDto authData = AuthAdminResponseDto.builder()
+                .token(token)
+                .type("Bearer")
+                .user(userMapper.toDto(user))
+                .rol(rol)
+                .build();
+
+        return ApiResponseDto.<AuthAdminResponseDto>builder()
+                .status(HttpStatus.OK.value())
+                .message("Inicio de sesión de administrador exitoso")
+                .data(authData)
+                .timestamp(LocalDateTime.now())
+                .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_SIGN_IN_ADMIN)
                 .build();
     }
 

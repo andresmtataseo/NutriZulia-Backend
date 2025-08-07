@@ -7,6 +7,8 @@ public interface IAuthService {
 
     ApiResponseDto<AuthResponseDto> signIn(SignInRequestDto signInRequestDto);
 
+    ApiResponseDto<AuthAdminResponseDto> signInAdmin(SignInRequestDto signInRequestDto);
+
     ApiResponseDto<Object> signUp(SignUpRequestDto signUpRequestDto);
 
     ApiResponseDto<Object> forgotPassword(ForgotPasswordRequestDto request);

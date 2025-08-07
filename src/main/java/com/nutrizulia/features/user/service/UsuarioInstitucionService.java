@@ -2,6 +2,7 @@ package com.nutrizulia.features.user.service;
 
 import com.nutrizulia.features.user.dto.UsuarioInstitucionDto;
 import com.nutrizulia.features.user.mapper.UsuarioInstitucionMapper;
+import com.nutrizulia.features.user.model.UsuarioInstitucion;
 import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
 import com.nutrizulia.features.user.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -32,5 +34,15 @@ public class UsuarioInstitucionService implements IUsuarioInstitucionService {
                 .stream()
                 .map(usuarioInstitucionMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<UsuarioInstitucion> getUsuarioAdmin(Integer usuarioId) {
+        if (!usuarioRepository.existsById(usuarioId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    String.format("Usuario no encontrado con ID: '%s'", usuarioId));
+        }
+
+        return usuarioInstitucionRepository.findActiveUserInstitutionWithSpecificRoles(usuarioId);
     }
 }
