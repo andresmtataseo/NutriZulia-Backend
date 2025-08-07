@@ -15,4 +15,7 @@ public class Rol {
 
     @Column(name = "nombre", nullable = false, unique = true)
     private String nombre;
+
+    @Column(name = "descripcion", nullable = false)
+    private String descripcion;
 }

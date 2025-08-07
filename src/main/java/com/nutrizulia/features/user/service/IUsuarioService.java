@@ -1,6 +1,8 @@
 package com.nutrizulia.features.user.service;
 
+import com.nutrizulia.common.dto.PageResponseDto;
 import com.nutrizulia.features.auth.dto.SignUpRequestDto;
+import com.nutrizulia.features.user.dto.UsuarioConInstitucionesDto;
 import com.nutrizulia.features.user.dto.UsuarioDto;
 import com.nutrizulia.features.user.model.Usuario;
 
@@ -18,5 +20,13 @@ public interface IUsuarioService {
     Usuario save(SignUpRequestDto signUpRequestDto);
 
     void updatePassword(Integer userId, String newEncodedPassword);
+
+    PageResponseDto<UsuarioConInstitucionesDto> getUsuariosConInstituciones(
+            int page,
+            int size,
+            String search,
+            String sortBy,
+            String sortDir
+    );
 
 }
