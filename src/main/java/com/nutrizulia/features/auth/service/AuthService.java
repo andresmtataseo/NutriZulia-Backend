@@ -44,8 +44,7 @@ public class AuthService implements IAuthService {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave())
             );
-            Usuario user = usuarioService.findByCedulaWithRoles(request.getCedula())
-                    .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con la cédula: " + request.getCedula()));
+            Usuario user = usuarioService.findByCedula(request.getCedula());
 
             String token = jwtService.generateToken(user);
 
@@ -77,8 +76,7 @@ public class AuthService implements IAuthService {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave())
             );
-            Usuario user = usuarioService.findByCedulaWithRoles(request.getCedula())
-                    .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con la cédula: " + request.getCedula()));
+            Usuario user = usuarioService.findByCedula(request.getCedula());
 
             String token = jwtService.generateToken(user);
 
@@ -124,8 +122,7 @@ public class AuthService implements IAuthService {
     public ApiResponseDto<Object> forgotPassword(ForgotPasswordRequestDto request) {
         try {
             // Buscar el usuario por cédula
-            Usuario user = usuarioService.findByCedulaWithRoles(request.getCedula())
-                    .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con la cédula: " + request.getCedula()));
+            Usuario user = usuarioService.findByCedula(request.getCedula());
 
             // Generar nueva contraseña temporal
             String nuevaClaveTemp = generateTemporaryPassword();
@@ -135,7 +132,7 @@ public class AuthService implements IAuthService {
             
             // Actualizar la contraseña en la base de datos
             user.setClave(claveEncriptada);
-            usuarioService.updatePassword(user.getId(), claveEncriptada);
+            usuarioService.updatePassword(user.getCedula(), claveEncriptada);
             
             emailService.recuperacionClave(user.getCorreo(), user.getNombres() + " " + user.getApellidos(), nuevaClaveTemp);
             
@@ -163,8 +160,7 @@ public class AuthService implements IAuthService {
     public ApiResponseDto<Object> changePassword(ChangePasswordRequestDto request, String cedula) {
         try {
             // Buscar el usuario por cédula
-            Usuario user = usuarioService.findByCedulaWithRoles(cedula)
-                    .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con la cédula: " + cedula));
+            Usuario user = usuarioService.findByCedula(cedula);
 
             // Verificar que la contraseña actual sea correcta
             if (!passwordEncoder.matches(request.getClave_actual(), user.getClave())) {
@@ -180,7 +176,7 @@ public class AuthService implements IAuthService {
             String claveEncriptada = passwordEncoder.encode(request.getClave_nueva());
             
             // Actualizar la contraseña en la base de datos
-            usuarioService.updatePassword(user.getId(), claveEncriptada);
+            usuarioService.updatePassword(user.getCedula(), claveEncriptada);
             
             return ApiResponseDto.builder()
                     .status(HttpStatus.OK.value())
@@ -201,9 +197,7 @@ public class AuthService implements IAuthService {
     public ApiResponseDto<Object> checkAuthStatus(String cedula) {
         try {
             // Buscar el usuario por cédula para verificar que existe y está activo
-            Usuario user = usuarioService.findByCedulaWithRoles(cedula)
-                    .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con la cédula: " + cedula));
-
+            Usuario user = usuarioService.findByCedula(cedula);
             // Si llegamos aquí, significa que el token es válido y no ha expirado
             // (ya que pasó por el filtro JWT)
             return ApiResponseDto.builder()

@@ -37,7 +37,6 @@ public class UsuarioDto {
     private String genero;
 
     @Schema(description = "Teléfono del usuario", example = "0412-1234567")
-    @NotBlank(message = "El teléfono es obligatorio")
     @Size(min = 12, max = 12, message = "El teléfono no debe exceder los 12 caracteres")
     private String telefono;
 

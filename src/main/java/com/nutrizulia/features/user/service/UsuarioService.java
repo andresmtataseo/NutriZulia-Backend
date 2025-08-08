@@ -1,7 +1,7 @@
 package com.nutrizulia.features.user.service;
 
 import com.nutrizulia.common.dto.PageResponseDto;
-import com.nutrizulia.features.auth.dto.SignUpRequestDto;
+import com.nutrizulia.common.enums.Genero;
 import com.nutrizulia.features.user.dto.UsuarioConInstitucionesDto;
 import com.nutrizulia.features.user.dto.UsuarioDto;
 import com.nutrizulia.features.user.mapper.UsuarioConInstitucionesMapper;
@@ -9,6 +9,7 @@ import com.nutrizulia.features.user.mapper.UsuarioMapper;
 import com.nutrizulia.features.user.model.Usuario;
 import com.nutrizulia.features.user.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -19,9 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
-
 
 @RequiredArgsConstructor
 @Service
@@ -38,32 +37,112 @@ public class UsuarioService implements IUsuarioService {
     }
 
     @Override
-    public UsuarioDto getUsuarioByCedula(String cedula) {
+    public Usuario findByCedula(String cedula) {
         return usuarioRepository.findByCedula(cedula)
-                .map(usuarioMapper::toDto)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario con cédula " + cedula + " no encontrado"));
     }
 
     @Override
-    public Optional<Usuario> findByCedulaWithRoles(String cedula) {
-        return usuarioRepository.findByCedulaWithRoles(cedula);
-    }
-
-    @Override
-    public Usuario save(SignUpRequestDto signUpRequestDto) {
-        Usuario usuario = usuarioMapper.toEntity(signUpRequestDto);
-        usuario.setClave(passwordEncoder.encode(usuario.getPassword()));
+    public UsuarioDto saveUsuario(UsuarioDto usuarioDto) {
+        Usuario usuario = usuarioMapper.toEntity(usuarioDto);
+        usuario.setClave(passwordEncoder.encode(usuarioDto.getClave()));
         usuario.setIsEnabled(true);
-        return usuarioRepository.save(usuario);
+        Usuario usuarioGuardado = usuarioRepository.save(usuario);
+        return usuarioMapper.toDto(usuarioGuardado);
     }
 
     @Override
-    public void updatePassword(Integer userId, String newEncodedPassword) {
-        Usuario usuario = usuarioRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario con ID " + userId + " no encontrado"));
+    public UsuarioDto createUsuario(UsuarioDto usuarioDto) {
+        // Validaciones de negocio
+        validateUsuarioData(usuarioDto);
         
-        usuario.setClave(newEncodedPassword);
+        // Verificar si ya existe un usuario con la misma cédula
+        if (usuarioRepository.findByCedula(usuarioDto.getCedula()).isPresent()) {
+            throw new DataIntegrityViolationException("Ya existe un usuario con la cédula: " + usuarioDto.getCedula());
+        }
+        
+        // Verificar si ya existe un usuario con el mismo correo
+        if (usuarioRepository.findByCorreo(usuarioDto.getCorreo()).isPresent()) {
+            throw new DataIntegrityViolationException("Ya existe un usuario con el correo: " + usuarioDto.getCorreo());
+        }
+        
+        // Verificar si ya existe un usuario con el mismo teléfono
+        if (usuarioRepository.findByTelefono(usuarioDto.getTelefono()).isPresent()) {
+            throw new DataIntegrityViolationException("Ya existe un usuario con el teléfono: " + usuarioDto.getTelefono());
+        }
+        
+        // Convertir DTO a entidad
+        Usuario usuario = usuarioMapper.toEntity(usuarioDto);
+        
+        // Encriptar contraseña
+        usuario.setClave(passwordEncoder.encode(usuarioDto.getClave()));
+        
+        // Establecer valores por defecto
+        usuario.setIsEnabled(usuarioDto.getIs_enabled() != null ? usuarioDto.getIs_enabled() : true);
+        
+        // Guardar usuario
+        Usuario usuarioGuardado = usuarioRepository.save(usuario);
+        
+        // Convertir a DTO y retornar
+        return usuarioMapper.toDto(usuarioGuardado);
+    }
+
+    @Override
+    public void updatePassword(String cedula, String newPassword) {
+        Usuario usuario = findByCedula(cedula);
+        usuario.setClave(passwordEncoder.encode(newPassword));
         usuarioRepository.save(usuario);
+    }
+
+    @Override
+    public boolean isCedulaAvailable(String cedula) {
+        return usuarioRepository.findByCedula(cedula).isEmpty();
+    }
+
+    @Override
+    public boolean isEmailAvailable(String email) {
+        return usuarioRepository.findByCorreo(email).isEmpty();
+    }
+
+    @Override
+    public boolean isPhoneAvailable(String phone) {
+        return usuarioRepository.findByTelefono(phone).isEmpty();
+    }
+
+    private void validateUsuarioData(UsuarioDto usuarioDto) {
+        // Validar género
+        if (usuarioDto.getGenero() != null) {
+            try {
+                Genero.valueOf(usuarioDto.getGenero().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Género inválido. Los valores permitidos son: MASCULINO, FEMENINO");
+            }
+        }
+        
+        // Validar formato de cédula (debe empezar con V- o E-)
+        if (usuarioDto.getCedula() != null && !usuarioDto.getCedula().matches("^[VE]-\\d{7,8}$")) {
+            throw new IllegalArgumentException("Formato de cédula inválido. Debe ser V-12345678 o E-12345678");
+        }
+        
+        // Validar formato de teléfono (debe ser 0XXX-XXXXXXX)
+        if (usuarioDto.getTelefono() != null && !usuarioDto.getTelefono().matches("^0\\d{3}-\\d{7}$")) {
+            throw new IllegalArgumentException("Formato de teléfono inválido. Debe ser 0XXX-XXXXXXX");
+        }
+        
+        // Validar edad mínima (18 años)
+        if (usuarioDto.getFechaNacimiento() != null) {
+            java.time.LocalDate fechaNacimiento = usuarioDto.getFechaNacimiento();
+            java.time.LocalDate fechaMinima = java.time.LocalDate.now().minusYears(18);
+            if (fechaNacimiento.isAfter(fechaMinima)) {
+                throw new IllegalArgumentException("El usuario debe ser mayor de 18 años");
+            }
+            
+            // Validar que no sea mayor de 100 años
+            java.time.LocalDate fechaMaxima = java.time.LocalDate.now().minusYears(150);
+            if (fechaNacimiento.isBefore(fechaMaxima)) {
+                throw new IllegalArgumentException("Fecha de nacimiento inválida");
+            }
+        }
     }
 
     @Override

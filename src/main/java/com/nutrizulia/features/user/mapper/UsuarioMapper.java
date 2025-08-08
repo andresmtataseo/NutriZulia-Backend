@@ -12,6 +12,9 @@ public interface UsuarioMapper {
     @Mapping(target = "isEnabled", ignore = true)
     Usuario toEntity(SignUpRequestDto usuario);
 
+    @Mapping(source = "is_enabled", target = "isEnabled")
+    Usuario toEntity(UsuarioDto usuario);
+
     @Mapping(source = "isEnabled", target = "is_enabled")
     UsuarioDto toDto(Usuario usuario);
 }

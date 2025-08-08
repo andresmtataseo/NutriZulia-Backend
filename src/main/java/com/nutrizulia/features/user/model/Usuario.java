@@ -46,7 +46,7 @@ public class Usuario implements Serializable, UserDetails {
     @Column(name = "genero", nullable = false)
     private Genero genero;
 
-    @Column(name = "telefono", nullable = false, length = 12, unique = true)
+    @Column(name = "telefono", length = 12, unique = true)
     private String telefono;
 
     @Column(name = "correo", nullable = false, unique = true)

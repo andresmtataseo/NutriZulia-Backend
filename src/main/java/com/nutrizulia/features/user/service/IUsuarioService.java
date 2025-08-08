@@ -1,32 +1,30 @@
 package com.nutrizulia.features.user.service;
 
 import com.nutrizulia.common.dto.PageResponseDto;
-import com.nutrizulia.features.auth.dto.SignUpRequestDto;
 import com.nutrizulia.features.user.dto.UsuarioConInstitucionesDto;
 import com.nutrizulia.features.user.dto.UsuarioDto;
 import com.nutrizulia.features.user.model.Usuario;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface IUsuarioService {
 
     List<UsuarioDto> getUsuarios();
 
-    UsuarioDto getUsuarioByCedula(String cedula);
+    Usuario findByCedula(String cedula);
 
-    Optional<Usuario> findByCedulaWithRoles(String cedula);
+    UsuarioDto saveUsuario(UsuarioDto usuarioDto);
 
-    Usuario save(SignUpRequestDto signUpRequestDto);
+    UsuarioDto createUsuario(UsuarioDto usuarioDto);
 
-    void updatePassword(Integer userId, String newEncodedPassword);
+    void updatePassword(String cedula, String newPassword);
 
-    PageResponseDto<UsuarioConInstitucionesDto> getUsuariosConInstituciones(
-            int page,
-            int size,
-            String search,
-            String sortBy,
-            String sortDir
-    );
+    PageResponseDto<UsuarioConInstitucionesDto> getUsuariosConInstituciones(int page, int size, String search, String sortBy, String sortDir);
+
+    boolean isCedulaAvailable(String cedula);
+
+    boolean isEmailAvailable(String email);
+
+    boolean isPhoneAvailable(String phone);
 
 }

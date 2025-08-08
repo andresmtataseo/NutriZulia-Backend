@@ -61,6 +61,11 @@ public class ApiConstants {
     // ========== USERS API ==========
     public static final String USERS_BASE_URL = "/api/v1/user";
     public static final String USERS_GET_ALL = "/get-all";
+    public static final String USERS_GET_ALL_WITH_INSTITUTIONS = "/get-all/institutions";
+    public static final String USERS_CREATE = "/create";
+    public static final String USERS_CHECK_CEDULA = "/check-cedula";
+    public static final String USERS_CHECK_EMAIL = "/check-email";
+    public static final String USERS_CHECK_PHONE = "/check-phone";
     public static final String USER_INSTITUTIONS_GET_BY_USER = "/institutions-by-user";
 
 }
