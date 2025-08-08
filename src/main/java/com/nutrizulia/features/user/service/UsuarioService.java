@@ -10,6 +10,7 @@ import com.nutrizulia.features.user.model.Usuario;
 import com.nutrizulia.features.user.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -73,10 +74,8 @@ public class UsuarioService implements IUsuarioService {
         page = Math.max(0, page);
         size = Math.min(Math.max(1, size), 100); // Máximo 100 registros por página
         
-        // Validar campo de ordenamiento
-        if (sortBy == null || sortBy.trim().isEmpty()) {
-            sortBy = "nombres";
-        }
+        // Validar y mapear campo de ordenamiento
+        String validSortBy = validateAndMapSortField(sortBy);
         
         // Validar dirección de ordenamiento
         if (sortDir == null || (!sortDir.equalsIgnoreCase("ASC") && !sortDir.equalsIgnoreCase("DESC"))) {
@@ -84,7 +83,7 @@ public class UsuarioService implements IUsuarioService {
         }
         
         // Crear Sort
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDir.toUpperCase()), sortBy);
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir.toUpperCase()), validSortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
         
         // Ejecutar consulta
@@ -95,8 +94,40 @@ public class UsuarioService implements IUsuarioService {
             usuariosPage = usuarioRepository.findAllUsuariosWithInstituciones(pageable);
         }
         
+        // Cargar las relaciones manualmente para los usuarios obtenidos
+        List<Usuario> usuariosConRelaciones = usuariosPage.getContent().stream()
+                .map(usuario -> usuarioRepository.findByCedulaWithRoles(usuario.getCedula()).orElse(usuario))
+                .collect(Collectors.toList());
+        
+        // Crear nueva página con las relaciones cargadas
+        Page<Usuario> usuariosPageConRelaciones = new PageImpl<>(
+                usuariosConRelaciones, 
+                pageable, 
+                usuariosPage.getTotalElements()
+        );
+        
         // Mapear a DTO
-        return usuarioConInstitucionesMapper.toPageDto(usuariosPage);
+        return usuarioConInstitucionesMapper.toPageDto(usuariosPageConRelaciones);
+    }
+    
+    /**
+     * Valida y mapea los campos de ordenamiento del frontend a los campos de la entidad
+     */
+    private String validateAndMapSortField(String sortBy) {
+        if (sortBy == null || sortBy.trim().isEmpty()) {
+            return "nombres";
+        }
+        
+        // Mapear campos del frontend a campos de la entidad
+        return switch (sortBy.toLowerCase()) {
+            case "nombres" -> "nombres";
+            case "apellidos" -> "apellidos";
+            case "cedula" -> "cedula";
+            case "correo" -> "correo";
+            case "telefono" -> "telefono";
+            case "fechanacimiento" -> "fechaNacimiento";
+            default -> "nombres"; // Campo por defecto
+        };
     }
 
 }

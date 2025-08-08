@@ -21,24 +21,23 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
              "WHERE u.cedula = :cedula")
      Optional<Usuario> findByCedulaWithRoles(@Param("cedula") String cedula);
 
-     @Query("SELECT DISTINCT u FROM Usuario u " +
-            "LEFT JOIN FETCH u.usuarioInstituciones ui " +
-            "LEFT JOIN FETCH ui.institucion i " +
-            "LEFT JOIN FETCH ui.rol r " +
-            "WHERE u.isEnabled = true " +
-            "ORDER BY u.nombres, u.apellidos")
+     @Query(value = "SELECT DISTINCT u FROM Usuario u " +
+            "WHERE u.isEnabled = true",
+            countQuery = "SELECT COUNT(DISTINCT u) FROM Usuario u WHERE u.isEnabled = true")
      Page<Usuario> findAllUsuariosWithInstituciones(Pageable pageable);
 
-     @Query("SELECT DISTINCT u FROM Usuario u " +
-            "LEFT JOIN FETCH u.usuarioInstituciones ui " +
-            "LEFT JOIN FETCH ui.institucion i " +
-            "LEFT JOIN FETCH ui.rol r " +
+     @Query(value = "SELECT DISTINCT u FROM Usuario u " +
             "WHERE u.isEnabled = true " +
             "AND (LOWER(u.nombres) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "OR LOWER(u.apellidos) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "OR LOWER(u.cedula) LIKE LOWER(CONCAT('%', :search, '%')) " +
-             "OR LOWER(u.correo) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-            "ORDER BY u.nombres, u.apellidos")
+             "OR LOWER(u.correo) LIKE LOWER(CONCAT('%', :search, '%')))",
+            countQuery = "SELECT COUNT(DISTINCT u) FROM Usuario u " +
+            "WHERE u.isEnabled = true " +
+            "AND (LOWER(u.nombres) LIKE LOWER(CONCAT('%', :search, '%')) " +
+            "OR LOWER(u.apellidos) LIKE LOWER(CONCAT('%', :search, '%')) " +
+            "OR LOWER(u.cedula) LIKE LOWER(CONCAT('%', :search, '%')) " +
+             "OR LOWER(u.correo) LIKE LOWER(CONCAT('%', :search, '%')))")
      Page<Usuario> findUsuariosWithInstitucionesBySearch(@Param("search") String search, Pageable pageable);
 
 }
