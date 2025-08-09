@@ -32,8 +32,12 @@ public class UsuarioDto {
     @Size(max = 255, message = "El apellido no puede exceder los 255 caracteres")
     private String apellidos;
 
-    private LocalDate fechaNacimiento;
+    @Schema(description = "Fecha de nacimiento del usuario")
+    @NotNull(message = "La fecha de nacimiento no puede ser nula")
+    private LocalDate fecha_nacimiento;
 
+    @Schema(description = "")
+    @NotBlank(message = "El genero no puede estar en blanco")
     private String genero;
 
     @Schema(description = "Teléfono del usuario", example = "0412-1234567")

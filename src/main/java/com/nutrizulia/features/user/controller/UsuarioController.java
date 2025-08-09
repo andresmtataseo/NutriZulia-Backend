@@ -1,9 +1,10 @@
 package com.nutrizulia.features.user.controller;
 
+import com.nutrizulia.common.dto.ApiResponseDto;
 import com.nutrizulia.common.dto.PageResponseDto;
 import com.nutrizulia.features.user.dto.UsuarioConInstitucionesDto;
+import com.nutrizulia.features.user.dto.UsuarioDetallesDto;
 import com.nutrizulia.features.user.dto.UsuarioDto;
-import com.nutrizulia.common.dto.ApiResponseDto;
 import com.nutrizulia.features.user.service.IUsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,14 +14,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-
 import static com.nutrizulia.common.util.ApiConstants.*;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(USERS_BASE_URL)
@@ -32,42 +32,15 @@ public class UsuarioController {
 
     private final IUsuarioService usuarioService;
 
-    @Operation(summary = "Obtener lista de usuarios de salud", description = "Devuelve una lista de usuarios de salud. **Requiere autenticación.**")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista obtenida exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UsuarioDto.class))),
-            @ApiResponse(responseCode = "400", description = "Faltan parámetros requeridos o son inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "404", description = "No encontrado - El recurso solicitado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
-    })
-    @GetMapping(USERS_GET_ALL)
-    public ResponseEntity<List<UsuarioDto>> getUsuarios() {
-        List<UsuarioDto> usuarios = usuarioService.getUsuarios();
-        return ResponseEntity.ok(usuarios);
-    }
-
     @Operation(summary = "Crear un nuevo usuario", 
                description = "Crea un nuevo usuario en el sistema con validaciones completas. **Requiere autenticación.**")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Usuario creado exitosamente", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = UsuarioDto.class))),
-            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o errores de validación", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "409", description = "Conflicto - Ya existe un usuario con los mismos datos únicos (cédula, correo o teléfono)", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class)))
+            @ApiResponse(responseCode = "201", description = "Usuario creado exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UsuarioDto.class))),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o errores de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "409", description = "Conflicto - Ya existe un usuario con los mismos datos únicos (cédula, correo o teléfono)", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @PostMapping(USERS_CREATE)
     public ResponseEntity<UsuarioDto> createUsuario(@Valid @RequestBody UsuarioDto usuarioDto) {
@@ -75,24 +48,13 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioCreado);
     }
 
-    @Operation(summary = "Verificar disponibilidad de cédula", 
-               description = "Verifica si una cédula está disponible para registro. **Requiere autenticación.**")
+    @Operation(summary = "Verificar disponibilidad de cédula", description = "Verifica si una cédula está disponible para registro. **Requiere autenticación.**")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Verificación exitosa", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(type = "boolean", example = "true"))),
-            @ApiResponse(responseCode = "400", description = "Parámetro cédula inválido", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class)))
+            @ApiResponse(responseCode = "200", description = "Verificación exitosa", content = @Content(mediaType = "application/json", schema = @Schema(type = "boolean", example = "true"))),
+            @ApiResponse(responseCode = "400", description = "Parámetro cédula inválido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(USERS_CHECK_CEDULA)
     public ResponseEntity<Boolean> checkCedulaAvailability(@RequestParam String cedula) {
@@ -103,21 +65,11 @@ public class UsuarioController {
     @Operation(summary = "Verificar disponibilidad de correo electrónico", 
                description = "Verifica si un correo electrónico está disponible para registro. **Requiere autenticación.**")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Verificación exitosa", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(type = "boolean", example = "true"))),
-            @ApiResponse(responseCode = "400", description = "Parámetro email inválido", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class)))
+            @ApiResponse(responseCode = "200", description = "Verificación exitosa", content = @Content(mediaType = "application/json", schema = @Schema(type = "boolean", example = "true"))),
+            @ApiResponse(responseCode = "400", description = "Parámetro email inválido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(USERS_CHECK_EMAIL)
     public ResponseEntity<Boolean> checkEmailAvailability(@RequestParam String email) {
@@ -128,21 +80,11 @@ public class UsuarioController {
     @Operation(summary = "Verificar disponibilidad de teléfono", 
                description = "Verifica si un número de teléfono está disponible para registro. **Requiere autenticación.**")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Verificación exitosa", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(type = "boolean", example = "true"))),
-            @ApiResponse(responseCode = "400", description = "Parámetro phone inválido", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class)))
+            @ApiResponse(responseCode = "200", description = "Verificación exitosa", content = @Content(mediaType = "application/json", schema = @Schema(type = "boolean", example = "true"))),
+            @ApiResponse(responseCode = "400", description = "Parámetro phone inválido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(USERS_CHECK_PHONE)
     public ResponseEntity<Boolean> checkPhoneAvailability(@RequestParam String phone) {
@@ -153,21 +95,11 @@ public class UsuarioController {
     @Operation(summary = "Obtener usuarios con instituciones paginado", 
                description = "Devuelve una lista paginada de usuarios con sus instituciones y roles. **Requiere autenticación.**")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista obtenida exitosamente", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = PageResponseDto.class))),
-            @ApiResponse(responseCode = "400", description = "Parámetros inválidos", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", 
-                        content = @Content(mediaType = "application/json", 
-                        schema = @Schema(implementation = ApiResponseDto.class)))
+            @ApiResponse(responseCode = "200", description = "Lista obtenida exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = PageResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Parámetros inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(USERS_GET_ALL_WITH_INSTITUTIONS)
     public ResponseEntity<PageResponseDto<UsuarioConInstitucionesDto>> getUsuariosConInstituciones(
@@ -179,6 +111,29 @@ public class UsuarioController {
         
         PageResponseDto<UsuarioConInstitucionesDto> response = usuarioService
                 .getUsuariosConInstituciones(page, size, search, sortBy, sortDir);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Obtener detalles completos de un usuario", 
+               description = "Devuelve un usuario con información completa de sus instituciones y roles asignados. **Requiere autenticación.**")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuario obtenido exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UsuarioDetallesDto.class))),
+            @ApiResponse(responseCode = "400", description = "ID de usuario inválido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
+    })
+    @GetMapping(USERS_GET_DETAIL)
+    public ResponseEntity<ApiResponseDto<UsuarioDetallesDto>> getUsuarioDetail(@RequestParam Integer idUsuario) {
+        UsuarioDetallesDto usuarioDetalles = usuarioService.getUsuarioDetalles(idUsuario);
+        ApiResponseDto<UsuarioDetallesDto> response = ApiResponseDto.<UsuarioDetallesDto>builder()
+                .status(200)
+                .message("Usuario obtenido exitosamente")
+                .data(usuarioDetalles)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
         
         return ResponseEntity.ok(response);
     }

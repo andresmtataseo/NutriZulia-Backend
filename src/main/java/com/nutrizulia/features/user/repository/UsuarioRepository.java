@@ -1,6 +1,7 @@
 package com.nutrizulia.features.user.repository;
 
 import com.nutrizulia.features.user.model.Usuario;
+import com.nutrizulia.features.user.model.UsuarioInstitucion;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -45,5 +46,13 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
             "OR LOWER(u.cedula) LIKE LOWER(CONCAT('%', :search, '%')) " +
              "OR LOWER(u.correo) LIKE LOWER(CONCAT('%', :search, '%')))")
      Page<Usuario> findUsuariosWithInstitucionesBySearch(@Param("search") String search, Pageable pageable);
+
+     @Query("SELECT u FROM Usuario u " +
+            "LEFT JOIN FETCH u.usuarioInstituciones ui " +
+            "LEFT JOIN FETCH ui.institucion i " +
+            "LEFT JOIN FETCH ui.rol r " +
+            "WHERE u.id = :id AND u.isEnabled = true")
+     Optional<Usuario> findByIdWithCompleteInstitutions(@Param("id") Integer id);
+
 
 }

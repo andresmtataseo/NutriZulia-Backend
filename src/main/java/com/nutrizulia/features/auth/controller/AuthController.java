@@ -207,36 +207,36 @@ public class AuthController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-    @Operation(
-            summary = "Inicia sesión de un usuario web",
-            description = "Autentica a un usuario web con su cédula y contraseña y devuelve un token JWT con los datos del usuario.",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Inicio de sesión exitoso",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Datos de entrada inválidos (ej. formato de cédula, campos vacíos)",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
-                    ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "Credenciales inválidas (cédula o contraseña incorrectos)",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
-                    ),
-                    @ApiResponse(
-                            responseCode = "500",
-                            description = "Error interno del servidor",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
-                    )
-            }
-    )
-    @PostMapping(ApiConstants.AUTH_SIGN_IN_ADMIN)
-    @SecurityRequirements({})
-    public ResponseEntity<ApiResponseDto<AuthAdminResponseDto>> signInAdmin(@Valid @RequestBody SignInRequestDto signInRequestDto){
-        ApiResponseDto<AuthAdminResponseDto> response = authService.signInAdmin(signInRequestDto);
-        return ResponseEntity.status(response.getStatus()).body(response);
-    }
+//    @Operation(
+//            summary = "Inicia sesión de un usuario web",
+//            description = "Autentica a un usuario web con su cédula y contraseña y devuelve un token JWT con los datos del usuario.",
+//            responses = {
+//                    @ApiResponse(
+//                            responseCode = "200",
+//                            description = "Inicio de sesión exitoso",
+//                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
+//                    ),
+//                    @ApiResponse(
+//                            responseCode = "400",
+//                            description = "Datos de entrada inválidos (ej. formato de cédula, campos vacíos)",
+//                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
+//                    ),
+//                    @ApiResponse(
+//                            responseCode = "401",
+//                            description = "Credenciales inválidas (cédula o contraseña incorrectos)",
+//                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
+//                    ),
+//                    @ApiResponse(
+//                            responseCode = "500",
+//                            description = "Error interno del servidor",
+//                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))
+//                    )
+//            }
+//    )
+//    @PostMapping(ApiConstants.AUTH_SIGN_IN_ADMIN)
+//    @SecurityRequirements({})
+//    public ResponseEntity<ApiResponseDto<AuthAdminResponseDto>> signInAdmin(@Valid @RequestBody SignInRequestDto signInRequestDto){
+//        ApiResponseDto<AuthAdminResponseDto> response = authService.signInAdmin(signInRequestDto);
+//        return ResponseEntity.status(response.getStatus()).body(response);
+//    }
 }

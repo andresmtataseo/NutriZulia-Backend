@@ -2,6 +2,7 @@ package com.nutrizulia.features.user.service;
 
 import com.nutrizulia.common.dto.PageResponseDto;
 import com.nutrizulia.features.user.dto.UsuarioConInstitucionesDto;
+import com.nutrizulia.features.user.dto.UsuarioDetallesDto;
 import com.nutrizulia.features.user.dto.UsuarioDto;
 import com.nutrizulia.features.user.model.Usuario;
 
@@ -9,17 +10,19 @@ import java.util.List;
 
 public interface IUsuarioService {
 
-    List<UsuarioDto> getUsuarios();
-
     Usuario findByCedula(String cedula);
+
+    Usuario findById(Integer id);
 
     UsuarioDto saveUsuario(UsuarioDto usuarioDto);
 
     UsuarioDto createUsuario(UsuarioDto usuarioDto);
 
-    void updatePassword(String cedula, String newPassword);
+    void updatePassword(Integer idUsuario, String newPassword);
 
     PageResponseDto<UsuarioConInstitucionesDto> getUsuariosConInstituciones(int page, int size, String search, String sortBy, String sortDir);
+
+    UsuarioDetallesDto getUsuarioDetalles(Integer idUsuario);
 
     boolean isCedulaAvailable(String cedula);
 

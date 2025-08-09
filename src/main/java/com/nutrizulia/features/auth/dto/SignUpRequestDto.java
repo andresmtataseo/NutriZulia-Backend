@@ -39,6 +39,6 @@ public class SignUpRequestDto {
     private String correo;
 
     @NotBlank(message = "La clave es obligatoria")
-    @Size(min = 6, message = "La clave debe tener al menos 6 caracteres")
+    @Size(min = 8, message = "La clave debe tener al menos 8 caracteres")
     private String clave;
 }

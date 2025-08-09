@@ -1,48 +1,62 @@
 package com.nutrizulia.features.user.service;
 
 import com.nutrizulia.common.dto.PageResponseDto;
-import com.nutrizulia.common.enums.Genero;
+import com.nutrizulia.common.exception.ResourceNotFoundException;
+import com.nutrizulia.common.service.DataAvailabilityService;
+import com.nutrizulia.common.util.ValidationUtils;
+import com.nutrizulia.common.validator.UserValidator;
 import com.nutrizulia.features.user.dto.UsuarioConInstitucionesDto;
+import com.nutrizulia.features.user.dto.UsuarioDetallesDto;
 import com.nutrizulia.features.user.dto.UsuarioDto;
 import com.nutrizulia.features.user.mapper.UsuarioConInstitucionesMapper;
+import com.nutrizulia.features.user.mapper.UsuarioDetallesMapper;
 import com.nutrizulia.features.user.mapper.UsuarioMapper;
 import com.nutrizulia.features.user.model.Usuario;
+import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
 import com.nutrizulia.features.user.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class UsuarioService implements IUsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
+    private final UsuarioInstitucionRepository usuarioInstitucionRepository;
     private final UsuarioConInstitucionesMapper usuarioConInstitucionesMapper;
+    private final UsuarioDetallesMapper usuarioDetallesMapper;
     private final PasswordEncoder passwordEncoder;
-
-    @Override
-    public List<UsuarioDto> getUsuarios() {
-        return usuarioRepository.findAll().stream().map(usuarioMapper::toDto).collect(Collectors.toList());
-    }
+    private final UserValidator userValidator;
+    private final DataAvailabilityService dataAvailabilityService;
 
     @Override
     public Usuario findByCedula(String cedula) {
         return usuarioRepository.findByCedula(cedula)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario con cédula " + cedula + " no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", "cedula", cedula));
     }
 
     @Override
+    public Usuario findById(Integer idUsuario) {
+        return usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", idUsuario));
+    }
+
+    @Override
+    @Transactional
     public UsuarioDto saveUsuario(UsuarioDto usuarioDto) {
         Usuario usuario = usuarioMapper.toEntity(usuarioDto);
         usuario.setClave(passwordEncoder.encode(usuarioDto.getClave()));
@@ -52,132 +66,91 @@ public class UsuarioService implements IUsuarioService {
     }
 
     @Override
+    @Transactional
     public UsuarioDto createUsuario(UsuarioDto usuarioDto) {
         // Validaciones de negocio
         validateUsuarioData(usuarioDto);
-        
-        // Verificar si ya existe un usuario con la misma cédula
-        if (usuarioRepository.findByCedula(usuarioDto.getCedula()).isPresent()) {
-            throw new DataIntegrityViolationException("Ya existe un usuario con la cédula: " + usuarioDto.getCedula());
-        }
-        
-        // Verificar si ya existe un usuario con el mismo correo
-        if (usuarioRepository.findByCorreo(usuarioDto.getCorreo()).isPresent()) {
-            throw new DataIntegrityViolationException("Ya existe un usuario con el correo: " + usuarioDto.getCorreo());
-        }
-        
-        // Verificar si ya existe un usuario con el mismo teléfono
-        if (usuarioRepository.findByTelefono(usuarioDto.getTelefono()).isPresent()) {
-            throw new DataIntegrityViolationException("Ya existe un usuario con el teléfono: " + usuarioDto.getTelefono());
-        }
-        
+        // Verificar disponibilidad de datos únicos
+        dataAvailabilityService.checkUserDataAvailability(
+            usuarioDto.getCedula(), 
+            usuarioDto.getCorreo(), 
+            usuarioDto.getTelefono()
+        );
         // Convertir DTO a entidad
         Usuario usuario = usuarioMapper.toEntity(usuarioDto);
-        
         // Encriptar contraseña
         usuario.setClave(passwordEncoder.encode(usuarioDto.getClave()));
-        
         // Establecer valores por defecto
         usuario.setIsEnabled(usuarioDto.getIs_enabled() != null ? usuarioDto.getIs_enabled() : true);
-        
         // Guardar usuario
         Usuario usuarioGuardado = usuarioRepository.save(usuario);
-        
         // Convertir a DTO y retornar
         return usuarioMapper.toDto(usuarioGuardado);
     }
 
     @Override
-    public void updatePassword(String cedula, String newPassword) {
-        Usuario usuario = findByCedula(cedula);
+    @Transactional
+    public void updatePassword(Integer idUsuario, String newPassword) {
+        userValidator.validatePassword(newPassword);
+        
+        Usuario usuario = findById(idUsuario);
         usuario.setClave(passwordEncoder.encode(newPassword));
         usuarioRepository.save(usuario);
     }
 
     @Override
+    public UsuarioDetallesDto getUsuarioDetalles(Integer idUsuario) {
+
+        ValidationUtils.validateId(idUsuario.longValue(), "ID de usuario");
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByIdWithCompleteInstitutions(idUsuario);
+        
+        if (usuarioOpt.isEmpty()) {
+            throw new ResourceNotFoundException("Usuario", "id", idUsuario);
+        }
+        
+        Usuario usuario = usuarioOpt.get();
+        UsuarioDetallesDto dto = usuarioDetallesMapper.toDto(usuario);
+        return dto;
+    }
+
+    @Override
     public boolean isCedulaAvailable(String cedula) {
-        return usuarioRepository.findByCedula(cedula).isEmpty();
+        return dataAvailabilityService.isCedulaAvailable(cedula);
     }
 
     @Override
     public boolean isEmailAvailable(String email) {
-        return usuarioRepository.findByCorreo(email).isEmpty();
+        return dataAvailabilityService.isEmailAvailable(email);
     }
 
     @Override
     public boolean isPhoneAvailable(String phone) {
-        return usuarioRepository.findByTelefono(phone).isEmpty();
+        return dataAvailabilityService.isPhoneAvailable(phone);
     }
 
     private void validateUsuarioData(UsuarioDto usuarioDto) {
-        // Validar género
-        if (usuarioDto.getGenero() != null) {
-            try {
-                Genero.valueOf(usuarioDto.getGenero().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Género inválido. Los valores permitidos son: MASCULINO, FEMENINO");
-            }
-        }
-        
-        // Validar formato de cédula (debe empezar con V- o E-)
-        if (usuarioDto.getCedula() != null && !usuarioDto.getCedula().matches("^[VE]-\\d{7,8}$")) {
-            throw new IllegalArgumentException("Formato de cédula inválido. Debe ser V-12345678 o E-12345678");
-        }
-        
-        // Validar formato de teléfono (debe ser 0XXX-XXXXXXX)
-        if (usuarioDto.getTelefono() != null && !usuarioDto.getTelefono().matches("^0\\d{3}-\\d{7}$")) {
-            throw new IllegalArgumentException("Formato de teléfono inválido. Debe ser 0XXX-XXXXXXX");
-        }
-        
-        // Validar edad mínima (18 años)
-        if (usuarioDto.getFechaNacimiento() != null) {
-            java.time.LocalDate fechaNacimiento = usuarioDto.getFechaNacimiento();
-            java.time.LocalDate fechaMinima = java.time.LocalDate.now().minusYears(18);
-            if (fechaNacimiento.isAfter(fechaMinima)) {
-                throw new IllegalArgumentException("El usuario debe ser mayor de 18 años");
-            }
-            
-            // Validar que no sea mayor de 100 años
-            java.time.LocalDate fechaMaxima = java.time.LocalDate.now().minusYears(150);
-            if (fechaNacimiento.isBefore(fechaMaxima)) {
-                throw new IllegalArgumentException("Fecha de nacimiento inválida");
-            }
-        }
+        userValidator.validateNombres(usuarioDto.getNombres());
+        userValidator.validateApellidos(usuarioDto.getApellidos());
+        userValidator.validateCedula(usuarioDto.getCedula());
+        userValidator.validateEmail(usuarioDto.getCorreo());
+        userValidator.validateTelefono(usuarioDto.getTelefono());
+        userValidator.validateGenero(usuarioDto.getGenero());
+        userValidator.validateFechaNacimiento(usuarioDto.getFecha_nacimiento());
+        userValidator.validatePassword(usuarioDto.getClave());
     }
 
     @Override
     public PageResponseDto<UsuarioConInstitucionesDto> getUsuariosConInstituciones(
             int page, int size, String search, String sortBy, String sortDir) {
         
-        // Validar parámetros
-        page = Math.max(0, page);
-        size = Math.min(Math.max(1, size), 100); // Máximo 100 registros por página
+        List<String> allowedSortFields = Arrays.asList("id", "nombres", "apellidos", "cedula", "correo", "fechaNacimiento");
+        Pageable pageable = ValidationUtils.createPageable(page, size, sortBy, sortDir, allowedSortFields);
         
-        // Validar y mapear campo de ordenamiento
-        String validSortBy = validateAndMapSortField(sortBy);
-        
-        // Validar dirección de ordenamiento
-        if (sortDir == null || (!sortDir.equalsIgnoreCase("ASC") && !sortDir.equalsIgnoreCase("DESC"))) {
-            sortDir = "ASC";
-        }
-        
-        // Crear Sort
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDir.toUpperCase()), validSortBy);
-        Pageable pageable = PageRequest.of(page, size, sort);
-        
+        String normalizedSearch = ValidationUtils.normalizeSearchTerm(search);
         // Ejecutar consulta
-        Page<Usuario> usuariosPage;
-        if (search != null && !search.trim().isEmpty()) {
-            usuariosPage = usuarioRepository.findUsuariosWithInstitucionesBySearch(search.trim(), pageable);
-        } else {
-            usuariosPage = usuarioRepository.findAllUsuariosWithInstituciones(pageable);
-        }
-        
+        Page<Usuario> usuariosPage = searchUsuariosWithInstituciones(normalizedSearch, pageable);
         // Cargar las relaciones manualmente para los usuarios obtenidos
-        List<Usuario> usuariosConRelaciones = usuariosPage.getContent().stream()
-                .map(usuario -> usuarioRepository.findByCedulaWithRoles(usuario.getCedula()).orElse(usuario))
-                .collect(Collectors.toList());
-        
+        List<Usuario> usuariosConRelaciones = loadUserRelations(usuariosPage.getContent());
         // Crear nueva página con las relaciones cargadas
         Page<Usuario> usuariosPageConRelaciones = new PageImpl<>(
                 usuariosConRelaciones, 
@@ -188,25 +161,26 @@ public class UsuarioService implements IUsuarioService {
         // Mapear a DTO
         return usuarioConInstitucionesMapper.toPageDto(usuariosPageConRelaciones);
     }
-    
-    /**
-     * Valida y mapea los campos de ordenamiento del frontend a los campos de la entidad
-     */
-    private String validateAndMapSortField(String sortBy) {
-        if (sortBy == null || sortBy.trim().isEmpty()) {
-            return "nombres";
+
+    /*  UsuarioInstituciones Repository  */
+
+
+
+
+    /*  Funciones auxiliares  */
+
+    private Page<Usuario> searchUsuariosWithInstituciones(String search, Pageable pageable) {
+        if (search != null && !search.trim().isEmpty()) {
+            return usuarioRepository.findUsuariosWithInstitucionesBySearch(search.trim(), pageable);
+        } else {
+            return usuarioRepository.findAllUsuariosWithInstituciones(pageable);
         }
-        
-        // Mapear campos del frontend a campos de la entidad
-        return switch (sortBy.toLowerCase()) {
-            case "nombres" -> "nombres";
-            case "apellidos" -> "apellidos";
-            case "cedula" -> "cedula";
-            case "correo" -> "correo";
-            case "telefono" -> "telefono";
-            case "fechanacimiento" -> "fechaNacimiento";
-            default -> "nombres"; // Campo por defecto
-        };
+    }
+    
+    private List<Usuario> loadUserRelations(List<Usuario> usuarios) {
+        return usuarios.stream()
+                .map(usuario -> usuarioRepository.findByCedulaWithRoles(usuario.getCedula()).orElse(usuario))
+                .collect(Collectors.toList());
     }
 
 }
