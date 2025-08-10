@@ -30,4 +30,8 @@ public interface IUsuarioService {
 
     boolean isPhoneAvailable(String phone);
 
+    void savePhone(Integer idUsuario, String telefono);
+
+    void saveEmail(Integer idUsuario, String correo);
+
 }

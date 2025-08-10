@@ -54,5 +54,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
             "WHERE u.id = :id AND u.isEnabled = true")
      Optional<Usuario> findByIdWithCompleteInstitutions(@Param("id") Integer id);
 
+     @Query("SELECT u FROM Usuario u WHERE LOWER(u.correo) = LOWER(:correo) AND u.id != :excludeId")
+     Optional<Usuario> findByCorreoAndIdNot(@Param("correo") String correo, @Param("excludeId") Integer excludeId);
+
+     Optional<Usuario> findByTelefonoAndIdNot(String telefono, Integer excludeId);
 
 }

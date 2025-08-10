@@ -31,7 +31,7 @@ public class SignUpRequestDto {
     private String genero;
 
     @NotBlank(message = "El teléfono es obligatorio")
-    @Pattern(regexp = "^[0-9]{11}$", message = "El teléfono debe tener 11 dígitos numéricos")
+    @Pattern(regexp = "^(0414|0424|0412|0416|0426)-[0-9]{7}$", message = "El teléfono debe tener el formato válido venezolano (0414, 0424, 0412, 0416, 0426 seguido de guión y 7 dígitos)")
     private String telefono;
 
     @NotBlank(message = "El correo es obligatorio")

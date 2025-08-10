@@ -15,7 +15,7 @@ public class UserValidator {
     
     // Patrones de validación
     private static final Pattern CEDULA_PATTERN = Pattern.compile("^[VE]-\\d{7,8}$");
-    private static final Pattern TELEFONO_PATTERN = Pattern.compile("^0\\d{3}-\\d{7}$");
+    private static final Pattern TELEFONO_PATTERN = Pattern.compile("^(0414|0424|0412|0416|0426)-\\d{7}$");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     
     // Constantes de validación
@@ -46,7 +46,7 @@ public class UserValidator {
         if (telefono != null && !telefono.trim().isEmpty()) {
             if (!TELEFONO_PATTERN.matcher(telefono).matches()) {
                 throw new BusinessException(
-                    "Formato de teléfono inválido. Debe ser 0XXX-XXXXXXX", 
+                    "Formato de teléfono inválido. Debe ser 04XX-XXXXXXX (ejemplo: 0424-6719783)", 
                     "TELEFONO_INVALID_FORMAT"
                 );
             }

@@ -66,6 +66,8 @@ public class ApiConstants {
     public static final String USERS_CHECK_CEDULA = "/check-cedula";
     public static final String USERS_CHECK_EMAIL = "/check-email";
     public static final String USERS_CHECK_PHONE = "/check-phone";
+    public static final String USERS_SAVE_PHONE = "/save-phone";
+    public static final String USERS_SAVE_EMAIL = "/save-email";
     public static final String USER_INSTITUTIONS_GET_BY_USER = "/institutions-by-user";
     public static final String USERS_GET_DETAIL = "/detail";
 }

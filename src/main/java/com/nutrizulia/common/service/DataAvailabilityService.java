@@ -87,4 +87,24 @@ public class DataAvailabilityService {
         checkEmailAvailability(email);
         checkPhoneAvailability(phone);
     }
+
+    /**
+     * Verifica si un correo está disponible excluyendo un usuario específico
+     */
+    public boolean isEmailAvailableForUser(String email, Integer excludeUserId) {
+        log.debug("Verificando disponibilidad de correo: {} excluyendo usuario ID: {}", email, excludeUserId);
+        userValidator.validateEmail(email);
+        return usuarioRepository.findByCorreoAndIdNot(email, excludeUserId).isEmpty();
+    }
+
+    /**
+     * Verifica si un teléfono está disponible excluyendo un usuario específico
+     */
+    public boolean isPhoneAvailableForUser(String phone, Integer excludeUserId) {
+        log.debug("Verificando disponibilidad de teléfono: {} excluyendo usuario ID: {}", phone, excludeUserId);
+        if (phone != null && !phone.trim().isEmpty()) {
+            userValidator.validateTelefono(phone);
+        }
+        return usuarioRepository.findByTelefonoAndIdNot(phone, excludeUserId).isEmpty();
+    }
 }

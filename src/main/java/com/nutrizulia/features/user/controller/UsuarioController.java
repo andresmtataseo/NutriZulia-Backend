@@ -5,6 +5,8 @@ import com.nutrizulia.common.dto.PageResponseDto;
 import com.nutrizulia.features.user.dto.UsuarioConInstitucionesDto;
 import com.nutrizulia.features.user.dto.UsuarioDetallesDto;
 import com.nutrizulia.features.user.dto.UsuarioDto;
+import com.nutrizulia.features.user.dto.SavePhoneDto;
+import com.nutrizulia.features.user.dto.SaveEmailDto;
 import com.nutrizulia.features.user.service.IUsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -132,6 +134,52 @@ public class UsuarioController {
                 .status(200)
                 .message("Usuario obtenido exitosamente")
                 .data(usuarioDetalles)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Actualizar teléfono del usuario", 
+               description = "Actualiza el número de teléfono de un usuario existente con validaciones correspondientes. **Requiere autenticación.**")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Teléfono actualizado exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o teléfono ya en uso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
+    })
+    @PutMapping(USERS_SAVE_PHONE)
+    public ResponseEntity<ApiResponseDto<Void>> savePhone(@Valid @RequestBody SavePhoneDto savePhoneDto) {
+        usuarioService.savePhone(savePhoneDto.getIdUsuario(), savePhoneDto.getTelefono());
+        
+        ApiResponseDto<Void> response = ApiResponseDto.<Void>builder()
+                .status(200)
+                .message("Teléfono actualizado exitosamente")
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Actualizar correo electrónico del usuario", 
+               description = "Actualiza el correo electrónico de un usuario existente con validaciones correspondientes. **Requiere autenticación.**")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Correo electrónico actualizado exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o correo ya en uso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
+    })
+    @PutMapping(USERS_SAVE_EMAIL)
+    public ResponseEntity<ApiResponseDto<Void>> saveEmail(@Valid @RequestBody SaveEmailDto saveEmailDto) {
+        usuarioService.saveEmail(saveEmailDto.getIdUsuario(), saveEmailDto.getCorreo());
+        
+        ApiResponseDto<Void> response = ApiResponseDto.<Void>builder()
+                .status(200)
+                .message("Correo electrónico actualizado exitosamente")
                 .timestamp(java.time.LocalDateTime.now())
                 .build();
         

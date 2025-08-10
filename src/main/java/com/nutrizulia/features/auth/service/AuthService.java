@@ -121,12 +121,9 @@ public class AuthService implements IAuthService {
             // Generar nueva contraseña temporal
             String nuevaClaveTemp = generateTemporaryPassword();
             
-            // Codificar la nueva contraseña
-            String claveEncriptada = passwordEncoder.encode(nuevaClaveTemp);
-            
             // Actualizar la contraseña en la base de datos
-            user.setClave(claveEncriptada);
-            usuarioService.updatePassword(user.getId(), claveEncriptada);
+            // El método updatePassword ya se encarga de la encriptación
+            usuarioService.updatePassword(user.getId(), nuevaClaveTemp);
             
             emailService.recuperacionClave(user.getCorreo(), user.getNombres() + " " + user.getApellidos(), nuevaClaveTemp);
             
@@ -166,11 +163,9 @@ public class AuthService implements IAuthService {
                 throw new IllegalArgumentException("La nueva contraseña debe ser diferente a la actual");
             }
 
-            // Codificar la nueva contraseña
-            String claveEncriptada = passwordEncoder.encode(request.getClave_nueva());
-            
             // Actualizar la contraseña en la base de datos
-            usuarioService.updatePassword(user.getId(), claveEncriptada);
+            // El método updatePassword ya se encarga de la validación y encriptación
+            usuarioService.updatePassword(user.getId(), request.getClave_nueva());
             
             return ApiResponseDto.builder()
                     .status(HttpStatus.OK.value())
@@ -217,17 +212,36 @@ public class AuthService implements IAuthService {
     }
 
     private String generateTemporaryPassword() {
-        String caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        String mayusculas = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        String minusculas = "abcdefghijklmnopqrstuvwxyz";
+        String numeros = "0123456789";
+        String especiales = "!@#$%^&*";
+        
         SecureRandom random = new SecureRandom();
         StringBuilder password = new StringBuilder();
         
-        // Generar contraseña de 8 caracteres
-        for (int i = 0; i < 8; i++) {
-            int index = random.nextInt(caracteres.length());
-            password.append(caracteres.charAt(index));
+        // Garantizar al menos un carácter de cada tipo requerido
+        password.append(mayusculas.charAt(random.nextInt(mayusculas.length())));
+        password.append(minusculas.charAt(random.nextInt(minusculas.length())));
+        password.append(numeros.charAt(random.nextInt(numeros.length())));
+        password.append(especiales.charAt(random.nextInt(especiales.length())));
+        
+        // Completar con caracteres aleatorios hasta llegar a 8 caracteres
+        String todosCaracteres = mayusculas + minusculas + numeros + especiales;
+        for (int i = 4; i < 8; i++) {
+            password.append(todosCaracteres.charAt(random.nextInt(todosCaracteres.length())));
         }
         
-        return password.toString();
+        // Mezclar los caracteres para que no sigan un patrón predecible
+        char[] passwordArray = password.toString().toCharArray();
+        for (int i = passwordArray.length - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            char temp = passwordArray[i];
+            passwordArray[i] = passwordArray[j];
+            passwordArray[j] = temp;
+        }
+        
+        return new String(passwordArray);
     }
 
     @Override

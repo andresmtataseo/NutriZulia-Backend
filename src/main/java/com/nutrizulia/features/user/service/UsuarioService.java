@@ -128,6 +128,48 @@ public class UsuarioService implements IUsuarioService {
         return dataAvailabilityService.isPhoneAvailable(phone);
     }
 
+    @Override
+    @Transactional
+    public void savePhone(Integer idUsuario, String telefono) {
+        // Validar el teléfono
+        userValidator.validateTelefono(telefono);
+        
+        // Verificar que el teléfono esté disponible (excluyendo el usuario actual)
+        if (!dataAvailabilityService.isPhoneAvailableForUser(telefono, idUsuario)) {
+            throw new IllegalArgumentException("El teléfono ya está en uso por otro usuario");
+        }
+        
+        // Buscar el usuario
+        Usuario usuario = findById(idUsuario);
+        
+        // Actualizar el teléfono
+        usuario.setTelefono(telefono);
+        usuarioRepository.save(usuario);
+        
+        log.info("Teléfono actualizado exitosamente para el usuario con ID: {}", idUsuario);
+    }
+
+    @Override
+    @Transactional
+    public void saveEmail(Integer idUsuario, String correo) {
+        // Validar el correo
+        userValidator.validateEmail(correo);
+        
+        // Verificar que el correo esté disponible (excluyendo el usuario actual)
+        if (!dataAvailabilityService.isEmailAvailableForUser(correo, idUsuario)) {
+            throw new IllegalArgumentException("El correo electrónico ya está en uso por otro usuario");
+        }
+        
+        // Buscar el usuario
+        Usuario usuario = findById(idUsuario);
+        
+        // Actualizar el correo
+        usuario.setCorreo(correo);
+        usuarioRepository.save(usuario);
+        
+        log.info("Correo electrónico actualizado exitosamente para el usuario con ID: {}", idUsuario);
+    }
+
     private void validateUsuarioData(UsuarioDto usuarioDto) {
         userValidator.validateNombres(usuarioDto.getNombres());
         userValidator.validateApellidos(usuarioDto.getApellidos());
