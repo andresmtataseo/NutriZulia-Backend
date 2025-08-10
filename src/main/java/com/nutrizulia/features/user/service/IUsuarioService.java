@@ -4,6 +4,7 @@ import com.nutrizulia.common.dto.PageResponseDto;
 import com.nutrizulia.features.user.dto.UsuarioConInstitucionesDto;
 import com.nutrizulia.features.user.dto.UsuarioDetallesDto;
 import com.nutrizulia.features.user.dto.UsuarioDto;
+import com.nutrizulia.features.user.dto.UsuarioInstitucionDto;
 import com.nutrizulia.features.user.model.Usuario;
 
 import java.util.List;
@@ -33,5 +34,7 @@ public interface IUsuarioService {
     void savePhone(Integer idUsuario, String telefono);
 
     void saveEmail(Integer idUsuario, String correo);
+
+    List<UsuarioInstitucionDto> getUsuarioInstituciones(Integer idUsuario);
 
 }

@@ -8,10 +8,13 @@ import com.nutrizulia.common.validator.UserValidator;
 import com.nutrizulia.features.user.dto.UsuarioConInstitucionesDto;
 import com.nutrizulia.features.user.dto.UsuarioDetallesDto;
 import com.nutrizulia.features.user.dto.UsuarioDto;
+import com.nutrizulia.features.user.dto.UsuarioInstitucionDto;
 import com.nutrizulia.features.user.mapper.UsuarioConInstitucionesMapper;
 import com.nutrizulia.features.user.mapper.UsuarioDetallesMapper;
+import com.nutrizulia.features.user.mapper.UsuarioInstitucionMapper;
 import com.nutrizulia.features.user.mapper.UsuarioMapper;
 import com.nutrizulia.features.user.model.Usuario;
+import com.nutrizulia.features.user.model.UsuarioInstitucion;
 import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
 import com.nutrizulia.features.user.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +42,7 @@ public class UsuarioService implements IUsuarioService {
     private final UsuarioInstitucionRepository usuarioInstitucionRepository;
     private final UsuarioConInstitucionesMapper usuarioConInstitucionesMapper;
     private final UsuarioDetallesMapper usuarioDetallesMapper;
+    private final UsuarioInstitucionMapper usuarioInstitucionMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserValidator userValidator;
     private final DataAvailabilityService dataAvailabilityService;
@@ -166,8 +170,6 @@ public class UsuarioService implements IUsuarioService {
         // Actualizar el correo
         usuario.setCorreo(correo);
         usuarioRepository.save(usuario);
-        
-        log.info("Correo electrónico actualizado exitosamente para el usuario con ID: {}", idUsuario);
     }
 
     private void validateUsuarioData(UsuarioDto usuarioDto) {
@@ -206,7 +208,11 @@ public class UsuarioService implements IUsuarioService {
 
     /*  UsuarioInstituciones Repository  */
 
-
+    @Override
+    public List<UsuarioInstitucionDto> getUsuarioInstituciones(Integer idUsuario) {
+        ValidationUtils.validateId(idUsuario.longValue(), "ID de usuario");
+        return usuarioInstitucionRepository.findActiveInstitutionsByUserId(idUsuario).stream().map(usuarioInstitucionMapper::toDto).collect(Collectors.toList());
+    }
 
 
     /*  Funciones auxiliares  */

@@ -27,4 +27,10 @@ public interface UsuarioInstitucionRepository extends JpaRepository<UsuarioInsti
             "AND ui.isEnabled = true")
     Optional<UsuarioInstitucion> findActiveUserInstitutionWithSpecificRoles(
             @Param("usuarioId") Integer usuarioId);
+
+    @Query("SELECT ui FROM UsuarioInstitucion ui " +
+            "WHERE ui.usuario.id = :usuarioId " +
+            "AND ui.institucion.id != 1 " +
+            "AND ui.isEnabled = true")
+    List<UsuarioInstitucion> findActiveInstitutionsByUserId(@Param("usuarioId") Integer usuarioId);
 }

@@ -14,4 +14,8 @@ public class RolDto {
     @NotBlank(message = "El nombre del rol es obligatorio")
     @Schema(description = "Nombre del rol", example = "ROLE_NUTRICIONISTA_MOVIL")
     private String nombre;
+
+    @NotBlank(message = "La descripción del rol es obligatoria")
+    @Schema(description = "Descripción del rol", example = "Rol de nutricionista móvil")
+    private String descripcion;
 }

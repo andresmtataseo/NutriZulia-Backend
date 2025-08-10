@@ -2,11 +2,7 @@ package com.nutrizulia.features.user.controller;
 
 import com.nutrizulia.common.dto.ApiResponseDto;
 import com.nutrizulia.common.dto.PageResponseDto;
-import com.nutrizulia.features.user.dto.UsuarioConInstitucionesDto;
-import com.nutrizulia.features.user.dto.UsuarioDetallesDto;
-import com.nutrizulia.features.user.dto.UsuarioDto;
-import com.nutrizulia.features.user.dto.SavePhoneDto;
-import com.nutrizulia.features.user.dto.SaveEmailDto;
+import com.nutrizulia.features.user.dto.*;
 import com.nutrizulia.features.user.service.IUsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -20,6 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 import static com.nutrizulia.common.util.ApiConstants.*;
 
 @Slf4j
@@ -183,6 +182,31 @@ public class UsuarioController {
                 .timestamp(java.time.LocalDateTime.now())
                 .build();
         
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Obtener lista de las instituciones por usuario",
+            description = "Devuelve un usuario con sus instituciones y roles asignados. **Requiere autenticación.**")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuario obtenido exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UsuarioInstitucionDto.class))),
+            @ApiResponse(responseCode = "400", description = "ID de usuario inválido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
+    })
+    @GetMapping(USER_INSTITUTIONS_GET_BY_USER)
+    public ResponseEntity<ApiResponseDto<List<UsuarioInstitucionDto>>> getUsuariosInstituciones(@RequestParam Integer idUsuario) {
+
+        List<UsuarioInstitucionDto> usuarios = usuarioService.getUsuarioInstituciones(idUsuario);
+
+        ApiResponseDto<List<UsuarioInstitucionDto>> response = ApiResponseDto.<List<UsuarioInstitucionDto>>builder()
+                .status(200)
+                .message("Usuario obtenido exitosamente")
+                .data(usuarios)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+
         return ResponseEntity.ok(response);
     }
 
