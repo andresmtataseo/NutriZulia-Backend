@@ -3,7 +3,10 @@ package com.nutrizulia.features.user.controller;
 import com.nutrizulia.common.dto.ApiResponseDto;
 import com.nutrizulia.common.dto.PageResponseDto;
 import com.nutrizulia.features.user.dto.*;
+import com.nutrizulia.features.user.dto.UpdateUsuarioDto;
+import com.nutrizulia.features.user.dto.UpdateUsuarioInstitucionDto;
 import com.nutrizulia.features.user.service.IUsuarioService;
+import com.nutrizulia.features.user.service.IUsuarioInstitucionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -32,6 +35,7 @@ import static com.nutrizulia.common.util.ApiConstants.*;
 public class UsuarioController {
 
     private final IUsuarioService usuarioService;
+    private final IUsuarioInstitucionService usuarioInstitucionService;
 
     @Operation(summary = "Crear un nuevo usuario", 
                description = "Crea un nuevo usuario en el sistema con validaciones completas. **Requiere autenticación.**")
@@ -44,9 +48,15 @@ public class UsuarioController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @PostMapping(USERS_CREATE)
-    public ResponseEntity<UsuarioDto> createUsuario(@Valid @RequestBody UsuarioDto usuarioDto) {
+    public ResponseEntity<ApiResponseDto<UsuarioDto>> createUsuario(@Valid @RequestBody UsuarioDto usuarioDto) {
         UsuarioDto usuarioCreado = usuarioService.createUsuario(usuarioDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioCreado);
+        ApiResponseDto<UsuarioDto> response = ApiResponseDto.<UsuarioDto>builder()
+                .status(HttpStatus.CREATED.value())
+                .message("Usuario obtenido exitosamente")
+                .data(usuarioCreado)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "Verificar disponibilidad de cédula", description = "Verifica si una cédula está disponible para registro. **Requiere autenticación.**")
@@ -185,6 +195,34 @@ public class UsuarioController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Actualizar datos de un usuario", 
+               description = "Actualiza los datos de un usuario existente con validaciones completas. Excluye la contraseña. **Requiere autenticación.**")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuario actualizado exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UsuarioDto.class))),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o errores de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "409", description = "Conflicto - Ya existe otro usuario con los mismos datos únicos (cédula, correo o teléfono)", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
+    })
+    @PutMapping(USERS_UPDATE)
+    public ResponseEntity<ApiResponseDto<UsuarioDto>> updateUsuario(
+            @RequestParam Integer idUsuario,
+            @Valid @RequestBody UpdateUsuarioDto updateUsuarioDto) {
+        
+        UsuarioDto usuarioActualizado = usuarioService.updateUsuario(idUsuario, updateUsuarioDto);
+        
+        ApiResponseDto<UsuarioDto> response = ApiResponseDto.<UsuarioDto>builder()
+                .status(HttpStatus.OK.value())
+                .message("Usuario actualizado exitosamente")
+                .data(usuarioActualizado)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        
+        return ResponseEntity.ok(response);
+    }
+
     @Operation(summary = "Obtener lista de las instituciones por usuario",
             description = "Devuelve un usuario con sus instituciones y roles asignados. **Requiere autenticación.**")
     @ApiResponses(value = {
@@ -207,6 +245,60 @@ public class UsuarioController {
                 .timestamp(java.time.LocalDateTime.now())
                 .build();
 
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Asignar usuario a institución", 
+               description = "Asigna un usuario a una institución con un rol específico. **Requiere autenticación.**")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Usuario asignado exitosamente a la institución", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UsuarioInstitucionDto.class))),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o errores de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "Usuario, institución o rol no encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "409", description = "Conflicto - El usuario ya está asignado a esta institución con este rol", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
+    })
+    @PostMapping(USERS_ASSIGN_INSTITUTION)
+    public ResponseEntity<ApiResponseDto<UsuarioInstitucionDto>> assignUserToInstitution(
+            @Valid @RequestBody CreateUsuarioInstitucionDto createUsuarioInstitucionDto) {
+        
+        UsuarioInstitucionDto usuarioInstitucionCreado = usuarioInstitucionService.createUsuarioInstitucion(createUsuarioInstitucionDto);
+        
+        ApiResponseDto<UsuarioInstitucionDto> response = ApiResponseDto.<UsuarioInstitucionDto>builder()
+                .status(HttpStatus.CREATED.value())
+                .message("Usuario asignado exitosamente a la institución")
+                .data(usuarioInstitucionCreado)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(summary = "Actualizar asignación de usuario a institución", 
+               description = "Actualiza el rol y estado de una asignación existente de usuario a institución. **Requiere autenticación.**")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Asignación actualizada exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UsuarioInstitucionDto.class))),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o errores de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "Asignación o rol no encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
+    })
+    @PutMapping(USERS_UPDATE_INSTITUTION)
+    public ResponseEntity<ApiResponseDto<UsuarioInstitucionDto>> updateUserInstitutionAssignment(
+            @RequestParam Integer id,
+            @Valid @RequestBody UpdateUsuarioInstitucionDto updateUsuarioInstitucionDto) {
+        
+        UsuarioInstitucionDto usuarioInstitucionActualizado = usuarioInstitucionService.updateUsuarioInstitucion(id, updateUsuarioInstitucionDto);
+        
+        ApiResponseDto<UsuarioInstitucionDto> response = ApiResponseDto.<UsuarioInstitucionDto>builder()
+                .status(HttpStatus.OK.value())
+                .message("Asignación actualizada exitosamente")
+                .data(usuarioInstitucionActualizado)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        
         return ResponseEntity.ok(response);
     }
 

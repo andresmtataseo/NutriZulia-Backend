@@ -26,15 +26,15 @@ public interface UsuarioConInstitucionesMapper {
     List<UsuarioConInstitucionesDto> toDtoList(List<Usuario> usuarios);
 
     default PageResponseDto<UsuarioConInstitucionesDto> toPageDto(Page<Usuario> page) {
-        PageResponseDto<UsuarioConInstitucionesDto> response = new PageResponseDto<>();
-        response.setContent(toDtoList(page.getContent()));
-        response.setPage(page.getNumber());
-        response.setSize(page.getSize());
-        response.setTotalElements(page.getTotalElements());
-        response.setTotalPages(page.getTotalPages());
-        response.setFirst(page.isFirst());
-        response.setLast(page.isLast());
-        response.setEmpty(page.isEmpty());
-        return response;
+        return PageResponseDto.<UsuarioConInstitucionesDto>builder()
+                .content(toDtoList(page.getContent()))
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .first(page.isFirst())
+                .last(page.isLast())
+                .empty(page.isEmpty())
+                .build();
     }
 }

@@ -1,14 +1,18 @@
 package com.nutrizulia.features.user.service;
 
 import com.nutrizulia.common.dto.PageResponseDto;
+import com.nutrizulia.common.enums.Genero;
 import com.nutrizulia.common.exception.ResourceNotFoundException;
 import com.nutrizulia.common.service.DataAvailabilityService;
+import com.nutrizulia.common.service.EmailService;
+import com.nutrizulia.common.util.PasswordUtils;
 import com.nutrizulia.common.util.ValidationUtils;
 import com.nutrizulia.common.validator.UserValidator;
 import com.nutrizulia.features.user.dto.UsuarioConInstitucionesDto;
 import com.nutrizulia.features.user.dto.UsuarioDetallesDto;
 import com.nutrizulia.features.user.dto.UsuarioDto;
 import com.nutrizulia.features.user.dto.UsuarioInstitucionDto;
+import com.nutrizulia.features.user.dto.UpdateUsuarioDto;
 import com.nutrizulia.features.user.mapper.UsuarioConInstitucionesMapper;
 import com.nutrizulia.features.user.mapper.UsuarioDetallesMapper;
 import com.nutrizulia.features.user.mapper.UsuarioInstitucionMapper;
@@ -46,6 +50,7 @@ public class UsuarioService implements IUsuarioService {
     private final PasswordEncoder passwordEncoder;
     private final UserValidator userValidator;
     private final DataAvailabilityService dataAvailabilityService;
+    private final EmailService emailService;
 
     @Override
     public Usuario findByCedula(String cedula) {
@@ -61,6 +66,51 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     @Transactional
+    public UsuarioDto updateUsuario(Integer idUsuario, UpdateUsuarioDto updateUsuarioDto) {
+        log.info("Iniciando actualización de usuario con ID: {}", idUsuario);
+        
+        // Validar ID
+        ValidationUtils.validateId(idUsuario.longValue(), "ID de usuario");
+        
+        // Buscar usuario existente
+        Usuario usuarioExistente = findById(idUsuario);
+        
+        // Validar datos del DTO
+        validateUpdateUsuarioData(updateUsuarioDto);
+        
+        // Verificar disponibilidad de datos únicos (excluyendo el usuario actual)
+        validateUniqueDataForUpdate(updateUsuarioDto, idUsuario);
+        
+        // Verificar si el usuario se está desactivando
+        boolean usuarioSeDesactiva = usuarioExistente.getIsEnabled() && !updateUsuarioDto.getIs_enabled();
+        
+        // Actualizar campos
+        usuarioExistente.setCedula(updateUsuarioDto.getCedula());
+        usuarioExistente.setNombres(updateUsuarioDto.getNombres());
+        usuarioExistente.setApellidos(updateUsuarioDto.getApellidos());
+        usuarioExistente.setFechaNacimiento(updateUsuarioDto.getFecha_nacimiento());
+        usuarioExistente.setGenero(Genero.valueOf(updateUsuarioDto.getGenero()));
+        usuarioExistente.setTelefono(updateUsuarioDto.getTelefono());
+        usuarioExistente.setCorreo(updateUsuarioDto.getCorreo());
+        usuarioExistente.setIsEnabled(updateUsuarioDto.getIs_enabled());
+        
+        // Si el usuario se está desactivando, desactivar todas sus asociaciones con instituciones
+        if (usuarioSeDesactiva) {
+            desactivarTodasLasInstitucionesDelUsuario(idUsuario);
+            log.info("Se desactivaron todas las asociaciones de instituciones para el usuario con ID: {}", idUsuario);
+        }
+        
+        // Guardar cambios
+        Usuario usuarioActualizado = usuarioRepository.save(usuarioExistente);
+        
+        log.info("Usuario actualizado exitosamente con ID: {}", idUsuario);
+        
+        // Convertir a DTO y retornar
+        return usuarioMapper.toDto(usuarioActualizado);
+    }
+
+    @Override
+    @Transactional
     public UsuarioDto saveUsuario(UsuarioDto usuarioDto) {
         Usuario usuario = usuarioMapper.toEntity(usuarioDto);
         usuario.setClave(passwordEncoder.encode(usuarioDto.getClave()));
@@ -72,22 +122,53 @@ public class UsuarioService implements IUsuarioService {
     @Override
     @Transactional
     public UsuarioDto createUsuario(UsuarioDto usuarioDto) {
-        // Validaciones de negocio
-        validateUsuarioData(usuarioDto);
+        // Validaciones de negocio (excluyendo contraseña si es null o vacía)
+        validateUsuarioDataForCreation(usuarioDto);
+        
         // Verificar disponibilidad de datos únicos
         dataAvailabilityService.checkUserDataAvailability(
             usuarioDto.getCedula(), 
             usuarioDto.getCorreo(), 
             usuarioDto.getTelefono()
         );
+        
         // Convertir DTO a entidad
         Usuario usuario = usuarioMapper.toEntity(usuarioDto);
+        
+        // Manejar contraseña: generar aleatoria si es null o vacía
+        String passwordToUse;
+        boolean passwordGenerated = false;
+        
+        if (usuarioDto.getClave() == null || usuarioDto.getClave().trim().isEmpty()) {
+            passwordToUse = PasswordUtils.generateRandomPassword();
+            passwordGenerated = true;
+            log.info("Contraseña aleatoria generada para usuario con cédula: {}", usuarioDto.getCedula());
+        } else {
+            passwordToUse = usuarioDto.getClave();
+        }
+        
         // Encriptar contraseña
-        usuario.setClave(passwordEncoder.encode(usuarioDto.getClave()));
+        usuario.setClave(passwordEncoder.encode(passwordToUse));
+        
         // Establecer valores por defecto
         usuario.setIsEnabled(usuarioDto.getIs_enabled() != null ? usuarioDto.getIs_enabled() : true);
+        
         // Guardar usuario
         Usuario usuarioGuardado = usuarioRepository.save(usuario);
+        
+        // Si se generó una contraseña aleatoria, enviarla por correo
+        if (passwordGenerated) {
+            try {
+                String nombreCompleto = usuarioGuardado.getNombres() + " " + usuarioGuardado.getApellidos();
+                emailService.creacionUsuario(usuarioGuardado.getCorreo(), nombreCompleto, passwordToUse);
+                log.info("Correo de creación de usuario enviado exitosamente a: {}", usuarioGuardado.getCorreo());
+            } catch (Exception e) {
+                log.error("Error al enviar correo de creación de usuario para {}: {}", 
+                         usuarioGuardado.getCedula(), e.getMessage());
+                // No lanzamos excepción para no fallar la creación del usuario
+            }
+        }
+        
         // Convertir a DTO y retornar
         return usuarioMapper.toDto(usuarioGuardado);
     }
@@ -183,6 +264,57 @@ public class UsuarioService implements IUsuarioService {
         userValidator.validatePassword(usuarioDto.getClave());
     }
 
+    /**
+     * Valida los datos del usuario para creación, excluyendo la contraseña si es null o vacía
+     */
+    private void validateUsuarioDataForCreation(UsuarioDto usuarioDto) {
+        userValidator.validateNombres(usuarioDto.getNombres());
+        userValidator.validateApellidos(usuarioDto.getApellidos());
+        userValidator.validateCedula(usuarioDto.getCedula());
+        userValidator.validateEmail(usuarioDto.getCorreo());
+        userValidator.validateTelefono(usuarioDto.getTelefono());
+        userValidator.validateGenero(usuarioDto.getGenero());
+        userValidator.validateFechaNacimiento(usuarioDto.getFecha_nacimiento());
+        
+        // Solo validar contraseña si no es null o vacía
+        if (usuarioDto.getClave() != null && !usuarioDto.getClave().trim().isEmpty()) {
+            userValidator.validatePassword(usuarioDto.getClave());
+        }
+    }
+
+    /**
+     * Valida los datos del usuario para actualización
+     */
+    private void validateUpdateUsuarioData(UpdateUsuarioDto updateUsuarioDto) {
+        userValidator.validateNombres(updateUsuarioDto.getNombres());
+        userValidator.validateApellidos(updateUsuarioDto.getApellidos());
+        userValidator.validateCedula(updateUsuarioDto.getCedula());
+        userValidator.validateEmail(updateUsuarioDto.getCorreo());
+        userValidator.validateTelefono(updateUsuarioDto.getTelefono());
+        userValidator.validateGenero(updateUsuarioDto.getGenero());
+        userValidator.validateFechaNacimiento(updateUsuarioDto.getFecha_nacimiento());
+    }
+
+    /**
+     * Valida que los datos únicos estén disponibles para actualización (excluyendo el usuario actual)
+     */
+    private void validateUniqueDataForUpdate(UpdateUsuarioDto updateUsuarioDto, Integer idUsuario) {
+        // Verificar disponibilidad de cédula (excluyendo el usuario actual)
+        if (!dataAvailabilityService.isCedulaAvailableForUser(updateUsuarioDto.getCedula(), idUsuario)) {
+            throw new IllegalArgumentException("La cédula ya está en uso por otro usuario");
+        }
+        
+        // Verificar disponibilidad de correo (excluyendo el usuario actual)
+        if (!dataAvailabilityService.isEmailAvailableForUser(updateUsuarioDto.getCorreo(), idUsuario)) {
+            throw new IllegalArgumentException("El correo electrónico ya está en uso por otro usuario");
+        }
+        
+        // Verificar disponibilidad de teléfono (excluyendo el usuario actual)
+        if (!dataAvailabilityService.isPhoneAvailableForUser(updateUsuarioDto.getTelefono(), idUsuario)) {
+            throw new IllegalArgumentException("El teléfono ya está en uso por otro usuario");
+        }
+    }
+
     @Override
     public PageResponseDto<UsuarioConInstitucionesDto> getUsuariosConInstituciones(
             int page, int size, String search, String sortBy, String sortDir) {
@@ -229,6 +361,33 @@ public class UsuarioService implements IUsuarioService {
         return usuarios.stream()
                 .map(usuario -> usuarioRepository.findByCedulaWithRoles(usuario.getCedula()).orElse(usuario))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Desactiva todas las asociaciones de instituciones de un usuario
+     * @param idUsuario ID del usuario
+     */
+    private void desactivarTodasLasInstitucionesDelUsuario(Integer idUsuario) {
+        log.debug("Desactivando todas las asociaciones de instituciones para el usuario con ID: {}", idUsuario);
+        
+        // Obtener todas las asociaciones del usuario
+        List<UsuarioInstitucion> asociaciones = usuarioInstitucionRepository.findAllByUsuario_Id(idUsuario);
+        
+        // Desactivar todas las asociaciones que estén activas
+        for (UsuarioInstitucion asociacion : asociaciones) {
+            if (asociacion.getIsEnabled()) {
+                asociacion.setIsEnabled(false);
+                log.debug("Desactivando asociación ID: {} - Usuario: {} - Institución: {}", 
+                         asociacion.getId(), idUsuario, asociacion.getInstitucion().getId());
+            }
+        }
+        
+        // Guardar todos los cambios
+        if (!asociaciones.isEmpty()) {
+            usuarioInstitucionRepository.saveAll(asociaciones);
+            log.info("Se desactivaron {} asociaciones de instituciones para el usuario con ID: {}", 
+                    asociaciones.size(), idUsuario);
+        }
     }
 
 }

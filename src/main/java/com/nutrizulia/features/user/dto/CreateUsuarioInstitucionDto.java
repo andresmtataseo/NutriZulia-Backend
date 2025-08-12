@@ -1,0 +1,29 @@
+package com.nutrizulia.features.user.dto;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+@Schema(name = "Create Usuario Institucion", description = "DTO para crear asignación de usuario a institución")
+public class CreateUsuarioInstitucionDto {
+
+    @Schema(description = "Identificador del usuario asociado a la institución")
+    @NotNull(message = "El usuario no puede ser nulo")
+    private Integer usuario_id;
+
+    @Schema(description = "Identificador de la institución a la que pertenece el usuario")
+    @NotNull(message = "La institución no puede ser nula")
+    private Integer institucion_id;
+
+    @Schema(description = "Identificador del rol que tiene el usuario dentro de la institución")
+    @NotNull(message = "El rol no puede ser nulo")
+    private Integer rol_id;
+
+    @Schema(description = "Estado del usuario con el rol dentro de la institución", defaultValue = "true")
+    @Builder.Default
+    private Boolean is_enabled = true;
+
+}

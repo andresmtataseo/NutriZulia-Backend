@@ -1,6 +1,7 @@
 package com.nutrizulia.features.catalog.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 @Data

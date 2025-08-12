@@ -32,7 +32,6 @@ public class UsuarioInstitucionDto {
     private LocalDate fecha_inicio;
 
     @Schema(description = "Fecha en la que finalizo el usuario con el rol en la institucion")
-    @NotNull(message = "La Fecha de finalización no puede ser nula")
     private LocalDate fecha_fin;
 
     @Schema(description = "Estado del usuario con el rol dentro de la institución")

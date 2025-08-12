@@ -5,6 +5,7 @@ import com.nutrizulia.features.user.dto.UsuarioConInstitucionesDto;
 import com.nutrizulia.features.user.dto.UsuarioDetallesDto;
 import com.nutrizulia.features.user.dto.UsuarioDto;
 import com.nutrizulia.features.user.dto.UsuarioInstitucionDto;
+import com.nutrizulia.features.user.dto.UpdateUsuarioDto;
 import com.nutrizulia.features.user.model.Usuario;
 
 import java.util.List;
@@ -18,6 +19,8 @@ public interface IUsuarioService {
     UsuarioDto saveUsuario(UsuarioDto usuarioDto);
 
     UsuarioDto createUsuario(UsuarioDto usuarioDto);
+
+    UsuarioDto updateUsuario(Integer idUsuario, UpdateUsuarioDto updateUsuarioDto);
 
     void updatePassword(Integer idUsuario, String newPassword);
 

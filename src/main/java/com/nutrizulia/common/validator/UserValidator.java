@@ -28,12 +28,12 @@ public class UserValidator {
      */
     public void validateCedula(String cedula) {
         if (cedula == null || cedula.trim().isEmpty()) {
-            throw new BusinessException("La cédula es obligatoria", "CEDULA_REQUIRED");
+            throw new BusinessException("Por favor, ingrese su número de cédula", "CEDULA_REQUIRED");
         }
         
         if (!CEDULA_PATTERN.matcher(cedula).matches()) {
             throw new BusinessException(
-                "Formato de cédula inválido. Debe ser V-12345678 o E-12345678", 
+                "El formato de la cédula no es válido. Debe incluir la nacionalidad seguida de un guión y el número (ejemplo: V-12345678 o E-12345678)", 
                 "CEDULA_INVALID_FORMAT"
             );
         }
@@ -46,7 +46,7 @@ public class UserValidator {
         if (telefono != null && !telefono.trim().isEmpty()) {
             if (!TELEFONO_PATTERN.matcher(telefono).matches()) {
                 throw new BusinessException(
-                    "Formato de teléfono inválido. Debe ser 04XX-XXXXXXX (ejemplo: 0424-6719783)", 
+                    "El formato del teléfono no es válido. Debe incluir el prefijo seguido de un guión y 7 dígitos (ejemplo: 0424-1234567)", 
                     "TELEFONO_INVALID_FORMAT"
                 );
             }
@@ -58,12 +58,12 @@ public class UserValidator {
      */
     public void validateEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
-            throw new BusinessException("El correo electrónico es obligatorio", "EMAIL_REQUIRED");
+            throw new BusinessException("Por favor, ingrese su dirección de correo electrónico", "EMAIL_REQUIRED");
         }
         
         if (!EMAIL_PATTERN.matcher(email).matches()) {
             throw new BusinessException(
-                "Formato de correo electrónico inválido", 
+                "El formato del correo electrónico no es válido. Asegúrese de incluir el símbolo @ y un dominio válido", 
                 "EMAIL_INVALID_FORMAT"
             );
         }
@@ -74,14 +74,14 @@ public class UserValidator {
      */
     public void validateGenero(String genero) {
         if (genero == null || genero.trim().isEmpty()) {
-            throw new BusinessException("El género es obligatorio", "GENERO_REQUIRED");
+            throw new BusinessException("Por favor, seleccione el género", "GENERO_REQUIRED");
         }
         
         try {
             Genero.valueOf(genero.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new BusinessException(
-                "Género inválido. Los valores permitidos son: MASCULINO, FEMENINO", 
+                "El género seleccionado no es válido. Por favor, seleccione Masculino o Femenino", 
                 "GENERO_INVALID"
             );
         }
@@ -92,13 +92,13 @@ public class UserValidator {
      */
     public void validateFechaNacimiento(LocalDate fechaNacimiento) {
         if (fechaNacimiento == null) {
-            throw new BusinessException("La fecha de nacimiento es obligatoria", "FECHA_NACIMIENTO_REQUIRED");
+            throw new BusinessException("Por favor, ingrese la fecha de nacimiento", "FECHA_NACIMIENTO_REQUIRED");
         }
         
         LocalDate fechaMinima = LocalDate.now().minusYears(MIN_AGE);
         if (fechaNacimiento.isAfter(fechaMinima)) {
             throw new BusinessException(
-                String.format("El usuario debe ser mayor de %d años", MIN_AGE), 
+                String.format("El usuario debe ser mayor de %d años para poder registrarse en el sistema", MIN_AGE), 
                 "EDAD_MINIMA_NO_CUMPLIDA"
             );
         }
@@ -106,7 +106,7 @@ public class UserValidator {
         LocalDate fechaMaxima = LocalDate.now().minusYears(MAX_AGE);
         if (fechaNacimiento.isBefore(fechaMaxima)) {
             throw new BusinessException(
-                "Fecha de nacimiento inválida", 
+                "La fecha de nacimiento ingresada no es válida. Por favor, verifique la información", 
                 "FECHA_NACIMIENTO_INVALIDA"
             );
         }
@@ -117,12 +117,12 @@ public class UserValidator {
      */
     public void validatePassword(String password) {
         if (password == null || password.trim().isEmpty()) {
-            throw new BusinessException("La contraseña es obligatoria", "PASSWORD_REQUIRED");
+            throw new BusinessException("Por favor, ingrese una contraseña", "PASSWORD_REQUIRED");
         }
         
         if (password.length() < MIN_PASSWORD_LENGTH) {
             throw new BusinessException(
-                String.format("La contraseña debe tener al menos %d caracteres", MIN_PASSWORD_LENGTH), 
+                String.format("La contraseña debe tener al menos %d caracteres para garantizar la seguridad", MIN_PASSWORD_LENGTH), 
                 "PASSWORD_TOO_SHORT"
             );
         }
@@ -130,28 +130,28 @@ public class UserValidator {
         // Validaciones adicionales de complejidad de contraseña
         if (!hasUpperCase(password)) {
             throw new BusinessException(
-                "La contraseña debe contener al menos una letra mayúscula", 
+                "La contraseña debe incluir al menos una letra mayúscula para mayor seguridad", 
                 "PASSWORD_NO_UPPERCASE"
             );
         }
         
         if (!hasLowerCase(password)) {
             throw new BusinessException(
-                "La contraseña debe contener al menos una letra minúscula", 
+                "La contraseña debe incluir al menos una letra minúscula para mayor seguridad", 
                 "PASSWORD_NO_LOWERCASE"
             );
         }
         
         if (!hasDigit(password)) {
             throw new BusinessException(
-                "La contraseña debe contener al menos un número", 
+                "La contraseña debe incluir al menos un número para mayor seguridad", 
                 "PASSWORD_NO_DIGIT"
             );
         }
         
         if (!hasSpecialChar(password)) {
             throw new BusinessException(
-                "La contraseña debe contener al menos un carácter especial", 
+                "La contraseña debe incluir al menos un carácter especial (!@#$%^&*(),.?\":{}|<>) para mayor seguridad", 
                 "PASSWORD_NO_SPECIAL_CHAR"
             );
         }
@@ -162,12 +162,12 @@ public class UserValidator {
      */
     public void validateNombres(String nombres) {
         if (nombres == null || nombres.trim().isEmpty()) {
-            throw new BusinessException("Los nombres son obligatorios", "NOMBRES_REQUIRED");
+            throw new BusinessException("Por favor, ingrese los nombres del usuario", "NOMBRES_REQUIRED");
         }
         
         if (nombres.length() > 255) {
             throw new BusinessException(
-                "Los nombres no pueden exceder los 255 caracteres", 
+                "Los nombres son demasiado largos. Por favor, use un máximo de 255 caracteres", 
                 "NOMBRES_TOO_LONG"
             );
         }
@@ -175,12 +175,12 @@ public class UserValidator {
     
     public void validateApellidos(String apellidos) {
         if (apellidos == null || apellidos.trim().isEmpty()) {
-            throw new BusinessException("Los apellidos son obligatorios", "APELLIDOS_REQUIRED");
+            throw new BusinessException("Por favor, ingrese los apellidos del usuario", "APELLIDOS_REQUIRED");
         }
         
         if (apellidos.length() > 255) {
             throw new BusinessException(
-                "Los apellidos no pueden exceder los 255 caracteres", 
+                "Los apellidos son demasiado largos. Por favor, use un máximo de 255 caracteres", 
                 "APELLIDOS_TOO_LONG"
             );
         }

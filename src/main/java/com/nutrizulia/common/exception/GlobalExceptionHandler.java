@@ -36,13 +36,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponseDto<Map<String, String>>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage())
-        );
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            String friendlyMessage = createFriendlyValidationMessage(error.getField(), error.getDefaultMessage());
+            errors.put(error.getField(), friendlyMessage);
+        });
 
         ApiResponseDto<Map<String, String>> response = ApiResponseDto.<Map<String, String>>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
-                .message("Errores de validación")
+                .message("Por favor, corrija los siguientes errores en el formulario:")
                 .data(errors)
                 .timestamp(LocalDateTime.now())
                 .path(getCurrentPath())
@@ -52,11 +53,54 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
+    private String createFriendlyValidationMessage(String fieldName, String originalMessage) {
+        // Mapeo de nombres de campos técnicos a nombres amigables
+        String friendlyFieldName = getFriendlyFieldName(fieldName);
+        
+        // Mapeo de mensajes de validación comunes
+        if (originalMessage != null) {
+            if (originalMessage.contains("must not be null") || originalMessage.contains("no debe ser nulo")) {
+                return String.format("El campo '%s' es obligatorio.", friendlyFieldName);
+            }
+            if (originalMessage.contains("must not be blank") || originalMessage.contains("no debe estar vacío")) {
+                return String.format("El campo '%s' no puede estar vacío.", friendlyFieldName);
+            }
+            if (originalMessage.contains("size must be between") || originalMessage.contains("el tamaño debe estar entre")) {
+                return String.format("El campo '%s' debe tener la longitud correcta.", friendlyFieldName);
+            }
+            if (originalMessage.contains("must be a valid email") || originalMessage.contains("debe ser un email válido")) {
+                return String.format("Por favor, ingrese un %s válido.", friendlyFieldName);
+            }
+            if (originalMessage.contains("must be a well-formed email address")) {
+                return String.format("Por favor, ingrese un %s con formato válido (ejemplo@dominio.com).", friendlyFieldName);
+            }
+        }
+        
+        return originalMessage; // Si no hay mapeo específico, devolver el mensaje original
+    }
+
+    private String getFriendlyFieldName(String fieldName) {
+        return switch (fieldName.toLowerCase()) {
+            case "cedula" -> "número de cédula";
+            case "nombres" -> "nombres";
+            case "apellidos" -> "apellidos";
+            case "fechanacimiento", "fecha_nacimiento" -> "fecha de nacimiento";
+            case "genero" -> "género";
+            case "telefono" -> "número de teléfono";
+            case "correo", "email" -> "correo electrónico";
+            case "clave", "password" -> "contraseña";
+            case "usuario_id" -> "usuario";
+            case "institucion_id" -> "institución";
+            case "rol_id" -> "rol";
+            default -> fieldName;
+        };
+    }
+
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiResponseDto<String>> handleConstraintViolationException(ConstraintViolationException ex) {
         ApiResponseDto<String> response = ApiResponseDto.<String>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
-                .message("Error de validación: " + ex.getMessage())
+                .message("Los datos ingresados no cumplen con los requisitos. Por favor, verifique la información.")
                 .timestamp(LocalDateTime.now())
                 .path(getCurrentPath())
                 .build();
@@ -68,7 +112,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponseDto<String>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         ApiResponseDto<String> response = ApiResponseDto.<String>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
-                .message("Error en el formato de los datos enviados")
+                .message("Los datos enviados tienen un formato incorrecto. Por favor, verifique la información e intente nuevamente.")
                 .timestamp(LocalDateTime.now())
                 .path(getCurrentPath())
                 .build();
@@ -78,9 +122,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
     public ResponseEntity<ApiResponseDto<String>> handleSQLIntegrityConstraintViolationException(SQLIntegrityConstraintViolationException ex) {
+        String friendlyMessage = createFriendlyDatabaseErrorMessage(ex.getMessage());
+        
         ApiResponseDto<String> response = ApiResponseDto.<String>builder()
                 .status(HttpStatus.CONFLICT.value())
-                .message("Error de integridad de datos: " + ex.getMessage())
+                .message(friendlyMessage)
                 .timestamp(LocalDateTime.now())
                 .path(getCurrentPath())
                 .build();
@@ -90,14 +136,43 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponseDto<String>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        String friendlyMessage = createFriendlyDatabaseErrorMessage(ex.getMessage());
+        
         ApiResponseDto<String> response = ApiResponseDto.<String>builder()
                 .status(HttpStatus.CONFLICT.value())
-                .message("Error de integridad de datos")
+                .message(friendlyMessage)
                 .timestamp(LocalDateTime.now())
                 .path(getCurrentPath())
                 .build();
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    private String createFriendlyDatabaseErrorMessage(String originalMessage) {
+        if (originalMessage == null) {
+            return "No se pudo completar la operación debido a restricciones de datos.";
+        }
+        
+        String lowerMessage = originalMessage.toLowerCase();
+        
+        if (lowerMessage.contains("duplicate entry") || lowerMessage.contains("unique constraint")) {
+            if (lowerMessage.contains("cedula")) {
+                return "Ya existe un usuario registrado con esta cédula. Por favor, verifique el número ingresado.";
+            }
+            if (lowerMessage.contains("correo") || lowerMessage.contains("email")) {
+                return "Ya existe un usuario registrado con este correo electrónico. Por favor, utilice otro correo.";
+            }
+            if (lowerMessage.contains("telefono") || lowerMessage.contains("phone")) {
+                return "Ya existe un usuario registrado con este número de teléfono. Por favor, utilice otro número.";
+            }
+            return "Ya existe un registro con esta información. Por favor, verifique los datos ingresados.";
+        }
+        
+        if (lowerMessage.contains("foreign key constraint")) {
+            return "No se puede completar la operación porque hay información relacionada que debe mantenerse.";
+        }
+        
+        return "No se pudo completar la operación debido a restricciones de datos. Por favor, verifique la información ingresada.";
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -116,7 +191,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponseDto<String>> handleBadCredentialsException(BadCredentialsException ex) {
         ApiResponseDto<String> response = ApiResponseDto.<String>builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
-                .message("Credenciales inválidas")
+                .message("Las credenciales ingresadas son incorrectas. Por favor, verifique su cédula y contraseña.")
                 .timestamp(LocalDateTime.now())
                 .path(getCurrentPath())
                 .build();
@@ -128,7 +203,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponseDto<String>> handleNoResourceFoundException(NoResourceFoundException ex) {
         ApiResponseDto<String> response = ApiResponseDto.<String>builder()
                 .status(HttpStatus.NOT_FOUND.value())
-                .message("Recurso no encontrado")
+                .message("La página o recurso solicitado no se encuentra disponible.")
                 .timestamp(LocalDateTime.now())
                 .path(getCurrentPath())
                 .build();
@@ -141,7 +216,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponseDto<String>> handleBusinessException(BusinessException ex) {
         ApiResponseDto<String> response = ApiResponseDto.<String>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
-                .message(ex.getMessage())
+                .message(ex.getMessage()) // Los mensajes de BusinessException ya son amigables
                 .timestamp(LocalDateTime.now())
                 .path(getCurrentPath())
                 .build();
@@ -153,7 +228,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponseDto<String>> handleResourceNotFoundException(ResourceNotFoundException ex) {
         ApiResponseDto<String> response = ApiResponseDto.<String>builder()
                 .status(HttpStatus.NOT_FOUND.value())
-                .message(ex.getMessage())
+                .message(ex.getMessage()) // Los mensajes de ResourceNotFoundException ya son amigables
                 .timestamp(LocalDateTime.now())
                 .path(getCurrentPath())
                 .build();
@@ -165,7 +240,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponseDto<String>> handleDuplicateResourceException(DuplicateResourceException ex) {
         ApiResponseDto<String> response = ApiResponseDto.<String>builder()
                 .status(HttpStatus.CONFLICT.value())
-                .message(ex.getMessage())
+                .message(ex.getMessage()) // Los mensajes de DuplicateResourceException ya son amigables
                 .timestamp(LocalDateTime.now())
                 .path(getCurrentPath())
                 .build();
@@ -177,7 +252,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponseDto<String>> handleGenericException(Exception ex) {
         ApiResponseDto<String> response = ApiResponseDto.<String>builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .message("Error interno del servidor")
+                .message("Ha ocurrido un error inesperado. Por favor, intente nuevamente o contacte al administrador del sistema.")
                 .timestamp(LocalDateTime.now())
                 .path(getCurrentPath())
                 .build();

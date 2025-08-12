@@ -89,6 +89,15 @@ public class DataAvailabilityService {
     }
 
     /**
+     * Verifica si una cédula está disponible excluyendo un usuario específico
+     */
+    public boolean isCedulaAvailableForUser(String cedula, Integer excludeUserId) {
+        log.debug("Verificando disponibilidad de cédula: {} excluyendo usuario ID: {}", cedula, excludeUserId);
+        userValidator.validateCedula(cedula);
+        return usuarioRepository.findByCedulaAndIdNot(cedula, excludeUserId).isEmpty();
+    }
+
+    /**
      * Verifica si un correo está disponible excluyendo un usuario específico
      */
     public boolean isEmailAvailableForUser(String email, Integer excludeUserId) {

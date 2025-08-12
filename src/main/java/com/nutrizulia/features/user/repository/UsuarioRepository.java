@@ -28,20 +28,19 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
              "WHERE LOWER(u.cedula) = LOWER(:cedula)")
      Optional<Usuario> findByCedulaWithRoles(@Param("cedula") String cedula);
 
-     @Query(value = "SELECT DISTINCT u FROM Usuario u " +
-            "WHERE u.isEnabled = true",
-            countQuery = "SELECT COUNT(DISTINCT u) FROM Usuario u WHERE u.isEnabled = true")
+     @Query(value = "SELECT DISTINCT u FROM Usuario u ",
+            countQuery = "SELECT COUNT(DISTINCT u) FROM Usuario u")
      Page<Usuario> findAllUsuariosWithInstituciones(Pageable pageable);
 
      @Query(value = "SELECT DISTINCT u FROM Usuario u " +
-            "WHERE u.isEnabled = true " +
-            "AND (LOWER(u.nombres) LIKE LOWER(CONCAT('%', :search, '%')) " +
+            "WHERE" +
+            "(LOWER(u.nombres) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "OR LOWER(u.apellidos) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "OR LOWER(u.cedula) LIKE LOWER(CONCAT('%', :search, '%')) " +
              "OR LOWER(u.correo) LIKE LOWER(CONCAT('%', :search, '%')))",
             countQuery = "SELECT COUNT(DISTINCT u) FROM Usuario u " +
-            "WHERE u.isEnabled = true " +
-            "AND (LOWER(u.nombres) LIKE LOWER(CONCAT('%', :search, '%')) " +
+            "WHERE" +
+            "(LOWER(u.nombres) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "OR LOWER(u.apellidos) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "OR LOWER(u.cedula) LIKE LOWER(CONCAT('%', :search, '%')) " +
              "OR LOWER(u.correo) LIKE LOWER(CONCAT('%', :search, '%')))")
@@ -51,11 +50,14 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
             "LEFT JOIN FETCH u.usuarioInstituciones ui " +
             "LEFT JOIN FETCH ui.institucion i " +
             "LEFT JOIN FETCH ui.rol r " +
-            "WHERE u.id = :id AND u.isEnabled = true")
+            "WHERE u.id = :id")
      Optional<Usuario> findByIdWithCompleteInstitutions(@Param("id") Integer id);
 
      @Query("SELECT u FROM Usuario u WHERE LOWER(u.correo) = LOWER(:correo) AND u.id != :excludeId")
      Optional<Usuario> findByCorreoAndIdNot(@Param("correo") String correo, @Param("excludeId") Integer excludeId);
+
+     @Query("SELECT u FROM Usuario u WHERE LOWER(u.cedula) = LOWER(:cedula) AND u.id != :excludeId")
+     Optional<Usuario> findByCedulaAndIdNot(@Param("cedula") String cedula, @Param("excludeId") Integer excludeId);
 
      Optional<Usuario> findByTelefonoAndIdNot(String telefono, Integer excludeId);
 

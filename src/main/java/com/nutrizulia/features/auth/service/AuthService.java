@@ -1,6 +1,7 @@
 package com.nutrizulia.features.auth.service;
 
 import com.nutrizulia.common.service.EmailService;
+import com.nutrizulia.common.util.PasswordUtils;
 import com.nutrizulia.features.auth.dto.*;
 import com.nutrizulia.features.auth.jwt.JwtService;
 import com.nutrizulia.common.dto.ApiResponseDto;
@@ -18,10 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -118,8 +117,8 @@ public class AuthService implements IAuthService {
             // Buscar el usuario por cédula
             Usuario user = usuarioService.findByCedula(request.getCedula());
 
-            // Generar nueva contraseña temporal
-            String nuevaClaveTemp = generateTemporaryPassword();
+            // Generar nueva contraseña temporal usando PasswordUtils
+            String nuevaClaveTemp = PasswordUtils.generateRandomPassword();
             
             // Actualizar la contraseña en la base de datos
             // El método updatePassword ya se encarga de la encriptación
@@ -209,39 +208,6 @@ public class AuthService implements IAuthService {
         } catch (Exception e) {
             throw new RuntimeException("Error interno del servidor al verificar la autenticación");
         }
-    }
-
-    private String generateTemporaryPassword() {
-        String mayusculas = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        String minusculas = "abcdefghijklmnopqrstuvwxyz";
-        String numeros = "0123456789";
-        String especiales = "!@#$%^&*";
-        
-        SecureRandom random = new SecureRandom();
-        StringBuilder password = new StringBuilder();
-        
-        // Garantizar al menos un carácter de cada tipo requerido
-        password.append(mayusculas.charAt(random.nextInt(mayusculas.length())));
-        password.append(minusculas.charAt(random.nextInt(minusculas.length())));
-        password.append(numeros.charAt(random.nextInt(numeros.length())));
-        password.append(especiales.charAt(random.nextInt(especiales.length())));
-        
-        // Completar con caracteres aleatorios hasta llegar a 8 caracteres
-        String todosCaracteres = mayusculas + minusculas + numeros + especiales;
-        for (int i = 4; i < 8; i++) {
-            password.append(todosCaracteres.charAt(random.nextInt(todosCaracteres.length())));
-        }
-        
-        // Mezclar los caracteres para que no sigan un patrón predecible
-        char[] passwordArray = password.toString().toCharArray();
-        for (int i = passwordArray.length - 1; i > 0; i--) {
-            int j = random.nextInt(i + 1);
-            char temp = passwordArray[i];
-            passwordArray[i] = passwordArray[j];
-            passwordArray[j] = temp;
-        }
-        
-        return new String(passwordArray);
     }
 
     @Override

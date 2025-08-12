@@ -1,11 +1,13 @@
 package com.nutrizulia.common.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
+@Builder
 @Schema(name = "Respuesta Paginada", description = "Estructura estándar para respuestas paginadas")
 public class PageResponseDto<T> {
 
