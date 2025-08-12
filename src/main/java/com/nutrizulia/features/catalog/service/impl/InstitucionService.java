@@ -82,6 +82,37 @@ public class InstitucionService implements IInstitucionService {
     }
 
     @Override
+    public InstitucionConUsuariosDto getInstitucionById(Integer id) {
+        log.debug("Obteniendo institución con usuarios por ID: {}", id);
+        ValidationUtils.validateId(id.longValue(), "ID de institución");
+        
+        try {
+            // Buscar la institución
+            Institucion institucion = institucionRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Institución", "id", id));
+            
+            // Obtener todos los usuarios (activos e inactivos) para esta institución
+            List<UsuarioInstitucion> usuariosInstituciones = usuarioInstitucionRepository
+                    .findAllUsersByInstitucionIds(List.of(id));
+            
+            // Mapear a DTO
+            InstitucionConUsuariosDto resultado = mapInstitucionConUsuarios(institucion, usuariosInstituciones);
+            
+            log.info("Institución obtenida exitosamente: {} con {} usuarios", 
+                    institucion.getNombre(), usuariosInstituciones.size());
+            
+            return resultado;
+            
+        } catch (ResourceNotFoundException e) {
+            log.warn("Institución no encontrada con ID: {}", id);
+            throw e;
+        } catch (Exception e) {
+            log.error("Error al obtener institución con usuarios por ID {}: {}", id, e.getMessage(), e);
+            throw new RuntimeException("Error al obtener la institución con usuarios", e);
+        }
+    }
+
+    @Override
     public PageResponseDto<InstitucionConUsuariosDto> getInstitucionConUsuarios(
             int page, int size, String search, String sortBy, String sortDir) {
         

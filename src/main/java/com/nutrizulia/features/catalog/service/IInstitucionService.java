@@ -12,6 +12,8 @@ public interface IInstitucionService {
 
     InstitucionDto getInstitucionesById(Integer id);
 
+    InstitucionConUsuariosDto getInstitucionById(Integer id);
+
     PageResponseDto<InstitucionConUsuariosDto> getInstitucionConUsuarios(int page, int size, String search, String sortBy, String sortDir);
 
     InstitucionDto createInstitucion(InstitucionDto institucionDto);
