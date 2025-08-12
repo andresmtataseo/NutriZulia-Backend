@@ -41,7 +41,9 @@ public class ApiConstants {
     public static final String CATALOG_INDICATOR_TYPES = "/indicator-types";
     public static final String CATALOG_INSTITUTION_TYPES = "/institution-types";
     public static final String CATALOG_VERSIONS = "/versions";
+
     public static final String CATALOG_INSTITUTIONS = "/institutions";
+    public static final String CATALOG_INSTITUTIONS_GET_ALL_WITH_USERS = "/institutions/get-all/users";
 
     // ========== DATA COLLECTION API ==========
     public static final String COLLECTION_BASE_URL = "/api/v1/collection";

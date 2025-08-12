@@ -1,8 +1,11 @@
 package com.nutrizulia.features.catalog.controller;
 
 import com.nutrizulia.common.dto.ApiResponseDto;
+import com.nutrizulia.common.dto.PageResponseDto;
+import com.nutrizulia.features.catalog.dto.InstitucionConUsuariosDto;
 import com.nutrizulia.features.catalog.dto.InstitucionDto;
 import com.nutrizulia.features.catalog.service.IInstitucionService;
+import com.nutrizulia.features.user.dto.UsuarioConInstitucionesDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -54,6 +57,28 @@ public class InstitucionController {
                         .data(instituciones)
                         .build()
         );
+    }
+
+    @Operation(summary = "Obtener instituciones con usuarios paginado",
+            description = "Devuelve una lista paginada de instituciones con sus usuarios y roles. **Requiere autenticación.**")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista obtenida exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = PageResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Parámetros inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado - La autenticación es requerida o ha fallado.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido - No tienes los permisos necesarios para acceder a este recurso.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
+    })
+    @GetMapping(CATALOG_INSTITUTIONS_GET_ALL_WITH_USERS)
+    public ResponseEntity<PageResponseDto<InstitucionConUsuariosDto>> getInstitucionConUsuarios(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "nombre") String sortBy,
+            @RequestParam(defaultValue = "ASC") String sortDir) {
+
+        PageResponseDto<InstitucionConUsuariosDto> response = institucionService.getInstitucionConUsuarios(page, size, search, sortBy, sortDir);
+
+        return ResponseEntity.ok(response);
     }
 
 }
