@@ -2,14 +2,20 @@ package com.nutrizulia.features.catalog.service.impl;
 
 import com.nutrizulia.common.dto.PageResponseDto;
 import com.nutrizulia.common.exception.ResourceNotFoundException;
+import com.nutrizulia.common.exception.DuplicateResourceException;
 import com.nutrizulia.common.util.ValidationUtils;
 import com.nutrizulia.features.catalog.dto.InstitucionConUsuariosDto;
 import com.nutrizulia.features.catalog.dto.InstitucionDto;
 import com.nutrizulia.features.catalog.mapper.InstitucionConUsuariosMapper;
 import com.nutrizulia.features.catalog.mapper.InstitucionMapper;
 import com.nutrizulia.features.catalog.model.Institucion;
+import com.nutrizulia.features.catalog.model.MunicipioSanitario;
+import com.nutrizulia.features.catalog.model.TipoInstitucion;
 import com.nutrizulia.features.catalog.repository.InstitucionRepository;
+import com.nutrizulia.features.catalog.repository.MunicipioSanitarioRepository;
+import com.nutrizulia.features.catalog.repository.TipoInstitucionRepository;
 import com.nutrizulia.features.catalog.service.IInstitucionService;
+import com.nutrizulia.features.catalog.service.IVersionService;
 import com.nutrizulia.features.user.model.UsuarioInstitucion;
 import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +41,11 @@ public class InstitucionService implements IInstitucionService {
     private final InstitucionMapper institucionMapper;
     private final UsuarioInstitucionRepository usuarioInstitucionRepository;
     private final InstitucionConUsuariosMapper institucionConUsuariosMapper;
+    private final MunicipioSanitarioRepository municipioSanitarioRepository;
+    private final TipoInstitucionRepository tipoInstitucionRepository;
+    private final IVersionService versionService;
+    
+    private static final String TABLA_INSTITUCIONES = "instituciones";
 
     @Override
     public List<InstitucionDto> getInstituciones() {
@@ -168,5 +179,174 @@ public class InstitucionService implements IInstitucionService {
         }
         
         return institucionConUsuariosMapper.toDto(institucion, usuariosConRoles);
+    }
+
+    @Override
+    @Transactional
+    public InstitucionDto createInstitucion(InstitucionDto institucionDto) {
+        log.debug("Creando nueva institución: {}", institucionDto.getNombre());
+        
+        try {
+            // Validar datos de entrada
+            validateInstitucionData(institucionDto);
+            
+            // Verificar que no exista una institución con el mismo nombre
+            if (institucionRepository.existsByNombreIgnoreCase(institucionDto.getNombre())) {
+                log.warn("Intento de crear institución con nombre duplicado: {}", institucionDto.getNombre());
+                throw new DuplicateResourceException("Ya existe una institución con el nombre: " + institucionDto.getNombre());
+            }
+            
+            // Verificar que existan el municipio sanitario y tipo de institución
+            MunicipioSanitario municipioSanitario = municipioSanitarioRepository.findById(institucionDto.getMunicipio_sanitario_id())
+                    .orElseThrow(() -> new ResourceNotFoundException("Municipio sanitario", "id", institucionDto.getMunicipio_sanitario_id()));
+            
+            TipoInstitucion tipoInstitucion = tipoInstitucionRepository.findById(institucionDto.getTipo_institucion_id())
+                    .orElseThrow(() -> new ResourceNotFoundException("Tipo de institución", "id", institucionDto.getTipo_institucion_id()));
+            
+            // Crear la entidad
+            Institucion institucion = new Institucion();
+            institucion.setNombre(institucionDto.getNombre().trim());
+            institucion.setMunicipioSanitario(municipioSanitario);
+            institucion.setTipoInstitucion(tipoInstitucion);
+            
+            // Guardar la institución
+            Institucion institucionGuardada = institucionRepository.save(institucion);
+            
+            // Incrementar versión de la tabla instituciones
+            versionService.incrementarVersion(TABLA_INSTITUCIONES);
+            
+            log.info("Institución creada exitosamente con ID: {} y nombre: {}", 
+                    institucionGuardada.getId(), institucionGuardada.getNombre());
+            
+            return institucionMapper.toDto(institucionGuardada);
+            
+        } catch (DuplicateResourceException | ResourceNotFoundException e) {
+            log.error("Error de validación al crear institución: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Error inesperado al crear institución: {}", e.getMessage(), e);
+            throw new RuntimeException("Error al crear la institución", e);
+        }
+    }
+    
+    /**
+     * Valida los datos de entrada para crear una institución
+     */
+    private void validateInstitucionData(InstitucionDto institucionDto) {
+        if (institucionDto == null) {
+            throw new IllegalArgumentException("Los datos de la institución no pueden ser nulos");
+        }
+        
+        if (institucionDto.getNombre() == null || institucionDto.getNombre().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre de la institución es obligatorio");
+        }
+        
+        if (institucionDto.getNombre().trim().length() > 255) {
+            throw new IllegalArgumentException("El nombre de la institución no puede exceder 255 caracteres");
+        }
+        
+        if (institucionDto.getMunicipio_sanitario_id() == null) {
+            throw new IllegalArgumentException("El municipio sanitario es obligatorio");
+        }
+        
+        if (institucionDto.getTipo_institucion_id() == null) {
+            throw new IllegalArgumentException("El tipo de institución es obligatorio");
+        }
+        
+        ValidationUtils.validateId(institucionDto.getMunicipio_sanitario_id().longValue(), "Municipio sanitario");
+        ValidationUtils.validateId(institucionDto.getTipo_institucion_id().longValue(), "Tipo de institución");
+    }
+    
+    @Override
+    @Transactional
+    public InstitucionDto updateInstitucion(Integer id, InstitucionDto institucionDto) {
+        log.debug("Actualizando institución con ID: {}", id);
+        
+        try {
+            // Validar ID
+            ValidationUtils.validateId(id.longValue(), "ID de institución");
+            
+            // Validar datos de entrada
+            validateInstitucionData(institucionDto);
+            
+            // Buscar la institución existente
+            Institucion institucionExistente = institucionRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Institución", "id", id));
+            
+            // Verificar que no exista otra institución con el mismo nombre (excluyendo la actual)
+            if (!institucionExistente.getNombre().equalsIgnoreCase(institucionDto.getNombre().trim()) &&
+                institucionRepository.existsByNombreIgnoreCase(institucionDto.getNombre())) {
+                log.warn("Intento de actualizar institución con nombre duplicado: {}", institucionDto.getNombre());
+                throw new DuplicateResourceException("Ya existe una institución con el nombre: " + institucionDto.getNombre());
+            }
+            
+            // Verificar que existan el municipio sanitario y tipo de institución
+            MunicipioSanitario municipioSanitario = municipioSanitarioRepository.findById(institucionDto.getMunicipio_sanitario_id())
+                    .orElseThrow(() -> new ResourceNotFoundException("Municipio sanitario", "id", institucionDto.getMunicipio_sanitario_id()));
+            
+            TipoInstitucion tipoInstitucion = tipoInstitucionRepository.findById(institucionDto.getTipo_institucion_id())
+                    .orElseThrow(() -> new ResourceNotFoundException("Tipo de institución", "id", institucionDto.getTipo_institucion_id()));
+            
+            // Actualizar los campos
+            institucionExistente.setNombre(institucionDto.getNombre().trim());
+            institucionExistente.setMunicipioSanitario(municipioSanitario);
+            institucionExistente.setTipoInstitucion(tipoInstitucion);
+            
+            // Guardar la institución actualizada
+            Institucion institucionActualizada = institucionRepository.save(institucionExistente);
+            
+            // Incrementar versión de la tabla instituciones
+            versionService.incrementarVersion(TABLA_INSTITUCIONES);
+            
+            log.info("Institución actualizada exitosamente con ID: {} y nombre: {}", 
+                    institucionActualizada.getId(), institucionActualizada.getNombre());
+            
+            return institucionMapper.toDto(institucionActualizada);
+            
+        } catch (DuplicateResourceException | ResourceNotFoundException e) {
+            log.error("Error de validación al actualizar institución: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Error inesperado al actualizar institución con ID {}: {}", id, e.getMessage(), e);
+            throw new RuntimeException("Error al actualizar la institución", e);
+        }
+    }
+    
+    @Override
+    @Transactional
+    public void deleteInstitucion(Integer id) {
+        log.debug("Eliminando institución con ID: {}", id);
+        
+        try {
+            // Validar ID
+            ValidationUtils.validateId(id.longValue(), "ID de institución");
+            
+            // Verificar que la institución existe
+            Institucion institucion = institucionRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Institución", "id", id));
+            
+            // Verificar si hay usuarios asignados a esta institución
+            List<UsuarioInstitucion> usuariosAsignados = usuarioInstitucionRepository.findAllUsersByInstitucionIds(List.of(id));
+            if (!usuariosAsignados.isEmpty()) {
+                log.warn("Intento de eliminar institución con ID {} que tiene usuarios asignados", id);
+                throw new IllegalStateException("No se puede eliminar la institución porque tiene usuarios asignados");
+            }
+            
+            // Eliminar la institución
+            institucionRepository.delete(institucion);
+            
+            // Incrementar versión de la tabla instituciones
+            versionService.incrementarVersion(TABLA_INSTITUCIONES);
+            
+            log.info("Institución eliminada exitosamente con ID: {} y nombre: {}", 
+                    id, institucion.getNombre());
+            
+        } catch (ResourceNotFoundException | IllegalStateException e) {
+            log.error("Error de validación al eliminar institución: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Error inesperado al eliminar institución con ID {}: {}", id, e.getMessage(), e);
+            throw new RuntimeException("Error al eliminar la institución", e);
+        }
     }
 }

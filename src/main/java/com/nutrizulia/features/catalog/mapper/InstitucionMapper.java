@@ -12,4 +12,9 @@ public interface InstitucionMapper {
     @Mapping(source = "municipioSanitario.id", target = "municipio_sanitario_id")
     InstitucionDto toDto(Institucion institucion);
 
+    @Mapping(source = "tipo_institucion_id", target = "tipoInstitucion.id")
+    @Mapping(source = "municipio_sanitario_id", target = "municipioSanitario.id")
+    @Mapping(target = "id", ignore = true)
+    Institucion toEntity(InstitucionDto institucionDto);
+
 }

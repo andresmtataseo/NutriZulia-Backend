@@ -14,4 +14,10 @@ public interface IInstitucionService {
 
     PageResponseDto<InstitucionConUsuariosDto> getInstitucionConUsuarios(int page, int size, String search, String sortBy, String sortDir);
 
+    InstitucionDto createInstitucion(InstitucionDto institucionDto);
+    
+    InstitucionDto updateInstitucion(Integer id, InstitucionDto institucionDto);
+    
+    void deleteInstitucion(Integer id);
+
 }

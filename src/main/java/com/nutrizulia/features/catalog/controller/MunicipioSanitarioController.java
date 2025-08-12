@@ -49,7 +49,7 @@ public class MunicipioSanitarioController {
     public ResponseEntity<ApiResponseDto<List<MunicipioSanitarioDto>>> getMunicipios(
             @Valid
             @Parameter(description = "ID del estado al cual pertenecen los municipios", required = true, example = "23")
-            @RequestParam Integer idEstado,
+            @RequestParam(defaultValue = "23") Integer idEstado,
             HttpServletRequest request) {
 
         List<MunicipioSanitarioDto> municipios = municipioSanitarioService.getMunicipiosSanitarios(idEstado);

@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface InstitucionRepository extends JpaRepository<Institucion, Integer> {
 
@@ -30,4 +32,16 @@ public interface InstitucionRepository extends JpaRepository<Institucion, Intege
            "OR LOWER(ms.nombre) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(ti.nombre) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Institucion> findInstitucionesWithDetailsBySearch(@Param("search") String search, Pageable pageable);
+
+    /**
+     * Verifica si existe una institución con el nombre especificado (case-insensitive)
+     */
+    @Query("SELECT COUNT(i) > 0 FROM Institucion i WHERE LOWER(i.nombre) = LOWER(:nombre)")
+    boolean existsByNombreIgnoreCase(@Param("nombre") String nombre);
+
+    /**
+     * Busca una institución por nombre (case-insensitive)
+     */
+    @Query("SELECT i FROM Institucion i WHERE LOWER(i.nombre) = LOWER(:nombre)")
+    Optional<Institucion> findByNombreIgnoreCase(@Param("nombre") String nombre);
 }
