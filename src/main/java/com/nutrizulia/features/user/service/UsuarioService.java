@@ -377,15 +377,18 @@ public class UsuarioService implements IUsuarioService {
         for (UsuarioInstitucion asociacion : asociaciones) {
             if (asociacion.getIsEnabled()) {
                 asociacion.setIsEnabled(false);
-                log.debug("Desactivando asociación ID: {} - Usuario: {} - Institución: {}", 
-                         asociacion.getId(), idUsuario, asociacion.getInstitucion().getId());
+                // Establecer fecha de fin como la fecha actual
+                asociacion.setFechaFin(java.time.LocalDate.now());
+                log.debug("Desactivando asociación ID: {} - Usuario: {} - Institución: {} - Fecha fin: {}", 
+                         asociacion.getId(), idUsuario, asociacion.getInstitucion().getId(), 
+                         asociacion.getFechaFin());
             }
         }
         
         // Guardar todos los cambios
         if (!asociaciones.isEmpty()) {
             usuarioInstitucionRepository.saveAll(asociaciones);
-            log.info("Se desactivaron {} asociaciones de instituciones para el usuario con ID: {}", 
+            log.info("Se desactivaron {} asociaciones de instituciones para el usuario con ID: {} con fecha fin establecida", 
                     asociaciones.size(), idUsuario);
         }
     }

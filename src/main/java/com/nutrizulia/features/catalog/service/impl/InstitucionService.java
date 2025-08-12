@@ -74,7 +74,7 @@ public class InstitucionService implements IInstitucionService {
     public PageResponseDto<InstitucionConUsuariosDto> getInstitucionConUsuarios(
             int page, int size, String search, String sortBy, String sortDir) {
         
-        log.debug("Obteniendo instituciones con usuarios - página: {}, tamaño: {}, búsqueda: '{}', ordenar por: {}, dirección: {}", 
+        log.debug("Obteniendo instituciones con usuarios (activos e inactivos) - página: {}, tamaño: {}, búsqueda: '{}', ordenar por: {}, dirección: {}", 
                  page, size, search, sortBy, sortDir);
         
         try {
@@ -107,9 +107,9 @@ public class InstitucionService implements IInstitucionService {
                     .map(Institucion::getId)
                     .collect(Collectors.toList());
             
-            // Obtener usuarios activos para estas instituciones
+            // Obtener todos los usuarios (activos e inactivos) para estas instituciones
             List<UsuarioInstitucion> usuariosInstituciones = usuarioInstitucionRepository
-                    .findActiveUsersByInstitucionIds(institucionIds);
+                    .findAllUsersByInstitucionIds(institucionIds);
             
             // Agrupar usuarios por institución
             Map<Integer, List<UsuarioInstitucion>> usuariosPorInstitucion = usuariosInstituciones
@@ -131,13 +131,13 @@ public class InstitucionService implements IInstitucionService {
             
             PageResponseDto<InstitucionConUsuariosDto> response = institucionConUsuariosMapper.toPageDto(resultPage);
             
-            log.info("Se obtuvieron {} instituciones con usuarios en la página {} de {}", 
+            log.info("Se obtuvieron {} instituciones con usuarios (activos e inactivos) en la página {} de {}", 
                     institucionesConUsuarios.size(), page + 1, response.getTotalPages());
             
             return response;
             
         } catch (Exception e) {
-            log.error("Error al obtener instituciones con usuarios: {}", e.getMessage(), e);
+            log.error("Error al obtener instituciones con usuarios (activos e inactivos): {}", e.getMessage(), e);
             throw new RuntimeException("Error al obtener las instituciones con usuarios", e);
         }
     }

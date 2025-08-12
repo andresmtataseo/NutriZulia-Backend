@@ -69,4 +69,10 @@ public interface UsuarioInstitucionRepository extends JpaRepository<UsuarioInsti
            "AND ui.isEnabled = true " +
            "AND (ui.fechaFin IS NULL OR ui.fechaFin >= CURRENT_DATE)")
     List<UsuarioInstitucion> findActiveUsersByInstitucionIds(@Param("institucionIds") List<Integer> institucionIds);
+
+    @Query(value = "SELECT ui FROM UsuarioInstitucion ui " +
+           "LEFT JOIN FETCH ui.usuario u " +
+           "LEFT JOIN FETCH ui.rol r " +
+           "WHERE ui.institucion.id IN :institucionIds")
+    List<UsuarioInstitucion> findAllUsersByInstitucionIds(@Param("institucionIds") List<Integer> institucionIds);
 }
