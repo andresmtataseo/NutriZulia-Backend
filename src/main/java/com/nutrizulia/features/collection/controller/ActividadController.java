@@ -1,8 +1,9 @@
 package com.nutrizulia.features.collection.controller;
 
-import com.nutrizulia.common.dto.ApiResponseDto;
 import com.nutrizulia.features.collection.dto.ActividadDto;
+import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
 import com.nutrizulia.features.collection.service.IActividadService;
+import com.nutrizulia.common.dto.ApiResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -11,8 +12,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -23,6 +26,8 @@ import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_ACTIVITIES
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
+@Validated
 @RequestMapping(COLLECTION_BASE_URL)
 @Tag(
         name = "Recolección de Datos",
@@ -63,19 +68,64 @@ public class ActividadController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @PostMapping(COLLECTION_SYNC_ACTIVITIES)
-    public ResponseEntity<ApiResponseDto<List<ActividadDto>>> syncActividades(
+    public ResponseEntity<ApiResponseDto<BatchSyncResponseDTO>> syncActividades(
             @RequestBody List<ActividadDto> actividades, HttpServletRequest request) {
 
-        List<ActividadDto> actividadesDesdeServidor = actividadService.sycnActividades(actividades);
-
-        return ResponseEntity.ok(
-                ApiResponseDto.<List<ActividadDto>>builder()
-                        .status(HttpStatus.OK.value())
-                        .message("Sincronización de actividades completada")
-                        .timestamp(LocalDateTime.now())
-                        .path(request.getRequestURI())
-                        .data(actividadesDesdeServidor)
-                        .build()
-        );
+        try {
+            log.info("Iniciando sincronización de {} actividades", actividades.size());
+            
+            BatchSyncResponseDTO syncResponse = actividadService.sycnActividades(actividades);
+            HttpStatus status = determinarEstadoRespuesta(syncResponse);
+            String mensaje = construirMensajeRespuesta(syncResponse, "actividades");
+            
+            log.info("Sincronización completada - Exitosas: {}, Fallidas: {}", 
+                    syncResponse.getSuccess().size(), syncResponse.getFailed().size());
+            
+            return ResponseEntity.status(status).body(
+                    ApiResponseDto.<BatchSyncResponseDTO>builder()
+                            .status(status.value())
+                            .message(mensaje)
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .data(syncResponse)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("Error durante la sincronización de actividades: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    ApiResponseDto.<BatchSyncResponseDTO>builder()
+                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                            .message("Error interno durante la sincronización")
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .build()
+            );
+        }
+    }
+    
+    private HttpStatus determinarEstadoRespuesta(BatchSyncResponseDTO response) {
+        if (response.getFailed().isEmpty()) {
+            return HttpStatus.OK; // Todos exitosos
+        } else if (response.getSuccess().isEmpty()) {
+            return HttpStatus.BAD_REQUEST; // Todos fallaron
+        } else {
+            return HttpStatus.PARTIAL_CONTENT; // Éxito parcial
+        }
+    }
+    
+    private String construirMensajeRespuesta(BatchSyncResponseDTO response, String entidad) {
+        int exitosos = response.getSuccess().size();
+        int fallidos = response.getFailed().size();
+        
+        if (fallidos == 0) {
+            return String.format("Sincronización de %s completada exitosamente (%d procesados)", 
+                    entidad, exitosos);
+        } else if (exitosos == 0) {
+            return String.format("Error en la sincronización de %s (%d fallaron)", 
+                    entidad, fallidos);
+        } else {
+            return String.format("Sincronización de %s completada parcialmente (%d exitosos, %d fallidos)", 
+                    entidad, exitosos, fallidos);
+        }
     }
 }

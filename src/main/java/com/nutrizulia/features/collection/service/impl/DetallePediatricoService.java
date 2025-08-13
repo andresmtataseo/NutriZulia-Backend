@@ -1,47 +1,134 @@
 package com.nutrizulia.features.collection.service.impl;
 
+import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
 import com.nutrizulia.features.collection.dto.DetallePedriatricoDto;
-import com.nutrizulia.features.collection.mapper.DetallePedriatricoMapper;
-import com.nutrizulia.features.collection.model.DetallePedriatrico;
+import com.nutrizulia.features.collection.mapper.DetallePediatricoMapper;
+import com.nutrizulia.features.collection.model.DetallePediatrico;
 import com.nutrizulia.features.collection.repository.DetallePediatricoRepository;
 import com.nutrizulia.features.collection.service.IDetallePediatricoService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class DetallePediatricoService implements IDetallePediatricoService {
 
     private final DetallePediatricoRepository detallePediatricoRepository;
-    private final DetallePedriatricoMapper detallePedriatricoMapper;
+    private final DetallePediatricoMapper detallePediatricoMapper;
 
     @Override
-    public List<DetallePedriatricoDto> syncDetallesPediatrico(List<DetallePedriatricoDto> detallesPedriatricos) {
-        List<DetallePedriatricoDto> detallesActualizadosDesdeServidor = new ArrayList<>();
-
-        for (DetallePedriatricoDto dto : detallesPedriatricos) {
-            Optional<DetallePedriatrico> existenteOpt = detallePediatricoRepository.findById(dto.getId());
-
-            if (existenteOpt.isEmpty()) {
-                DetallePedriatrico nuevo = detallePedriatricoMapper.toEntity(dto);
-                detallePediatricoRepository.save(nuevo);
-            } else {
-                DetallePedriatrico existente = existenteOpt.get();
-                if (dto.getUpdated_at().isAfter(existente.getUpdatedAt())) {
-                    DetallePedriatrico actualizado = detallePedriatricoMapper.toEntity(dto);
-                    detallePediatricoRepository.save(actualizado);
-                } else if (dto.getUpdated_at().isBefore(existente.getUpdatedAt())) {
-                    // El servidor tiene la versión más reciente
-                    detallesActualizadosDesdeServidor.add(detallePedriatricoMapper.toDto(existente));
-                }
-                // Si son iguales, no se hace nada
+    @Transactional
+    public BatchSyncResponseDTO syncDetallesPediatrico(List<DetallePedriatricoDto> detallesPediatricos) {
+        BatchSyncResponseDTO response = new BatchSyncResponseDTO();
+        
+        for (DetallePedriatricoDto dto : detallesPediatricos) {
+            try {
+                procesarDetallePediatrico(dto, response);
+            } catch (Exception e) {
+                handleSyncError(dto.getId(), e, response);
             }
         }
-
-        return detallesActualizadosDesdeServidor;
+        
+        return response;
+    }
+    
+    private void procesarDetallePediatrico(DetallePedriatricoDto dto, BatchSyncResponseDTO response) {
+        try {
+            Optional<DetallePediatrico> existenteOpt = detallePediatricoRepository.findById(dto.getId());
+            
+            if (existenteOpt.isEmpty()) {
+                crearNuevoDetallePediatrico(dto, response);
+            } else {
+                actualizarDetallePediatricoExistente(dto, existenteOpt.get(), response);
+            }
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Error de integridad de datos para detalle pediátrico {}: {}", dto.getId(), e.getMessage());
+            agregarError(response, dto.getId(), "Error de integridad de datos: " + extractConstraintError(e));
+        } catch (Exception e) {
+            log.error("Error inesperado procesando detalle pediátrico {}: {}", dto.getId(), e.getMessage(), e);
+            agregarError(response, dto.getId(), "Error interno del servidor");
+        }
+    }
+    
+    private void crearNuevoDetallePediatrico(DetallePedriatricoDto dto, BatchSyncResponseDTO response) {
+        try {
+            DetallePediatrico nuevo = detallePediatricoMapper.toEntity(dto);
+            detallePediatricoRepository.save(nuevo);
+            response.getSuccess().add(dto.getId());
+            log.debug("Detalle pediátrico creado exitosamente: {}", dto.getId());
+        } catch (Exception e) {
+            log.error("Error creando detalle pediátrico {}: {}", dto.getId(), e.getMessage());
+            throw e;
+        }
+    }
+    
+    private void actualizarDetallePediatricoExistente(DetallePedriatricoDto dto, DetallePediatrico existente, 
+                                           BatchSyncResponseDTO response) {
+        try {
+            if (dto.getUpdated_at().isAfter(existente.getUpdatedAt())) {
+                DetallePediatrico actualizado = detallePediatricoMapper.toEntity(dto);
+                detallePediatricoRepository.save(actualizado);
+                response.getSuccess().add(dto.getId());
+                log.debug("Detalle pediátrico actualizado exitosamente: {}", dto.getId());
+            } else if (dto.getUpdated_at().isBefore(existente.getUpdatedAt())) {
+                // El servidor tiene la versión más reciente - consideramos esto como éxito
+                response.getSuccess().add(dto.getId());
+                log.debug("Detalle pediátrico ya actualizado en servidor: {}", dto.getId());
+            } else {
+                // Versiones iguales - consideramos esto como éxito
+                response.getSuccess().add(dto.getId());
+                log.debug("Detalle pediátrico sin cambios: {}", dto.getId());
+            }
+        } catch (Exception e) {
+            log.error("Error actualizando detalle pediátrico {}: {}", dto.getId(), e.getMessage());
+            throw e;
+        }
+    }
+    
+    private void handleSyncError(String detalleId, Exception e, 
+                               BatchSyncResponseDTO response) {
+        String errorMessage = determinarMensajeError(e);
+        agregarError(response, detalleId, errorMessage);
+        log.error("Error sincronizando detalle pediátrico {}: {}", detalleId, e.getMessage(), e);
+    }
+    
+    private void agregarError(BatchSyncResponseDTO response, 
+                            String detalleId, String reason) {
+        BatchSyncResponseDTO.FailedRecordDTO failedRecord = BatchSyncResponseDTO.FailedRecordDTO.builder()
+                .uuid(detalleId)
+                .reason(reason)
+                .build();
+        response.getFailed().add(failedRecord);
+    }
+    
+    private String determinarMensajeError(Exception e) {
+        if (e instanceof DataIntegrityViolationException) {
+            return "Error de integridad de datos: " + extractConstraintError((DataIntegrityViolationException) e);
+        } else if (e instanceof IllegalArgumentException) {
+            return "Datos inválidos: " + e.getMessage();
+        } else {
+            return "Error interno del servidor";
+        }
+    }
+    
+    private String extractConstraintError(DataIntegrityViolationException e) {
+        String message = e.getMessage();
+        if (message != null) {
+            if (message.contains("usuario_institucion_id")) {
+                return "Usuario-institución no válido";
+            } else if (message.contains("foreign key")) {
+                return "Referencia a datos no existentes";
+            } else if (message.contains("unique")) {
+                return "Datos duplicados";
+            }
+        }
+        return "Violación de restricción de base de datos";
     }
 }

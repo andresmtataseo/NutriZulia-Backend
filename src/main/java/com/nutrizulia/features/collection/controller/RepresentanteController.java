@@ -3,6 +3,7 @@ package com.nutrizulia.features.collection.controller;
 import com.nutrizulia.features.collection.dto.RepresentanteDto;
 import com.nutrizulia.features.collection.service.IRepresentanteService;
 import com.nutrizulia.common.dto.ApiResponseDto;
+import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -11,8 +12,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -21,8 +24,10 @@ import java.util.List;
 import static com.nutrizulia.common.util.ApiConstants.COLLECTION_BASE_URL;
 import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_REPRESENTATIVES;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping(COLLECTION_BASE_URL)
 @Tag(
         name = "Recolección de Datos",
@@ -41,19 +46,75 @@ public class RepresentanteController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @PostMapping(COLLECTION_SYNC_REPRESENTATIVES)
-    public ResponseEntity<ApiResponseDto<List<RepresentanteDto>>> syncRepresentantes(
-            @RequestBody List<RepresentanteDto> representantes, HttpServletRequest request) {
+    public ResponseEntity<ApiResponseDto<BatchSyncResponseDTO>> syncRepresentantes(
+            @RequestBody @Validated List<RepresentanteDto> representantes, HttpServletRequest request) {
 
-        List<RepresentanteDto> representantesDesdeServidor = representanteService.syncRepresentantes(representantes);
-
-        return ResponseEntity.ok(
-                ApiResponseDto.<List<RepresentanteDto>>builder()
-                        .status(HttpStatus.OK.value())
-                        .message("Sincronización de representantes completada")
-                        .timestamp(LocalDateTime.now())
-                        .path(request.getRequestURI())
-                        .data(representantesDesdeServidor)
-                        .build()
-        );
+        try {
+            log.info("Iniciando sincronización de {} representantes", representantes.size());
+            
+            if (representantes.isEmpty()) {
+                return ResponseEntity.badRequest().body(
+                    ApiResponseDto.<BatchSyncResponseDTO>builder()
+                            .status(HttpStatus.BAD_REQUEST.value())
+                            .message("La lista de representantes no puede estar vacía")
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .build()
+                );
+            }
+            
+            BatchSyncResponseDTO syncResponse = representanteService.syncRepresentantes(representantes);
+            HttpStatus status = determinarEstadoRespuesta(syncResponse);
+            String mensaje = construirMensajeRespuesta(syncResponse, "representantes");
+            
+            log.info("Sincronización completada - Exitosas: {}, Fallidas: {}", 
+                    syncResponse.getSuccess().size(), syncResponse.getFailed().size());
+            
+            return ResponseEntity.status(status).body(
+                    ApiResponseDto.<BatchSyncResponseDTO>builder()
+                            .status(status.value())
+                            .message(mensaje)
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .data(syncResponse)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("Error durante la sincronización de representantes: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    ApiResponseDto.<BatchSyncResponseDTO>builder()
+                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                            .message("Error interno durante la sincronización")
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .build()
+            );
+        }
+    }
+    
+    private HttpStatus determinarEstadoRespuesta(BatchSyncResponseDTO response) {
+        if (response.getFailed().isEmpty()) {
+            return HttpStatus.OK; // Todos exitosos
+        } else if (response.getSuccess().isEmpty()) {
+            return HttpStatus.BAD_REQUEST; // Todos fallaron
+        } else {
+            return HttpStatus.PARTIAL_CONTENT; // Éxito parcial
+        }
+    }
+    
+    private String construirMensajeRespuesta(BatchSyncResponseDTO response, String entidad) {
+        int exitosos = response.getSuccess().size();
+        int fallidos = response.getFailed().size();
+        
+        if (fallidos == 0) {
+            return String.format("Sincronización de %s completada exitosamente (%d procesados)", 
+                    entidad, exitosos);
+        } else if (exitosos == 0) {
+            return String.format("Error en la sincronización de %s (%d fallaron)", 
+                    entidad, fallidos);
+        } else {
+            return String.format("Sincronización de %s completada parcialmente (%d exitosos, %d fallidos)", 
+                    entidad, exitosos, fallidos);
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.nutrizulia.features.collection.controller;
 
 import com.nutrizulia.features.collection.dto.DiagnosticoDto;
+import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
 import com.nutrizulia.features.collection.service.IDiagnosticoService;
 import com.nutrizulia.common.dto.ApiResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,8 +12,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -21,6 +24,8 @@ import java.util.List;
 import static com.nutrizulia.common.util.ApiConstants.COLLECTION_BASE_URL;
 import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_DIAGNOSES;
 
+@Slf4j
+@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(COLLECTION_BASE_URL)
@@ -41,19 +46,76 @@ public class DiagnosticoController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @PostMapping(COLLECTION_SYNC_DIAGNOSES)
-    public ResponseEntity<ApiResponseDto<List<DiagnosticoDto>>> syncDiagnosticos(
+    public ResponseEntity<ApiResponseDto<BatchSyncResponseDTO>> syncDiagnosticos(
             @RequestBody List<DiagnosticoDto> diagnosticos, HttpServletRequest request) {
 
-        List<DiagnosticoDto> diagnosticosDesdeServidor = diagnosticoService.syncDiagnosticos(diagnosticos);
+        try {
+            log.info("Iniciando sincronización de {} diagnósticos", diagnosticos.size());
 
-        return ResponseEntity.ok(
-                ApiResponseDto.<List<DiagnosticoDto>>builder()
-                        .status(HttpStatus.OK.value())
-                        .message("Sincronización de diagnósticos completada")
-                        .timestamp(LocalDateTime.now())
-                        .path(request.getRequestURI())
-                        .data(diagnosticosDesdeServidor)
-                        .build()
-        );
+            // Validar entrada vacía
+            if (diagnosticos.isEmpty()) {
+                log.warn("Lista de diagnósticos vacía recibida");
+                return ResponseEntity.badRequest().body(
+                        ApiResponseDto.<BatchSyncResponseDTO>builder()
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .message("La lista de diagnósticos no puede estar vacía")
+                                .timestamp(LocalDateTime.now())
+                                .path(request.getRequestURI())
+                                .build()
+                );
+            }
+
+            BatchSyncResponseDTO resultado = diagnosticoService.syncDiagnosticos(diagnosticos);
+            HttpStatus status = determinarEstadoRespuesta(resultado);
+            String mensaje = construirMensajeRespuesta(resultado);
+
+            log.info("Sincronización completada - Éxitos: {}, Fallos: {}", 
+                    resultado.getSuccess().size(), resultado.getFailed().size());
+
+            return ResponseEntity.status(status).body(
+                    ApiResponseDto.<BatchSyncResponseDTO>builder()
+                            .status(status.value())
+                            .message(mensaje)
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .data(resultado)
+                            .build()
+            );
+
+        } catch (Exception e) {
+            log.error("Error inesperado durante la sincronización de diagnósticos: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    ApiResponseDto.<BatchSyncResponseDTO>builder()
+                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                            .message("Error interno del servidor durante la sincronización")
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .build()
+            );
+        }
+    }
+
+    private HttpStatus determinarEstadoRespuesta(BatchSyncResponseDTO resultado) {
+        if (resultado.getFailed().isEmpty()) {
+            return HttpStatus.OK; // 200 - Todos exitosos
+        } else if (!resultado.getSuccess().isEmpty()) {
+            return HttpStatus.PARTIAL_CONTENT; // 206 - Algunos exitosos, algunos fallidos
+        } else {
+            return HttpStatus.BAD_REQUEST; // 400 - Todos fallidos
+        }
+    }
+
+    private String construirMensajeRespuesta(BatchSyncResponseDTO resultado) {
+        int exitosos = resultado.getSuccess().size();
+        int fallidos = resultado.getFailed().size();
+        int total = exitosos + fallidos;
+
+        if (fallidos == 0) {
+            return String.format("Sincronización completada exitosamente: %d/%d diagnósticos procesados", exitosos, total);
+        } else if (exitosos == 0) {
+            return String.format("Sincronización fallida: %d/%d diagnósticos no pudieron ser procesados", fallidos, total);
+        } else {
+            return String.format("Sincronización parcial: %d/%d exitosos, %d/%d fallidos", exitosos, total, fallidos, total);
+        }
     }
 }
