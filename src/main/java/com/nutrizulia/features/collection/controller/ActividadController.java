@@ -24,8 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_ACTIVITIES;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -117,15 +116,27 @@ public class ActividadController {
             @ApiResponse(responseCode = "403", description = "Prohibido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping(COLLECTION_SYNC_ACTIVITIES + "/full")
-    public ResponseEntity<FullSyncResponseDTO<ActividadDto>> syncActividadesFull() {
+    @GetMapping(COLLECTION_SYNC_ACTIVITIES_FULL)
+    public ResponseEntity<ApiResponseDto<FullSyncResponseDTO<ActividadDto>>> syncActividadesFull(
+            HttpServletRequest request
+    ) {
+
+        log.info("Solicitud de sincronización completa de actividades desde IP: {}", request.getRemoteAddr());
 
         try {
             FullSyncResponseDTO<ActividadDto> response = actividadService.findAllActive();
 
             log.info("Sincronización completa exitosa: {} actividades activos encontrados", response.getTotalRegistros());
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    ApiResponseDto.<FullSyncResponseDTO<ActividadDto>>builder()
+                            .status(HttpStatus.OK.value())
+                            .message("Lista de actividades recuperada exitosamente")
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .data(response)
+                            .build()
+            );
 
         } catch (Exception e) {
             log.error("Error durante la sincronización completa de actividades: {}", e.getMessage(), e);

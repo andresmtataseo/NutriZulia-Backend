@@ -22,8 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_PATIENTS;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @Slf4j
 @RestController
@@ -159,8 +158,8 @@ public class PacienteController {
                     )
             )
     })
-    @GetMapping("/sync/pacientes/full")
-    public ResponseEntity<FullSyncResponseDTO<PacienteDto>> getAllActivePacientes(
+    @GetMapping(COLLECTION_SYNC_PATIENTS_FULL)
+    public ResponseEntity<ApiResponseDto<FullSyncResponseDTO<PacienteDto>>> getAllActivePacientes(
             HttpServletRequest request
     ) {
         log.info("Solicitud de sincronización completa de pacientes desde IP: {}", request.getRemoteAddr());
@@ -170,7 +169,15 @@ public class PacienteController {
             
             log.info("Sincronización completa exitosa: {} pacientes activos encontrados", response.getTotalRegistros());
             
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    ApiResponseDto.<FullSyncResponseDTO<PacienteDto>>builder()
+                            .status(HttpStatus.OK.value())
+                            .message("Lista de pacientes recuperada exitosamente")
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .data(response)
+                            .build()
+            );
             
         } catch (Exception e) {
             log.error("Error durante la sincronización completa de pacientes: {}", e.getMessage(), e);

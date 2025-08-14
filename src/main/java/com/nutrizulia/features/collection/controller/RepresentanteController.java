@@ -23,8 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_REPRESENTATIVES;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @Slf4j
 @RestController
@@ -142,8 +141,8 @@ public class RepresentanteController {
                     )
             )
     })
-    @GetMapping("/sync/representantes/full")
-    public ResponseEntity<FullSyncResponseDTO<RepresentanteDto>> getAllActiveRepresentantes(
+    @GetMapping(COLLECTION_SYNC_REPRESENTATIVES_FULL)
+    public ResponseEntity<ApiResponseDto<FullSyncResponseDTO<RepresentanteDto>>> getAllActiveRepresentantes(
             HttpServletRequest request
     ) {
         log.info("Solicitud de sincronización completa de representantes desde IP: {}", request.getRemoteAddr());
@@ -153,7 +152,15 @@ public class RepresentanteController {
             
             log.info("Sincronización completa exitosa: {} representantes activos encontrados", response.getTotalRegistros());
             
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    ApiResponseDto.<FullSyncResponseDTO<RepresentanteDto>>builder()
+                            .status(HttpStatus.OK.value())
+                            .message("Lista de representantes recuperada exitosamente")
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .data(response)
+                            .build()
+            );
             
         } catch (Exception e) {
             log.error("Error durante la sincronización completa de representantes: {}", e.getMessage(), e);

@@ -24,8 +24,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_METABOLIC_DETAILS;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @Slf4j
 @RestController
@@ -133,8 +132,8 @@ public class DetalleMetabolicoController {
                         content = @Content(mediaType = "application/json", 
                         schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping("/sync/detalles-metabolicos/full")
-    public ResponseEntity<FullSyncResponseDTO<DetalleMetabolicoDto>> getAllActiveDetallesMetabolicos(
+    @GetMapping(COLLECTION_SYNC_METABOLIC_DETAILS_FULL)
+    public ResponseEntity<ApiResponseDto<FullSyncResponseDTO<DetalleMetabolicoDto>>> getAllActiveDetallesMetabolicos(
             HttpServletRequest request) {
 
         log.info("Solicitud de sincronización completa de detalles metabolicos desde IP: {}", request.getRemoteAddr());
@@ -144,7 +143,15 @@ public class DetalleMetabolicoController {
 
             log.info("Sincronización completa exitosa: {} detalles metabolicos activos encontrados", response.getTotalRegistros());
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    ApiResponseDto.<FullSyncResponseDTO<DetalleMetabolicoDto>>builder()
+                            .status(HttpStatus.OK.value())
+                            .message("Lista de detalles metabólicos recuperada exitosamente")
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .data(response)
+                            .build()
+            );
 
         } catch (Exception e) {
             log.error("Error durante la sincronización completa de detalles metabolicos: {}", e.getMessage(), e);

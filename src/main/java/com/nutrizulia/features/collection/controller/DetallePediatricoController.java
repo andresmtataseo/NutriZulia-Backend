@@ -24,8 +24,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_PEDIATRIC_DETAILS;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @Slf4j
 @RestController
@@ -124,8 +123,8 @@ public class DetallePediatricoController {
             @ApiResponse(responseCode = "403", description = "Prohibido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping("/sync/detalles-pediatricos/full")
-    public ResponseEntity<FullSyncResponseDTO<DetallePedriatricoDto>> getAllActiveDetallesPediatricos(
+    @GetMapping(COLLECTION_SYNC_PEDIATRIC_DETAILS_FULL)
+    public ResponseEntity<ApiResponseDto<FullSyncResponseDTO<DetallePedriatricoDto>>> getAllActiveDetallesPediatricos(
             HttpServletRequest request
     ) {
 
@@ -136,7 +135,15 @@ public class DetallePediatricoController {
 
             log.info("Sincronización completa exitosa: {} detalles pediátricos activos encontrados", response.getTotalRegistros());
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    ApiResponseDto.<FullSyncResponseDTO<DetallePedriatricoDto>>builder()
+                            .status(HttpStatus.OK.value())
+                            .message("Lista de detalles pediátricos recuperada exitosamente")
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .data(response)
+                            .build()
+            );
 
         } catch (Exception e) {
             log.error("Error durante la sincronización completa de detalles pediátricos: {}", e.getMessage(), e);

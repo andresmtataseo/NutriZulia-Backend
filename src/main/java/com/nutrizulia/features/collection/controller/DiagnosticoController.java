@@ -23,8 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_DIAGNOSES;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @Slf4j
 @Validated
@@ -128,13 +127,30 @@ public class DiagnosticoController {
             @ApiResponse(responseCode = "403", description = "Prohibido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping("/sync/diagnosticos/full")
-    public ResponseEntity<FullSyncResponseDTO<DiagnosticoDto>> getAllActiveDiagnosticos() {
-        log.info("Solicitud de sincronización completa de diagnósticos recibida");
+    @GetMapping(COLLECTION_SYNC_DIAGNOSES_FULL)
+    public ResponseEntity<ApiResponseDto<FullSyncResponseDTO<DiagnosticoDto>>> getAllActiveDiagnosticos(
+            HttpServletRequest request
+    ) {
+        log.info("Solicitud de sincronización completa de diagnósticos desde IP: {}", request.getRemoteAddr());
         
-        FullSyncResponseDTO<DiagnosticoDto> response = diagnosticoService.findAllActive();
-        
-        log.info("Sincronización completa de diagnósticos completada: {} registros", response.getTotalRegistros());
-        return ResponseEntity.ok(response);
+        try {
+            FullSyncResponseDTO<DiagnosticoDto> response = diagnosticoService.findAllActive();
+            
+            log.info("Sincronización completa de diagnósticos completada: {} registros", response.getTotalRegistros());
+            
+            return ResponseEntity.ok(
+                    ApiResponseDto.<FullSyncResponseDTO<DiagnosticoDto>>builder()
+                            .status(HttpStatus.OK.value())
+                            .message("Lista de diagnósticos recuperada exitosamente")
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .data(response)
+                            .build()
+            );
+            
+        } catch (Exception e) {
+            log.error("Error durante la sincronización completa de diagnósticos: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 }

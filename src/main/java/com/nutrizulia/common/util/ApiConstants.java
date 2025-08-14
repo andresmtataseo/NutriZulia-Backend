@@ -47,6 +47,7 @@ public class ApiConstants {
 
     // ========== DATA COLLECTION API ==========
     public static final String COLLECTION_BASE_URL = "/api/v1/collection";
+
     public static final String COLLECTION_SYNC_PATIENTS = "/sync/patients";
     public static final String COLLECTION_SYNC_REPRESENTATIVES = "/sync/representatives";
     public static final String COLLECTION_SYNC_PATIENT_REPRESENTATIVES = "/sync/patient-representatives";
@@ -59,6 +60,19 @@ public class ApiConstants {
     public static final String COLLECTION_SYNC_PEDIATRIC_DETAILS = "/sync/pediatric-details";
     public static final String COLLECTION_SYNC_OBSTETRIC_DETAILS = "/sync/obstetric-details";
     public static final String COLLECTION_SYNC_ACTIVITIES = "/sync/activities";
+
+    public static final String COLLECTION_SYNC_PATIENTS_FULL = "/sync/patients/full";
+    public static final String COLLECTION_SYNC_REPRESENTATIVES_FULL = "/sync/representatives/full";
+    public static final String COLLECTION_SYNC_PATIENT_REPRESENTATIVES_FULL = "/sync/patient-representatives/full";
+    public static final String COLLECTION_SYNC_CONSULTATIONS_FULL = "/sync/consultations/full";
+    public static final String COLLECTION_SYNC_DIAGNOSES_FULL = "/sync/diagnoses/full";
+    public static final String COLLECTION_SYNC_ANTHROPOMETRIC_EVALUATIONS_FULL = "/sync/anthropometric-evaluations/full";
+    public static final String COLLECTION_SYNC_ANTHROPOMETRIC_DETAILS_FULL = "/sync/anthropometric-details/full";
+    public static final String COLLECTION_SYNC_VITAL_DETAILS_FULL = "/sync/vital-details/full";
+    public static final String COLLECTION_SYNC_METABOLIC_DETAILS_FULL = "/sync/metabolic-details/full";
+    public static final String COLLECTION_SYNC_PEDIATRIC_DETAILS_FULL = "/sync/pediatric-details/full";
+    public static final String COLLECTION_SYNC_OBSTETRIC_DETAILS_FULL = "/sync/obstetric-details/full";
+    public static final String COLLECTION_SYNC_ACTIVITIES_FULL = "/sync/activities/full";
 
     // ========== USERS API ==========
     public static final String USERS_BASE_URL = "/api/v1/user";

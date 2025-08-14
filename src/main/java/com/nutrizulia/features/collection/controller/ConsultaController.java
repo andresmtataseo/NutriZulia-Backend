@@ -1,6 +1,7 @@
 package com.nutrizulia.features.collection.controller;
 
 import com.nutrizulia.common.dto.ApiResponseDto;
+import com.nutrizulia.features.catalog.dto.EnfermedadDto;
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
 import com.nutrizulia.features.collection.dto.ConsultaDto;
 import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
@@ -24,8 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_CONSULTATIONS;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -117,8 +117,8 @@ public class ConsultaController {
             @ApiResponse(responseCode = "403", description = "Prohibido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping("/sync/consultas/full")
-    public ResponseEntity<FullSyncResponseDTO<ConsultaDto>> getAllActiveConsultas(
+    @GetMapping(COLLECTION_SYNC_CONSULTATIONS_FULL)
+    public ResponseEntity<ApiResponseDto<FullSyncResponseDTO<ConsultaDto>>> getAllActiveConsultas(
             HttpServletRequest request
     ) {
 
@@ -129,7 +129,15 @@ public class ConsultaController {
 
             log.info("Sincronización completa exitosa: {} consultas activos encontrados", response.getTotalRegistros());
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    ApiResponseDto.<FullSyncResponseDTO<ConsultaDto>>builder()
+                            .status(HttpStatus.OK.value())
+                            .message("Lista de consultas recuperada exitosamente")
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .data(response)
+                            .build()
+            );
 
         } catch (Exception e) {
             log.error("Error durante la sincronización completa de consultas: {}", e.getMessage(), e);

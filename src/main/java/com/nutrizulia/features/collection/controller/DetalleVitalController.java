@@ -24,8 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_VITAL_DETAILS;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @Slf4j
 @RestController
@@ -124,8 +123,8 @@ public class DetalleVitalController {
             @ApiResponse(responseCode = "403", description = "Prohibido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping("/sync/detalles-vitales/full")
-    public ResponseEntity<FullSyncResponseDTO<DetalleVitalDto>> getAllActiveDetallesVitales(HttpServletRequest request) {
+    @GetMapping(COLLECTION_SYNC_VITAL_DETAILS_FULL)
+    public ResponseEntity<ApiResponseDto<FullSyncResponseDTO<DetalleVitalDto>>> getAllActiveDetallesVitales(HttpServletRequest request) {
 
         log.info("Solicitud de sincronización completa de detalles vitales desde IP: {}", request.getRemoteAddr());
 
@@ -134,7 +133,15 @@ public class DetalleVitalController {
 
             log.info("Sincronización completa exitosa: {} detalles vitales activos encontrados", response.getTotalRegistros());
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    ApiResponseDto.<FullSyncResponseDTO<DetalleVitalDto>>builder()
+                            .status(HttpStatus.OK.value())
+                            .message("Lista de detalles vitales recuperada exitosamente")
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .data(response)
+                            .build()
+            );
 
         } catch (Exception e) {
             log.error("Error durante la sincronización completa de detalles vitales: {}", e.getMessage(), e);

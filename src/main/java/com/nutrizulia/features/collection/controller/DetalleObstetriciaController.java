@@ -24,8 +24,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_OBSTETRIC_DETAILS;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @Slf4j
 @RestController
@@ -124,8 +123,8 @@ public class DetalleObstetriciaController {
             @ApiResponse(responseCode = "403", description = "Prohibido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    @GetMapping("/sync/detalles-obstetricia/full")
-    public ResponseEntity<FullSyncResponseDTO<DetalleObstetriciaDto>> getAllActiveDetallesObstetricia(
+    @GetMapping(COLLECTION_SYNC_OBSTETRIC_DETAILS_FULL)
+    public ResponseEntity<ApiResponseDto<FullSyncResponseDTO<DetalleObstetriciaDto>>> getAllActiveDetallesObstetricia(
             HttpServletRequest request
     ) {
 
@@ -136,7 +135,15 @@ public class DetalleObstetriciaController {
 
             log.info("Sincronización completa exitosa: {} detalles obstetricia activos encontrados", response.getTotalRegistros());
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    ApiResponseDto.<FullSyncResponseDTO<DetalleObstetriciaDto>>builder()
+                            .status(HttpStatus.OK.value())
+                            .message("Lista de detalles de obstetricia recuperada exitosamente")
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .data(response)
+                            .build()
+            );
 
         } catch (Exception e) {
             log.error("Error durante la sincronización completa de detalles obstetricia: {}", e.getMessage(), e);

@@ -24,8 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_BASE_URL;
-import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_PATIENT_REPRESENTATIVES;
+import static com.nutrizulia.common.util.ApiConstants.*;
 
 @Slf4j
 @RestController
@@ -131,8 +130,8 @@ public class PacienteRepresentanteController {
             @ApiResponse(responseCode = "403", description = "Acceso denegado"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/sync/paciente-representantes/full")
-    public ResponseEntity<FullSyncResponseDTO<PacienteRepresentanteDto>> getAllActivePacienteRepresentantes(
+    @GetMapping(COLLECTION_SYNC_PATIENT_REPRESENTATIVES_FULL)
+    public ResponseEntity<ApiResponseDto<FullSyncResponseDTO<PacienteRepresentanteDto>>> getAllActivePacienteRepresentantes(
             HttpServletRequest request
     ) {
 
@@ -143,7 +142,15 @@ public class PacienteRepresentanteController {
 
             log.info("Sincronización completa exitosa: {} pacientes-representantes activos encontrados", response.getTotalRegistros());
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    ApiResponseDto.<FullSyncResponseDTO<PacienteRepresentanteDto>>builder()
+                            .status(HttpStatus.OK.value())
+                            .message("Lista de relaciones paciente-representante recuperada exitosamente")
+                            .timestamp(LocalDateTime.now())
+                            .path(request.getRequestURI())
+                            .data(response)
+                            .build()
+            );
 
         } catch (Exception e) {
             log.error("Error durante la sincronización completa de pacientes-representantes: {}", e.getMessage(), e);
