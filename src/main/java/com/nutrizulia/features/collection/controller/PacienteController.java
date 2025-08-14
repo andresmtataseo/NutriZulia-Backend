@@ -1,6 +1,7 @@
 package com.nutrizulia.features.collection.controller;
 
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
+import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
 import com.nutrizulia.features.collection.dto.PacienteDto;
 import com.nutrizulia.features.collection.service.IPacienteService;
 import com.nutrizulia.common.dto.ApiResponseDto;
@@ -117,6 +118,63 @@ public class PacienteController {
             return HttpStatus.CONFLICT; // Todos fallaron
         } else {
             return HttpStatus.OK; // Lista vacía - caso edge
+        }
+    }
+    
+    @Operation(
+            summary = "Obtener todos los pacientes activos",
+            description = "Obtiene todos los pacientes activos (no eliminados) ordenados por fecha de actualización ascendente. Este endpoint es utilizado para la sincronización completa desde el cliente móvil. **Requiere autenticación.**"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Lista de pacientes activos obtenida exitosamente",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = FullSyncResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "No autorizado",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponseDto.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Prohibido",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponseDto.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Error interno del servidor",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponseDto.class)
+                    )
+            )
+    })
+    @GetMapping("/sync/pacientes/full")
+    public ResponseEntity<FullSyncResponseDTO<PacienteDto>> getAllActivePacientes(
+            HttpServletRequest request
+    ) {
+        log.info("Solicitud de sincronización completa de pacientes desde IP: {}", request.getRemoteAddr());
+        
+        try {
+            FullSyncResponseDTO<PacienteDto> response = pacienteService.findAllActive();
+            
+            log.info("Sincronización completa exitosa: {} pacientes activos encontrados", response.getTotalRegistros());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("Error durante la sincronización completa de pacientes: {}", e.getMessage(), e);
+            throw e;
         }
     }
     
