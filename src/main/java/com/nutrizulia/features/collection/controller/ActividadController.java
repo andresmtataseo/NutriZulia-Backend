@@ -2,6 +2,7 @@ package com.nutrizulia.features.collection.controller;
 
 import com.nutrizulia.features.collection.dto.ActividadDto;
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
+import com.nutrizulia.features.collection.dto.ConsultaDto;
 import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
 import com.nutrizulia.features.collection.service.IActividadService;
 import com.nutrizulia.common.dto.ApiResponseDto;
@@ -107,5 +108,29 @@ public class ActividadController {
             return String.format("Sincronización de %s completada parcialmente (%d exitosos, %d fallidos)", 
                     entidad, exitosos, fallidos);
         }
+    }
+
+    @Operation(summary = "Obtener todas las actividades activas", description = "Obtiene todas las actividades activas del usuario autenticado para sincronización completa. **Requiere autenticación.**")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Actividades obtenidas exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
+    })
+    @GetMapping(COLLECTION_SYNC_ACTIVITIES + "/full")
+    public ResponseEntity<FullSyncResponseDTO<ActividadDto>> syncActividadesFull() {
+
+        try {
+            FullSyncResponseDTO<ActividadDto> response = actividadService.findAllActive();
+
+            log.info("Sincronización completa exitosa: {} actividades activos encontrados", response.getTotalRegistros());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error durante la sincronización completa de actividades: {}", e.getMessage(), e);
+            throw e;
+        }
+
     }
 }

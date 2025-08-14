@@ -1,7 +1,9 @@
 package com.nutrizulia.features.collection.controller;
 
+import com.nutrizulia.features.collection.dto.ActividadDto;
 import com.nutrizulia.features.collection.dto.EvaluacionAntropometricaDto;
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
+import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
 import com.nutrizulia.features.collection.service.IEvaluacionAntropometricaService;
 import com.nutrizulia.common.dto.ApiResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -116,6 +118,21 @@ public class EvaluacionAntropometricaController {
             return String.format("Sincronización fallida: %d/%d evaluaciones antropométricas no pudieron ser procesadas", fallidos, total);
         } else {
             return String.format("Sincronización parcial: %d/%d exitosos, %d/%d fallidos", exitosos, total, fallidos, total);
+        }
+    }
+
+    @GetMapping(COLLECTION_SYNC_ANTHROPOMETRIC_EVALUATIONS + "/full")
+    public ResponseEntity<FullSyncResponseDTO<EvaluacionAntropometricaDto>> syncEvaluacionesAntropometricasFull() {
+        try {
+            FullSyncResponseDTO<EvaluacionAntropometricaDto> response = evaluacionAntropometricaService.findAllActive();
+
+            log.info("Sincronización completa exitosa: {} evaluaciones antropometricas activos encontrados", response.getTotalRegistros());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error durante la sincronización completa de evaluaciones antropometricas: {}", e.getMessage(), e);
+            throw e;
         }
     }
 }

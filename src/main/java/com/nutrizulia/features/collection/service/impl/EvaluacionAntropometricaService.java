@@ -1,27 +1,41 @@
 package com.nutrizulia.features.collection.service.impl;
 
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
+import com.nutrizulia.features.collection.dto.ConsultaDto;
 import com.nutrizulia.features.collection.dto.EvaluacionAntropometricaDto;
+import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
 import com.nutrizulia.features.collection.mapper.EvaluacionAntropometricaMapper;
+import com.nutrizulia.features.collection.model.Consulta;
 import com.nutrizulia.features.collection.model.EvaluacionAntropometrica;
 import com.nutrizulia.features.collection.repository.EvaluacionAntropometricaRepository;
 import com.nutrizulia.features.collection.service.IEvaluacionAntropometricaService;
+import com.nutrizulia.features.user.model.Usuario;
+import com.nutrizulia.features.user.model.UsuarioInstitucion;
+import com.nutrizulia.features.user.repository.UsuarioRepository;
+import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-@Slf4j
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class EvaluacionAntropometricaService implements IEvaluacionAntropometricaService {
 
     private final EvaluacionAntropometricaRepository evaluacionAntropometricaRepository;
     private final EvaluacionAntropometricaMapper evaluacionAntropometricaMapper;
+    private final UsuarioRepository usuarioRepository;
+    private final UsuarioInstitucionRepository usuarioInstitucionRepository;
 
     @Override
     @Transactional
@@ -128,5 +142,57 @@ public class EvaluacionAntropometricaService implements IEvaluacionAntropometric
             }
         }
         return "Violación de restricción de base de datos";
+    }
+
+    @Override
+    public FullSyncResponseDTO<EvaluacionAntropometricaDto> findAllActive() {
+        log.info("Obteniendo todas las evaluaciones antropométricas activas para sincronización completa");
+
+        // Obtener el usuario autenticado
+        String cedula = getCurrentUserCedula();
+        Usuario usuario = usuarioRepository.findByCedula(cedula)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + cedula));
+
+        // Obtener las instituciones activas del usuario
+        List<UsuarioInstitucion> institucionesActivas = usuarioInstitucionRepository
+                .findActiveInstitutionsByUserId(usuario.getId());
+
+        if (institucionesActivas.isEmpty()) {
+            log.warn("El usuario {} no tiene instituciones activas", cedula);
+            return FullSyncResponseDTO.<EvaluacionAntropometricaDto>builder()
+                    .tabla("evaluaciones_antropometricas")
+                    .totalRegistros(0)
+                    .datos(new ArrayList<>())
+                    .build();
+        }
+
+        // Extraer los IDs de las instituciones activas
+        List<Integer> institucionIds = institucionesActivas.stream()
+                .map(ui -> ui.getInstitucion().getId())
+                .collect(Collectors.toList());
+
+        log.info("Filtrando evaluaciones antropométricas para las instituciones: {}", institucionIds);
+
+        // Obtener consultas filtradas por instituciones activas del usuario
+        List<EvaluacionAntropometrica> evaluacionAntropometricas = evaluacionAntropometricaRepository.findAllActiveByInstitutionIds(institucionIds);
+        List<EvaluacionAntropometricaDto> evaluacionAntropometricaDtos = evaluacionAntropometricas.stream()
+                .map(evaluacionAntropometricaMapper::toDto)
+                .collect(Collectors.toList());
+
+        log.info("Se encontraron {} evaluaciones antropometricas activas para el usuario {}", evaluacionAntropometricaDtos.size(), cedula);
+
+        return FullSyncResponseDTO.<EvaluacionAntropometricaDto>builder()
+                .tabla("evaluaciones_antropometricas")
+                .totalRegistros(evaluacionAntropometricaDtos.size())
+                .datos(evaluacionAntropometricaDtos)
+                .build();
+    }
+
+    private String getCurrentUserCedula() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
+            return userDetails.getUsername();
+        }
+        throw new RuntimeException("Usuario no autenticado");
     }
 }
