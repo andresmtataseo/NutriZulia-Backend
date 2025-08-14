@@ -4,6 +4,7 @@ import com.nutrizulia.features.collection.dto.RepresentanteDto;
 import com.nutrizulia.features.collection.service.IRepresentanteService;
 import com.nutrizulia.common.dto.ApiResponseDto;
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
+import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -99,6 +101,63 @@ public class RepresentanteController {
             return HttpStatus.BAD_REQUEST; // Todos fallaron
         } else {
             return HttpStatus.PARTIAL_CONTENT; // Éxito parcial
+        }
+    }
+    
+    @Operation(
+            summary = "Sincronización completa de representantes",
+            description = "Obtiene todos los representantes activos filtrados por las instituciones activas del usuario autenticado. **Requiere autenticación JWT.**"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Sincronización completa exitosa",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = FullSyncResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "No autorizado - Token JWT inválido o expirado",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponseDto.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Prohibido - Sin permisos suficientes",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponseDto.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Error interno del servidor",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponseDto.class)
+                    )
+            )
+    })
+    @GetMapping("/sync/representantes/full")
+    public ResponseEntity<FullSyncResponseDTO<RepresentanteDto>> getAllActiveRepresentantes(
+            HttpServletRequest request
+    ) {
+        log.info("Solicitud de sincronización completa de representantes desde IP: {}", request.getRemoteAddr());
+        
+        try {
+            FullSyncResponseDTO<RepresentanteDto> response = representanteService.findAllActive();
+            
+            log.info("Sincronización completa exitosa: {} representantes activos encontrados", response.getTotalRegistros());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("Error durante la sincronización completa de representantes: {}", e.getMessage(), e);
+            throw e;
         }
     }
     

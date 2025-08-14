@@ -1,19 +1,30 @@
 package com.nutrizulia.features.collection.service.impl;
 
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
+import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
+import com.nutrizulia.features.collection.dto.PacienteDto;
 import com.nutrizulia.features.collection.dto.PacienteRepresentanteDto;
 import com.nutrizulia.features.collection.mapper.PacienteRepresentanteMapper;
 import com.nutrizulia.features.collection.model.PacienteRepresentante;
 import com.nutrizulia.features.collection.repository.PacienteRepresentanteRepository;
 import com.nutrizulia.features.collection.service.IPacienteRepresentanteService;
+import com.nutrizulia.features.user.model.Usuario;
+import com.nutrizulia.features.user.model.UsuarioInstitucion;
+import com.nutrizulia.features.user.repository.UsuarioRepository;
+import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,6 +33,8 @@ public class PacienteRepresentanteService implements IPacienteRepresentanteServi
 
     private final PacienteRepresentanteRepository pacienteRepresentanteRepository;
     private final PacienteRepresentanteMapper pacienteRepresentanteMapper;
+    private final UsuarioRepository usuarioRepository;
+    private final UsuarioInstitucionRepository usuarioInstitucionRepository;
 
     @Override
     @Transactional
@@ -132,5 +145,64 @@ public class PacienteRepresentanteService implements IPacienteRepresentanteServi
             }
         }
         return "Violación de restricción de base de datos";
+    }
+
+    @Override
+    public FullSyncResponseDTO<PacienteRepresentanteDto> findAllActive() {
+        log.info("Iniciando sincronización completa de relaciones paciente-representante");
+        
+        // Obtener el usuario autenticado
+        String cedula = getCurrentUserCedula();
+        log.debug("Usuario autenticado: {}", cedula);
+        
+        // Buscar el usuario en la base de datos
+        Usuario usuario = usuarioRepository.findByCedula(cedula)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + cedula));
+        
+        // Obtener las instituciones activas del usuario
+        List<UsuarioInstitucion> usuarioInstituciones = usuarioInstitucionRepository
+                .findActiveInstitutionsByUserId(usuario.getId());
+        
+        if (usuarioInstituciones.isEmpty()) {
+            log.warn("Usuario {} no tiene instituciones activas asignadas", cedula);
+            return FullSyncResponseDTO.<PacienteRepresentanteDto>builder()
+                    .tabla("pacientes_representantes")
+                    .totalRegistros(0)
+                    .datos(new ArrayList<>())
+                    .build();
+        }
+        
+        // Extraer los IDs de las instituciones
+        List<Integer> institutionIds = usuarioInstituciones.stream()
+                .map(ui -> ui.getInstitucion().getId())
+                .toList();
+        
+        log.debug("Filtrando relaciones paciente-representante por instituciones: {}", institutionIds);
+        
+        // Obtener relaciones activas filtradas por las instituciones del usuario
+        List<PacienteRepresentante> pacienteRepresentantes = pacienteRepresentanteRepository.findAllActiveByInstitutionIds(institutionIds);
+        
+        // Mapear a DTOs
+        List<PacienteRepresentanteDto> pacienteRepresentanteDtos = pacienteRepresentantes.stream()
+                .map(pacienteRepresentanteMapper::toDto)
+                .toList();
+        
+        log.info("Sincronización completa completada: {} relaciones paciente-representante activas encontradas", 
+                pacienteRepresentanteDtos.size());
+
+        return FullSyncResponseDTO.<PacienteRepresentanteDto>builder()
+                .tabla("pacientes_representantes")
+                .totalRegistros(pacienteRepresentanteDtos.size())
+                .datos(pacienteRepresentanteDtos)
+                .build();
+    }
+    
+    private String getCurrentUserCedula() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            return userDetails.getUsername(); // La cédula se almacena como username
+        }
+        throw new RuntimeException("No se pudo obtener el usuario autenticado");
     }
 }

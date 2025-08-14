@@ -2,6 +2,7 @@ package com.nutrizulia.features.collection.controller;
 
 import com.nutrizulia.features.collection.dto.ActividadDto;
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
+import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
 import com.nutrizulia.features.collection.service.IActividadService;
 import com.nutrizulia.common.dto.ApiResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,28 +38,6 @@ import static com.nutrizulia.common.util.ApiConstants.COLLECTION_SYNC_ACTIVITIES
 public class ActividadController {
 
     private final IActividadService actividadService;
-
-    @Operation(summary = "Obtener lista de actividades", description = "Obtiene todas las actividades disponibles. **Requiere autenticación.**")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista de actividades obtenida exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "401", description = "No autorizado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "403", description = "Prohibido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
-    })
-    @GetMapping("/actividades")
-    public ResponseEntity<ApiResponseDto<List<ActividadDto>>> getActividades(HttpServletRequest request) {
-        List<ActividadDto> actividades = actividadService.getActividades();
-        
-        return ResponseEntity.ok(
-                ApiResponseDto.<List<ActividadDto>>builder()
-                        .status(HttpStatus.OK.value())
-                        .message("Lista de actividades obtenida exitosamente")
-                        .timestamp(LocalDateTime.now())
-                        .path(request.getRequestURI())
-                        .data(actividades)
-                        .build()
-        );
-    }
 
     @Operation(summary = "Sincronizar lista de actividades", description = "Recibe y sincroniza una lista de actividades desde la aplicación móvil. **Requiere autenticación.**")
     @ApiResponses(value = {

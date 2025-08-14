@@ -3,6 +3,7 @@ package com.nutrizulia.features.collection.controller;
 import com.nutrizulia.common.dto.ApiResponseDto;
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
 import com.nutrizulia.features.collection.dto.ConsultaDto;
+import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
 import com.nutrizulia.features.collection.service.IConsultaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -105,5 +107,22 @@ public class ConsultaController {
             return String.format("Sincronización de %s completada parcialmente (%d exitosos, %d fallidos)", 
                     entidad, exitosos, fallidos);
         }
+    }
+    
+    @Operation(summary = "Obtener todas las consultas activas", description = "Obtiene todas las consultas activas del usuario autenticado para sincronización completa. **Requiere autenticación.**")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Consultas obtenidas exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = FullSyncResponseDTO.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
+    })
+    @GetMapping("/sync/consultas/full")
+    public ResponseEntity<FullSyncResponseDTO<ConsultaDto>> getAllActiveConsultas() {
+        log.info("Solicitud de sincronización completa de consultas recibida");
+        
+        FullSyncResponseDTO<ConsultaDto> response = consultaService.findAllActive();
+        
+        log.info("Sincronización completa de consultas completada: {} registros", response.getTotalRegistros());
+        return ResponseEntity.ok(response);
     }
 }

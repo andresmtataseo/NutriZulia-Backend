@@ -2,18 +2,28 @@ package com.nutrizulia.features.collection.service.impl;
 
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
 import com.nutrizulia.features.collection.dto.DiagnosticoDto;
+import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
 import com.nutrizulia.features.collection.mapper.DiagnosticoMapper;
 import com.nutrizulia.features.collection.model.Diagnostico;
 import com.nutrizulia.features.collection.repository.DiagnosticoRepository;
 import com.nutrizulia.features.collection.service.IDiagnosticoService;
+import com.nutrizulia.features.user.model.Usuario;
+import com.nutrizulia.features.user.model.UsuarioInstitucion;
+import com.nutrizulia.features.user.repository.UsuarioRepository;
+import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,6 +32,8 @@ public class DiagnosticoService implements IDiagnosticoService {
 
     private final DiagnosticoRepository diagnosticoRepository;
     private final DiagnosticoMapper diagnosticoMapper;
+    private final UsuarioRepository usuarioRepository;
+    private final UsuarioInstitucionRepository usuarioInstitucionRepository;
 
     @Override
     @Transactional
@@ -128,5 +140,58 @@ public class DiagnosticoService implements IDiagnosticoService {
             }
         }
         return "Violación de restricción de base de datos";
+    }
+    
+    @Override
+    public FullSyncResponseDTO<DiagnosticoDto> findAllActive() {
+        log.info("Obteniendo todos los diagnósticos activos para sincronización completa");
+        
+        // Obtener el usuario autenticado
+        String cedula = getCurrentUserCedula();
+        Usuario usuario = usuarioRepository.findByCedula(cedula)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + cedula));
+        
+        // Obtener las instituciones activas del usuario
+        List<UsuarioInstitucion> institucionesActivas = usuarioInstitucionRepository
+                .findActiveInstitutionsByUserId(usuario.getId());
+        
+        if (institucionesActivas.isEmpty()) {
+            log.warn("El usuario {} no tiene instituciones activas", cedula);
+            return FullSyncResponseDTO.<DiagnosticoDto>builder()
+                    .tabla("diagnosticos")
+                    .totalRegistros(0)
+                    .datos(new ArrayList<>())
+                    .build();
+        }
+        
+        // Extraer los IDs de las instituciones activas
+        List<Integer> institucionIds = institucionesActivas.stream()
+                .map(ui -> ui.getInstitucion().getId())
+                .collect(Collectors.toList());
+        
+        log.info("Filtrando diagnósticos para las instituciones: {}", institucionIds);
+        
+        // Obtener diagnósticos filtrados por instituciones activas del usuario
+        List<Diagnostico> diagnosticosActivos = diagnosticoRepository.findAllActiveByInstitutionIds(institucionIds);
+        List<DiagnosticoDto> diagnosticosDto = diagnosticosActivos.stream()
+                .map(diagnosticoMapper::toDto)
+                .collect(Collectors.toList());
+        
+        log.info("Se encontraron {} diagnósticos activos para el usuario {}", diagnosticosDto.size(), cedula);
+        
+        return FullSyncResponseDTO.<DiagnosticoDto>builder()
+                .tabla("diagnosticos")
+                .totalRegistros(diagnosticosDto.size())
+                .datos(diagnosticosDto)
+                .build();
+    }
+    
+    private String getCurrentUserCedula() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            return userDetails.getUsername(); // En este caso, el username es la cédula
+        }
+        throw new RuntimeException("No se pudo obtener el usuario autenticado");
     }
 }

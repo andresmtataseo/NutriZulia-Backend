@@ -2,13 +2,21 @@ package com.nutrizulia.features.collection.service.impl;
 
 import com.nutrizulia.features.collection.dto.ActividadDto;
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
+import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
 import com.nutrizulia.features.collection.model.Actividad;
 import com.nutrizulia.features.collection.mapper.ActividadMapper;
 import com.nutrizulia.features.collection.repository.ActividadRepository;
 import com.nutrizulia.features.collection.service.IActividadService;
+import com.nutrizulia.features.user.model.Usuario;
+import com.nutrizulia.features.user.model.UsuarioInstitucion;
+import com.nutrizulia.features.user.repository.UsuarioRepository;
+import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +32,8 @@ public class ActividadService implements IActividadService {
 
     private final ActividadRepository actividadRepository;
     private final ActividadMapper actividadMapper;
+    private final UsuarioRepository usuarioRepository;
+    private final UsuarioInstitucionRepository usuarioInstitucionRepository;
 
     @Override
     public List<ActividadDto> getActividades() {
@@ -45,7 +55,12 @@ public class ActividadService implements IActividadService {
         
         return response;
     }
-    
+
+    @Override
+    public FullSyncResponseDTO<ActividadDto> findAllActive() {
+        return null;
+    }
+
     private void procesarActividad(ActividadDto dto, BatchSyncResponseDTO response) {
         try {
             Optional<Actividad> existenteOpt = actividadRepository.findById(dto.getId());
