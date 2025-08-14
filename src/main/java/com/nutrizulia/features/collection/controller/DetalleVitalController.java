@@ -1,7 +1,9 @@
 package com.nutrizulia.features.collection.controller;
 
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
+import com.nutrizulia.features.collection.dto.DetalleMetabolicoDto;
 import com.nutrizulia.features.collection.dto.DetalleVitalDto;
+import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
 import com.nutrizulia.features.collection.service.IDetalleVitalService;
 import com.nutrizulia.common.dto.ApiResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -113,5 +115,31 @@ public class DetalleVitalController {
         } else {
             return String.format("Sincronización parcial: %d %s exitosos, %d fallos", exitosos, tipoEntidad, fallidos);
         }
+    }
+    
+    @Operation(summary = "Obtener todos los detalles vitales activos", description = "Obtiene todos los detalles vitales activos para sincronización completa. **Requiere autenticación.**")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Detalles vitales obtenidos exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
+    })
+    @GetMapping("/sync/detalles-vitales/full")
+    public ResponseEntity<FullSyncResponseDTO<DetalleVitalDto>> getAllActiveDetallesVitales(HttpServletRequest request) {
+
+        log.info("Solicitud de sincronización completa de detalles vitales desde IP: {}", request.getRemoteAddr());
+
+        try {
+            FullSyncResponseDTO<DetalleVitalDto> response = detalleVitalService.findAllActive();
+
+            log.info("Sincronización completa exitosa: {} detalles vitales activos encontrados", response.getTotalRegistros());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error durante la sincronización completa de detalles vitales: {}", e.getMessage(), e);
+            throw e;
+        }
+
     }
 }

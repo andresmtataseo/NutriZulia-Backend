@@ -11,6 +11,9 @@ import java.util.List;
 @Repository
 public interface PacienteRepository extends JpaRepository<Paciente, String> {
     
-    @Query("SELECT p FROM Paciente p WHERE p.isDeleted = false AND p.usuarioInstitucion.institucion.id IN :institucionIds ORDER BY p.updatedAt DESC")
+    @Query("SELECT p FROM Paciente p " +
+            "WHERE p.isDeleted = false " +
+            "AND p.usuarioInstitucion.institucion.id IN :institucionIds " +
+            "ORDER BY p.updatedAt DESC")
     List<Paciente> findAllActiveByInstitutionIds(@Param("institucionIds") List<Integer> institucionIds);
 }

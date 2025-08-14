@@ -4,6 +4,7 @@ import com.nutrizulia.common.dto.ApiResponseDto;
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
 import com.nutrizulia.features.collection.dto.ConsultaDto;
 import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
+import com.nutrizulia.features.collection.dto.PacienteRepresentanteDto;
 import com.nutrizulia.features.collection.service.IConsultaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -117,12 +118,23 @@ public class ConsultaController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping("/sync/consultas/full")
-    public ResponseEntity<FullSyncResponseDTO<ConsultaDto>> getAllActiveConsultas() {
-        log.info("Solicitud de sincronización completa de consultas recibida");
-        
-        FullSyncResponseDTO<ConsultaDto> response = consultaService.findAllActive();
-        
-        log.info("Sincronización completa de consultas completada: {} registros", response.getTotalRegistros());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<FullSyncResponseDTO<ConsultaDto>> getAllActiveConsultas(
+            HttpServletRequest request
+    ) {
+
+        log.info("Solicitud de sincronización completa de consultas desde IP: {}", request.getRemoteAddr());
+
+        try {
+            FullSyncResponseDTO<ConsultaDto> response = consultaService.findAllActive();
+
+            log.info("Sincronización completa exitosa: {} consultas activos encontrados", response.getTotalRegistros());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error durante la sincronización completa de consultas: {}", e.getMessage(), e);
+            throw e;
+        }
+
     }
 }

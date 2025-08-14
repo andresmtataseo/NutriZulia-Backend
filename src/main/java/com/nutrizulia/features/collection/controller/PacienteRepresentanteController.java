@@ -1,5 +1,6 @@
 package com.nutrizulia.features.collection.controller;
 
+import com.nutrizulia.features.collection.dto.PacienteDto;
 import com.nutrizulia.features.collection.dto.PacienteRepresentanteDto;
 import com.nutrizulia.features.collection.service.IPacienteRepresentanteService;
 import com.nutrizulia.common.dto.ApiResponseDto;
@@ -131,8 +132,23 @@ public class PacienteRepresentanteController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping("/sync/paciente-representantes/full")
-    public ResponseEntity<FullSyncResponseDTO<PacienteRepresentanteDto>> getAllActivePacienteRepresentantes() {
-        FullSyncResponseDTO<PacienteRepresentanteDto> response = pacienteRepresentanteService.findAllActive();
-        return ResponseEntity.ok(response);
+    public ResponseEntity<FullSyncResponseDTO<PacienteRepresentanteDto>> getAllActivePacienteRepresentantes(
+            HttpServletRequest request
+    ) {
+
+        log.info("Solicitud de sincronización completa de pacientes-representantes desde IP: {}", request.getRemoteAddr());
+
+        try {
+            FullSyncResponseDTO<PacienteRepresentanteDto> response = pacienteRepresentanteService.findAllActive();
+
+            log.info("Sincronización completa exitosa: {} pacientes-representantes activos encontrados", response.getTotalRegistros());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error durante la sincronización completa de pacientes-representantes: {}", e.getMessage(), e);
+            throw e;
+        }
+
     }
 }

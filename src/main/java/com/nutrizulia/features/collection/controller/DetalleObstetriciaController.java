@@ -2,6 +2,8 @@ package com.nutrizulia.features.collection.controller;
 
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
 import com.nutrizulia.features.collection.dto.DetalleObstetriciaDto;
+import com.nutrizulia.features.collection.dto.DetallePedriatricoDto;
+import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
 import com.nutrizulia.features.collection.service.IDetalleObstetriciaService;
 import com.nutrizulia.common.dto.ApiResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -113,5 +115,33 @@ public class DetalleObstetriciaController {
         } else {
             return String.format("Sincronización parcial: %d %s exitosos, %d fallos", exitosos, tipoEntidad, fallidos);
         }
+    }
+    
+    @Operation(summary = "Obtener todos los detalles de obstetricia activos", description = "Obtiene todos los detalles de obstetricia activos para sincronización completa. **Requiere autenticación.**")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Detalles de obstetricia obtenidos exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "403", description = "Prohibido", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
+    })
+    @GetMapping("/sync/detalles-obstetricia/full")
+    public ResponseEntity<FullSyncResponseDTO<DetalleObstetriciaDto>> getAllActiveDetallesObstetricia(
+            HttpServletRequest request
+    ) {
+
+        log.info("Solicitud de sincronización completa de detalles obstetricia desde IP: {}", request.getRemoteAddr());
+
+        try {
+            FullSyncResponseDTO<DetalleObstetriciaDto> response = detalleObstetriciaService.findAllActive();
+
+            log.info("Sincronización completa exitosa: {} detalles obstetricia activos encontrados", response.getTotalRegistros());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error durante la sincronización completa de detalles obstetricia: {}", e.getMessage(), e);
+            throw e;
+        }
+
     }
 }

@@ -2,6 +2,7 @@ package com.nutrizulia.features.collection.controller;
 
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
 import com.nutrizulia.features.collection.dto.DetalleAntropometricoDto;
+import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
 import com.nutrizulia.features.collection.service.IDetalleAntropometricoService;
 import com.nutrizulia.common.dto.ApiResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -112,6 +113,63 @@ public class DetalleAntropometricoController {
             return String.format("Ningún %s pudo ser sincronizado (%d fallos)", tipoEntidad.substring(0, tipoEntidad.length()-1), fallidos);
         } else {
             return String.format("Sincronización parcial: %d %s exitosos, %d fallos", exitosos, tipoEntidad, fallidos);
+        }
+    }
+    
+    @Operation(
+            summary = "Obtener todos los detalles antropométricos activos",
+            description = "Obtiene todos los detalles antropométricos activos (no eliminados) ordenados por fecha de actualización ascendente. Este endpoint es utilizado para la sincronización completa desde el cliente móvil. **Requiere autenticación.**"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Lista de detalles antropométricos activos obtenida exitosamente",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = FullSyncResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "No autorizado",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponseDto.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Prohibido",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponseDto.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Error interno del servidor",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponseDto.class)
+                    )
+            )
+    })
+    @GetMapping("/sync/detalles-antropometricos/full")
+    public ResponseEntity<FullSyncResponseDTO<DetalleAntropometricoDto>> getAllActiveDetallesAntropometricos(
+            HttpServletRequest request
+    ) {
+        log.info("Solicitud de sincronización completa de detalles antropométricos desde IP: {}", request.getRemoteAddr());
+        
+        try {
+            FullSyncResponseDTO<DetalleAntropometricoDto> response = detalleAntropometricoService.findAllActive();
+            
+            log.info("Sincronización completa exitosa: {} detalles antropométricos activos encontrados", response.getTotalRegistros());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("Error durante la sincronización completa de detalles antropométricos: {}", e.getMessage(), e);
+            throw e;
         }
     }
 }
