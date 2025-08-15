@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -197,6 +198,18 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    // Nuevo: manejar cuentas deshabilitadas de forma amigable
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ApiResponseDto<String>> handleDisabledException(DisabledException ex) {
+        ApiResponseDto<String> response = ApiResponseDto.<String>builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .message("Su cuenta está deshabilitada. Por favor, contacte al administrador para reactivarla.")
+                .timestamp(LocalDateTime.now())
+                .path(getCurrentPath())
+                .build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

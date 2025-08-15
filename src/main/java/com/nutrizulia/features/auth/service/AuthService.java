@@ -8,6 +8,8 @@ import com.nutrizulia.common.dto.ApiResponseDto;
 import com.nutrizulia.common.util.ApiConstants;
 import com.nutrizulia.features.user.mapper.UsuarioMapper;
 import com.nutrizulia.features.user.model.Usuario;
+import com.nutrizulia.features.user.model.UsuarioInstitucion;
+import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
 import com.nutrizulia.features.user.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,8 +20,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.authentication.DisabledException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -32,6 +36,7 @@ public class AuthService implements IAuthService {
     private final AuthenticationManager authenticationManager;
     private final UsuarioMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final UsuarioInstitucionRepository usuarioInstitucionRepository;
 
 
     public ApiResponseDto<AuthResponseDto> signIn(SignInRequestDto request) {
@@ -40,6 +45,12 @@ public class AuthService implements IAuthService {
                     new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave())
             );
             Usuario user = usuarioService.findByCedula(request.getCedula());
+            
+            // Verificar que el usuario esté activo en al menos una institución
+            List<UsuarioInstitucion> institucionesActivas = usuarioInstitucionRepository.findActiveInstitutionsByUserId(user.getId());
+            if (institucionesActivas.isEmpty()) {
+                throw new DisabledException("El usuario no está activo en ninguna institución");
+            }
 
             String token = jwtService.generateToken(user);
 
@@ -60,56 +71,12 @@ public class AuthService implements IAuthService {
             throw new BadCredentialsException("Credenciales inválidas. Verifique su cédula y contraseña.");
         } catch (UsernameNotFoundException e) {
             throw new BadCredentialsException("Credenciales inválidas. Verifique su cédula y contraseña.");
+        } catch (DisabledException e) {
+            throw e; // Propaga para que el GlobalExceptionHandler retorne una respuesta amigable y estandarizada
         } catch (Exception e) {
             throw new RuntimeException("Error interno del servidor al procesar el inicio de sesión");
         }
     }
-
-//    @Override
-//    public ApiResponseDto<AuthAdminResponseDto> signInAdmin(SignInRequestDto request) {
-//        try {
-//            authenticationManager.authenticate(
-//                    new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave())
-//            );
-//            Usuario user = usuarioService.findByCedula(request.getCedula());
-//
-//            String token = jwtService.generateToken(user);
-//
-//            // Búsqueda del rol de administrador y manejo de la excepción
-//            Optional<UsuarioInstitucion> usuarioInstitucionOptional = usuarioInstitucionService.getUsuarioAdmin(user.getId());
-//
-//            if (usuarioInstitucionOptional.isEmpty()) {
-//                // En caso de que no se encuentre el rol de admin, se devuelve un mensaje de error
-//                return ApiResponseDto.<AuthAdminResponseDto>builder()
-//                        .status(HttpStatus.FORBIDDEN.value())
-//                        .message("Acceso denegado: el usuario no tiene rol de administrador en la institución requerida.")
-//                        .timestamp(LocalDateTime.now())
-//                        .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_SIGN_IN_ADMIN)
-//                        .build();
-//            }
-//
-//            Rol rol = usuarioInstitucionOptional.get().getRol();
-//
-//            AuthAdminResponseDto authData = AuthAdminResponseDto.builder()
-//                    .token(token)
-//                    .type("Bearer")
-//                    .user(userMapper.toDto(user))
-//                    .rol(rol)
-//                    .build();
-//
-//            return ApiResponseDto.<AuthAdminResponseDto>builder()
-//                    .status(HttpStatus.OK.value())
-//                    .message("Inicio de sesión de administrador exitoso")
-//                    .data(authData)
-//                    .timestamp(LocalDateTime.now())
-//                    .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_SIGN_IN_ADMIN)
-//                    .build();
-//        } catch (BadCredentialsException | UsernameNotFoundException e) {
-//            throw new BadCredentialsException("Credenciales inválidas. Verifique su cédula y contraseña.");
-//        } catch (Exception e) {
-//            throw new RuntimeException("Error interno del servidor al procesar el inicio de sesión de administrador");
-//        }
-//    }
 
     @Transactional
     public ApiResponseDto<Object> forgotPassword(ForgotPasswordRequestDto request) {
