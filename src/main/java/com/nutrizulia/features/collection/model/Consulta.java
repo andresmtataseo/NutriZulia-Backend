@@ -30,11 +30,11 @@ public class Consulta {
     private Paciente paciente;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tipo_actividad_id")
+    @JoinColumn(name = "tipo_actividad_id", nullable = false)
     private TipoActividad tipoActividad;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "especialidad_remitente_id")
+    @JoinColumn(name = "especialidad_remitente_id", nullable = false)
     private Especialidad especialidad;
 
     @Enumerated(EnumType.STRING)
@@ -60,50 +60,14 @@ public class Consulta {
     @Column(name = "estado", nullable = false)
     private Estado estado;
 
-    /**
-     * Timestamp de creación del registro.
-     * Se establece automáticamente al crear la entidad y no se puede modificar.
-     */
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    /**
-     * Timestamp de última actualización del registro.
-     * Se actualiza automáticamente cada vez que se modifica la entidad.
-     */
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    /**
-     * Indica si el registro ha sido eliminado lógicamente.
-     * Por defecto es false, lo que significa que el registro está activo.
-     */
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 
-    /**
-     * Método ejecutado antes de persistir la entidad.
-     * Asegura que los timestamps se establezcan correctamente.
-     */
-    @PrePersist
-    protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
-        if (updatedAt == null) {
-            updatedAt = LocalDateTime.now();
-        }
-        isDeleted = false;
-    }
-
-    /**
-     * Método ejecutado antes de actualizar la entidad.
-     * Asegura que el timestamp de actualización se establezca correctamente.
-     */
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

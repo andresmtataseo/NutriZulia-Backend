@@ -53,6 +53,7 @@ public class ActividadController {
 
         try {
             log.info("Iniciando sincronización de {} actividades", actividades.size());
+            log.info("LOG DE JSON: {} ", actividades);
             
             BatchSyncResponseDTO syncResponse = actividadService.sycnActividades(actividades);
             HttpStatus status = determinarEstadoRespuesta(syncResponse);

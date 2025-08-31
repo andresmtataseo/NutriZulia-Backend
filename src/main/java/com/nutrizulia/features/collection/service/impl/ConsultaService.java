@@ -72,6 +72,7 @@ public class ConsultaService implements IConsultaService {
     private void crearNuevaConsulta(ConsultaDto dto, BatchSyncResponseDTO response) {
         try {
             Consulta nueva = consultaMapper.toEntity(dto);
+            log.debug("Creando consulta con id (MAPEO): {}", nueva);
             consultaRepository.save(nueva);
             response.getSuccess().add(dto.getId());
             log.debug("Consulta creada exitosamente: {}", dto.getId());

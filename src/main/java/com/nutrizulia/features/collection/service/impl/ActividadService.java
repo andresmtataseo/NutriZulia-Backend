@@ -130,6 +130,7 @@ public class ActividadService implements IActividadService {
     private void crearNuevaActividad(ActividadDto dto, BatchSyncResponseDTO response) {
         try {
             Actividad nueva = actividadMapper.toEntity(dto);
+            log.debug("Creando actividad con id (MAPEO): {}", nueva);
             actividadRepository.save(nueva);
             response.getSuccess().add(dto.getId());
             log.debug("Actividad creada exitosamente: {}", dto.getId());
