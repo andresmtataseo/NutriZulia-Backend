@@ -4,6 +4,7 @@ import com.nutrizulia.features.catalog.dto.InstitucionDto;
 import com.nutrizulia.features.catalog.service.impl.InstitucionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jxls.transform.Transformer;
 import org.springframework.stereotype.Service;
 
 import org.jxls.common.Context;
@@ -20,7 +21,7 @@ public class ReporteService {
 
     private final InstitucionService institucionService;
 
-    public void generarReporteTrimestralPorMunicipio(Integer municipioSanitarioId, OutputStream outputStream) throws Exception {
+    public void generarReporteTrimestralPorMunicipio(Integer municipioSanitarioId, OutputStream os) throws Exception {
         log.info("Generando reporte trimestral para municipio sanitario ID: {}", municipioSanitarioId);
         
         if (municipioSanitarioId == null || municipioSanitarioId <= 0) {
@@ -41,9 +42,22 @@ public class ReporteService {
             }
 
             Context context = new Context();
+            // Pasar los mismos datos a todas las hojas del trimestre
             context.putVar("instituciones", instituciones);
-
-            JxlsHelper.getInstance().processTemplate(is, outputStream, context);
+            context.putVar("trimestre1", instituciones);
+            context.putVar("trimestre2", instituciones);
+            context.putVar("trimestre3", instituciones);
+            context.putVar("trimestre4", instituciones);
+            
+            // Debug: Verificar el contexto JXLS
+            log.info("Contexto JXLS creado con {} instituciones para todas las hojas del reporte", instituciones.size());
+            
+            // Configurar JXLS para mejor procesamiento
+            JxlsHelper jxlsHelper = JxlsHelper.getInstance();
+            jxlsHelper.setHideTemplateSheet(true);
+            jxlsHelper.setDeleteTemplateSheet(true);
+            Transformer transformer  = jxlsHelper.createTransformer(is, os);
+            jxlsHelper.processTemplate(context, transformer);
             log.info("Reporte generado exitosamente en memoria");
         }
     }
