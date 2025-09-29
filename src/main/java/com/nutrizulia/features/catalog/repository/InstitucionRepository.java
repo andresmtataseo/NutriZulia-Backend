@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -44,4 +45,15 @@ public interface InstitucionRepository extends JpaRepository<Institucion, Intege
      */
     @Query("SELECT i FROM Institucion i WHERE LOWER(i.nombre) = LOWER(:nombre)")
     Optional<Institucion> findByNombreIgnoreCase(@Param("nombre") String nombre);
+
+
+
+    /**
+     * Busca todas las instituciones por municipio sanitario sin paginación
+     */
+    @Query("SELECT DISTINCT i FROM Institucion i " +
+           "LEFT JOIN FETCH i.municipioSanitario ms " +
+           "LEFT JOIN FETCH i.tipoInstitucion ti " +
+           "WHERE i.municipioSanitario.id = :municipioSanitarioId")
+    List<Institucion> findAllByMunicipioSanitarioId(@Param("municipioSanitarioId") Integer municipioSanitarioId);
 }

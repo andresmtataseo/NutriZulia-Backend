@@ -213,6 +213,40 @@ public class InstitucionService implements IInstitucionService {
     }
 
     @Override
+    public List<InstitucionDto> getInstitucionesByMunicipioSanitario(Integer municipioSanitarioId) {
+        log.debug("Obteniendo todas las instituciones por municipio sanitario ID: {}", municipioSanitarioId);
+        
+        try {
+            // Validar ID del municipio sanitario
+            ValidationUtils.validateId(municipioSanitarioId.longValue(), "ID de municipio sanitario");
+            
+            // Verificar que el municipio sanitario existe
+            municipioSanitarioRepository.findById(municipioSanitarioId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Municipio sanitario", "id", municipioSanitarioId));
+            
+            // Obtener todas las instituciones por municipio sanitario sin paginación
+            List<Institucion> instituciones = institucionRepository.findAllByMunicipioSanitarioId(municipioSanitarioId);
+            
+            // Mapear a DTOs
+            List<InstitucionDto> institucionesDto = instituciones.stream()
+                    .map(institucionMapper::toDto)
+                    .collect(Collectors.toList());
+            
+            log.info("Se obtuvieron {} instituciones para el municipio sanitario ID: {}", 
+                    institucionesDto.size(), municipioSanitarioId);
+            
+            return institucionesDto;
+            
+        } catch (ResourceNotFoundException e) {
+            log.warn("Error de validación al obtener instituciones por municipio sanitario: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Error al obtener instituciones por municipio sanitario ID {}: {}", municipioSanitarioId, e.getMessage(), e);
+            throw new RuntimeException("Error al obtener las instituciones por municipio sanitario", e);
+        }
+    }
+
+    @Override
     @Transactional
     public InstitucionDto createInstitucion(InstitucionDto institucionDto) {
         log.debug("Creando nueva institución: {}", institucionDto.getNombre());

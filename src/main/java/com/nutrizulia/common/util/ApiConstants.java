@@ -43,6 +43,7 @@ public class ApiConstants {
     public static final String CATALOG_VERSIONS = "/versions";
 
     public static final String CATALOG_INSTITUTIONS = "/institutions";
+    public static final String CATALOG_INSTITUTIONS_GET_BY_MUNICIPIO_SANITARIO = "/institutions/get-by-municipio-sanitario";
     public static final String CATALOG_INSTITUTIONS_GET_ALL_WITH_USERS = "/institutions/get-all/users";
 
     // ========== DATA COLLECTION API ==========

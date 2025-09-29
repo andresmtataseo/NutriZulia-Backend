@@ -16,6 +16,8 @@ public interface IInstitucionService {
 
     PageResponseDto<InstitucionConUsuariosDto> getInstitucionConUsuarios(int page, int size, String search, String sortBy, String sortDir);
 
+    List<InstitucionDto> getInstitucionesByMunicipioSanitario(Integer municipioSanitarioId);
+
     InstitucionDto createInstitucion(InstitucionDto institucionDto);
     
     InstitucionDto updateInstitucion(Integer id, InstitucionDto institucionDto);
