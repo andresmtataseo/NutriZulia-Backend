@@ -49,21 +49,23 @@ public class ReporteController {
     public ResponseEntity<ByteArrayResource> generarReporteTrimestral(
             @Parameter(description = "ID del municipio sanitario", required = true)
             @RequestParam Integer municipioSanitarioId,
+            @Parameter(description = "Año del reporte (ej. 2025)", required = true)
+            @RequestParam Integer anio,
             HttpServletRequest request) {
 
         try {
-            log.info("Solicitud de reporte trimestral para municipio sanitario ID: {}", municipioSanitarioId);
+            log.info("Solicitud de reporte trimestral para municipio sanitario ID: {} y año: {}", municipioSanitarioId, anio);
 
             // Generar el reporte usando ByteArrayOutputStream
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            reporteService.generarReporteTrimestralPorMunicipio(municipioSanitarioId, outputStream);
+            reporteService.generarReporteTrimestralPorMunicipio(municipioSanitarioId, anio, outputStream);
 
             // Crear el recurso de bytes
             ByteArrayResource resource = new ByteArrayResource(outputStream.toByteArray());
 
             // Generar nombre del archivo con timestamp
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-            String filename = String.format("reporte_trimestral_municipio_%d_%s.xlsx", municipioSanitarioId, timestamp);
+            String filename = String.format("reporte_trimestral_municipio_%d_%d_%s.xlsx", municipioSanitarioId, anio, timestamp);
 
             log.info("Reporte generado exitosamente: {}", filename);
 
@@ -78,8 +80,8 @@ public class ReporteController {
             log.error("Error de validación: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("Error al generar reporte trimestral para municipio sanitario ID {}: {}", 
-                    municipioSanitarioId, e.getMessage(), e);
+            log.error("Error al generar reporte trimestral para municipio sanitario ID {} y año {}: {}", 
+                    municipioSanitarioId, anio, e.getMessage(), e);
             throw new RuntimeException("Error interno al generar el reporte", e);
         }
     }
