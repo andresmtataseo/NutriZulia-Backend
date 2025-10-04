@@ -66,4 +66,31 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
 
         return results;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Object[]> obtenerResumenActividadesPorTipoPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
+        String sql = """
+            SELECT ta.id AS tipo_id,
+                   ta.nombre AS tipo_nombre,
+                   COALESCE(SUM(a.cantidad_participantes), 0) AS total_participantes,
+                   COALESCE(SUM(COALESCE(a.cantidad_sesiones, 0)), 0) AS total_veces
+            FROM actividades a
+            JOIN usuarios_instituciones ui ON ui.id = a.usuario_institucion_id AND ui.is_enabled = TRUE
+            JOIN tipos_actividades ta ON ta.id = a.tipo_actividad_id
+            WHERE a.is_deleted = FALSE
+              AND a.fecha BETWEEN :fechaInicio AND :fechaFin
+              AND ui.institucion_id = :institucionId
+            GROUP BY ta.id, ta.nombre
+            ORDER BY ta.id
+            """;
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> results = entityManager.createNativeQuery(sql)
+                .setParameter("fechaInicio", fechaInicio)
+                .setParameter("fechaFin", fechaFin)
+                .setParameter("institucionId", institucionId)
+                .getResultList();
+        return results;
+    }
 }
