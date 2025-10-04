@@ -68,34 +68,49 @@ public class ReporteService {
     }
 
     // Record para encapsular los datos de cada mes
-    private record MesContext(List<Map<String, Object>> lista, Map<Integer, Map<String, Integer>> porInstitucion, Map<Integer, Map<String, Integer>> actividadesPorInstitucion) {}
+    private record MesContext(List<Map<String, Object>> lista, Map<Integer, Map<String, Integer>> porInstitucion, Map<Integer, Map<String, Integer>> actividadesPorInstitucion, Map<Integer, Map<String, Integer>> antropometriaPorInstitucion, Map<Integer, Map<String, Integer>> antropometriaRegularesPorInstitucion) {}
 
     // Record para resumen de actividades por tipo
     private record ActividadTipoResumen(Integer tipoId, String tipoNombre, Integer totalParticipantes, Integer totalVeces) {}
+
+    // Nuevo: Record para resumen antropométrico Peso/Edad menores de 2 años
+    private record AntropometriaResumen(String categoria, Integer total) {}
 
     // Calcula los datos del contexto por mes, eliminando código repetitivo
     private MesContext calcularContextoMes(List<InstitucionDto> instituciones, LocalDate fechaInicioMes, LocalDate fechaFinMes) {
         List<Map<String, Object>> datosMes = new ArrayList<>();
         Map<Integer, Map<String, Integer>> mesPorInstitucion = new HashMap<>();
         Map<Integer, Map<String, Integer>> actividadesPorInstitucion = new HashMap<>();
+        Map<Integer, Map<String, Integer>> antropometriaPorInstitucion = new HashMap<>();
+        Map<Integer, Map<String, Integer>> antropometriaRegularesPorInstitucion = new HashMap<>();
         for (InstitucionDto ins : instituciones) {
             List<ResumenConsultasEdadDto> resumen = obtenerResumenConsultasPorEdadPorInstitucion(fechaInicioMes, fechaFinMes, ins.getId());
             List<ActividadTipoResumen> actividadesResumen = obtenerResumenActividadesPorTipoPorInstitucion(fechaInicioMes, fechaFinMes, ins.getId());
+            List<AntropometriaResumen> antropometriaResumen = obtenerResumenAntropometriaPesoEdadMenores2PorInstitucion(fechaInicioMes, fechaFinMes, ins.getId());
+            List<AntropometriaResumen> antropometriaResumenRegulares = obtenerResumenAntropometriaPesoEdadMenores2ConsultasRegularesPorInstitucion(fechaInicioMes, fechaFinMes, ins.getId());
 
             Map<String, Object> fila = new HashMap<>();
             fila.put("institucion", ins);
             fila.put("resumen", resumen);
             fila.put("actividades", actividadesResumen);
+            fila.put("antropometria", antropometriaResumen);
+            fila.put("antropometriaRegulares", antropometriaResumenRegulares);
             Map<String, Integer> plano = aplanarResumenPorRango(resumen);
             Map<String, Integer> actividadesPlanas = aplanarActividadesPorTipo(actividadesResumen);
+            Map<String, Integer> antropometriaPlana = aplanarAntropometriaMenores2(antropometriaResumen);
+            Map<String, Integer> antropometriaRegularesPlana = aplanarAntropometriaMenores2(antropometriaResumenRegulares);
             fila.put("actividadesPlanas", actividadesPlanas);
+            fila.put("antropometriaPlana", antropometriaPlana);
+            fila.put("antropometriaRegularesPlana", antropometriaRegularesPlana);
             datosMes.add(fila);
 
             // Resumen aplanado por rango para acceso directo desde la plantilla
             mesPorInstitucion.put(ins.getId(), plano);
             actividadesPorInstitucion.put(ins.getId(), actividadesPlanas);
+            antropometriaPorInstitucion.put(ins.getId(), antropometriaPlana);
+            antropometriaRegularesPorInstitucion.put(ins.getId(), antropometriaRegularesPlana);
         }
-        return new MesContext(datosMes, mesPorInstitucion, actividadesPorInstitucion);
+        return new MesContext(datosMes, mesPorInstitucion, actividadesPorInstitucion, antropometriaPorInstitucion, antropometriaRegularesPorInstitucion);
     }
 
     // Helper: Aplana la lista de ResumenConsultasEdadDto a un mapa por rango
@@ -158,6 +173,69 @@ public class ReporteService {
         return flat;
     }
 
+    // Nuevo: obtener resumen antropométrico Peso/Edad en menores de 2 años por institución y rango de fechas
+    private List<AntropometriaResumen> obtenerResumenAntropometriaPesoEdadMenores2PorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
+        List<Object[]> raw = reportsQueryRepository.obtenerResumenAntropometriaPesoEdadMenores2PorInstitucion(fechaInicio, fechaFin, institucionId);
+        List<AntropometriaResumen> result = new ArrayList<>();
+        for (Object[] row : raw) {
+            String categoria = (String) row[0];
+            Integer total = toInteger(row[1]);
+            result.add(new AntropometriaResumen(categoria, total));
+        }
+        return result;
+    }
+
+    private List<AntropometriaResumen> obtenerResumenAntropometriaPesoEdadMenores2ConsultasRegularesPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
+        List<Object[]> raw = reportsQueryRepository.obtenerResumenAntropometriaPesoEdadMenores2ConsultasRegularesPorInstitucion(fechaInicio, fechaFin, institucionId);
+        List<AntropometriaResumen> result = new ArrayList<>();
+        for (Object[] row : raw) {
+            String categoria = (String) row[0];
+            Integer total = toInteger(row[1]);
+            result.add(new AntropometriaResumen(categoria, total));
+        }
+        return result;
+    }
+
+    // Helper: Aplana el resumen antropométrico de Peso/Edad menores de 2 años a un mapa con claves fijas
+    private Map<String, Integer> aplanarAntropometriaMenores2(List<AntropometriaResumen> antropometriaResumen) {
+        Map<String, Integer> flat = new HashMap<>();
+        // Inicializar claves esperadas para evitar nulls en la plantilla
+        flat.put("pesoEdadMenores2ExcesoModeradoGrave", 0);
+        flat.put("pesoEdadMenores2ExcesoLeve", 0);
+        flat.put("pesoEdadMenores2RiesgoExceso", 0);
+        flat.put("pesoEdadMenores2Normal", 0);
+        flat.put("pesoEdadMenores2RiesgoDeficit", 0);
+        flat.put("pesoEdadMenores2DeficitLeve", 0);
+        flat.put("pesoEdadMenores2DeficitModerado", 0);
+        flat.put("pesoEdadMenores2DeficitGrave", 0);
+        flat.put("pesoEdadMenores2SinClasificacion", 0);
+
+        for (AntropometriaResumen a : antropometriaResumen) {
+            String cat = a.categoria();
+            Integer total = a.total() != null ? a.total() : 0;
+            if ("Exceso Moderado y Grave".equals(cat)) {
+                flat.put("pesoEdadMenores2ExcesoModeradoGrave", total);
+            } else if ("Exceso Leve".equals(cat)) {
+                flat.put("pesoEdadMenores2ExcesoLeve", total);
+            } else if ("Riesgo de Exceso".equals(cat)) {
+                flat.put("pesoEdadMenores2RiesgoExceso", total);
+            } else if ("Normal".equals(cat)) {
+                flat.put("pesoEdadMenores2Normal", total);
+            } else if ("Riesgo de Déficit".equals(cat)) {
+                flat.put("pesoEdadMenores2RiesgoDeficit", total);
+            } else if ("Déficit Leve".equals(cat)) {
+                flat.put("pesoEdadMenores2DeficitLeve", total);
+            } else if ("Déficit Moderado".equals(cat)) {
+                flat.put("pesoEdadMenores2DeficitModerado", total);
+            } else if ("Déficit Grave".equals(cat)) {
+                flat.put("pesoEdadMenores2DeficitGrave", total);
+            } else if ("Sin Clasificación".equals(cat)) {
+                flat.put("pesoEdadMenores2SinClasificacion", total);
+            }
+        }
+        return flat;
+    }
+
     public void generarReporteTrimestralPorMunicipio(Integer municipioSanitarioId, Integer anio, OutputStream os) throws Exception {
         
         if (municipioSanitarioId == null || municipioSanitarioId <= 0) {
@@ -197,6 +275,10 @@ public class ReporteService {
                 context.putVar("mes" + m + "PorInstitucion", mc.porInstitucion());
                 // Nuevo: actividades por tipo (participantes y veces) aplanadas por institución
                 context.putVar("mes" + m + "ActividadesPorInstitucion", mc.actividadesPorInstitucion());
+                // Nuevo: antropometría Peso/Edad menores de 2 años aplanada por institución
+                context.putVar("mes" + m + "AntropometriaPorInstitucion", mc.antropometriaPorInstitucion());
+                // Nuevo: antropometría Peso/Edad menores de 2 años para consultas regulares (tipo_actividad_id=1) aplanada por institución
+                context.putVar("mes" + m + "AntropometriaRegularesPorInstitucion", mc.antropometriaRegularesPorInstitucion());
             }
             
             // Debug: Verificar el contexto JXLS

@@ -93,4 +93,106 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
                 .getResultList();
         return results;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Object[]> obtenerResumenAntropometriaPesoEdadMenores2PorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
+        String sql = """
+            SELECT t.categoria,
+                   COUNT(*) AS total
+            FROM (
+                SELECT
+                    CASE
+                        WHEN z.valor_calculado > 3 THEN 'Exceso Moderado y Grave'
+                        WHEN (z.valor_calculado IS NULL OR z.valor_calculado <= 3) AND p.valor_calculado > 97 THEN 'Exceso Leve'
+                        WHEN p.valor_calculado > 90 AND p.valor_calculado <= 97 THEN 'Riesgo de Exceso'
+                        WHEN p.valor_calculado > 10 AND p.valor_calculado <= 90 THEN 'Normal'
+                        WHEN p.valor_calculado > 3 AND p.valor_calculado <= 10 THEN 'Riesgo de Déficit'
+                        WHEN p.valor_calculado <= 3 AND (z.valor_calculado IS NULL OR z.valor_calculado > -3) THEN 'Déficit Leve'
+                        WHEN z.valor_calculado <= -3 AND z.valor_calculado > -4 THEN 'Déficit Moderado'
+                        WHEN z.valor_calculado <= -4 THEN 'Déficit Grave'
+                        ELSE 'Sin Clasificación'
+                    END AS categoria
+                FROM evaluaciones_antropometricas z
+                LEFT JOIN evaluaciones_antropometricas p ON p.consulta_id = z.consulta_id
+                    AND p.tipo_indicador_id = 4
+                    AND p.tipo_valor_calculado = 'PERCENTIL'
+                    AND p.is_deleted = FALSE
+                JOIN consultas c ON c.id = z.consulta_id
+                JOIN pacientes pa ON pa.id = c.paciente_id
+                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                WHERE z.tipo_indicador_id = 4
+                  AND z.tipo_valor_calculado = 'Z_SCORE'
+                  AND z.is_deleted = FALSE
+                  AND c.is_deleted = FALSE
+                  AND pa.is_deleted = FALSE
+                  AND c.estado IN ('COMPLETADA','SIN_PREVIA_CITA')
+                  AND c.fecha_hora_real::date BETWEEN :fechaInicio AND :fechaFin
+                  AND ui.institucion_id = :institucionId
+                  AND EXTRACT(YEAR FROM age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int < 2
+                  AND c.tipo_actividad_id = 10
+            ) t
+            GROUP BY t.categoria
+            ORDER BY t.categoria
+            """;
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> results2 = entityManager.createNativeQuery(sql)
+                .setParameter("fechaInicio", fechaInicio)
+                .setParameter("fechaFin", fechaFin)
+                .setParameter("institucionId", institucionId)
+                .getResultList();
+        return results2;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Object[]> obtenerResumenAntropometriaPesoEdadMenores2ConsultasRegularesPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
+        String sql = """
+            SELECT t.categoria,
+                   COUNT(*) AS total
+            FROM (
+                SELECT
+                    CASE
+                        WHEN z.valor_calculado > 3 THEN 'Exceso Moderado y Grave'
+                        WHEN (z.valor_calculado IS NULL OR z.valor_calculado <= 3) AND p.valor_calculado > 97 THEN 'Exceso Leve'
+                        WHEN p.valor_calculado > 90 AND p.valor_calculado <= 97 THEN 'Riesgo de Exceso'
+                        WHEN p.valor_calculado > 10 AND p.valor_calculado <= 90 THEN 'Normal'
+                        WHEN p.valor_calculado > 3 AND p.valor_calculado <= 10 THEN 'Riesgo de Déficit'
+                        WHEN p.valor_calculado <= 3 AND (z.valor_calculado IS NULL OR z.valor_calculado > -3) THEN 'Déficit Leve'
+                        WHEN z.valor_calculado <= -3 AND z.valor_calculado > -4 THEN 'Déficit Moderado'
+                        WHEN z.valor_calculado <= -4 THEN 'Déficit Grave'
+                        ELSE 'Sin Clasificación'
+                    END AS categoria
+                FROM evaluaciones_antropometricas z
+                LEFT JOIN evaluaciones_antropometricas p ON p.consulta_id = z.consulta_id
+                    AND p.tipo_indicador_id = 4
+                    AND p.tipo_valor_calculado = 'PERCENTIL'
+                    AND p.is_deleted = FALSE
+                JOIN consultas c ON c.id = z.consulta_id
+                JOIN pacientes pa ON pa.id = c.paciente_id
+                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                WHERE z.tipo_indicador_id = 4
+                  AND z.tipo_valor_calculado = 'Z_SCORE'
+                  AND z.is_deleted = FALSE
+                  AND c.is_deleted = FALSE
+                  AND pa.is_deleted = FALSE
+                  AND c.estado IN ('COMPLETADA','SIN_PREVIA_CITA')
+                  AND c.fecha_hora_real::date BETWEEN :fechaInicio AND :fechaFin
+                  AND ui.institucion_id = :institucionId
+                  AND EXTRACT(YEAR FROM age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int < 2
+                  AND c.tipo_actividad_id = 1
+            ) t
+            GROUP BY t.categoria
+            ORDER BY t.categoria
+            """;
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> results = entityManager.createNativeQuery(sql)
+                .setParameter("fechaInicio", fechaInicio)
+                .setParameter("fechaFin", fechaFin)
+                .setParameter("institucionId", institucionId)
+                .getResultList();
+        return results;
+    }
 }
