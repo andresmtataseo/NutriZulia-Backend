@@ -68,7 +68,7 @@ public class ReporteService {
     }
 
     // Record para encapsular los datos de cada mes
-    private record MesContext(List<Map<String, Object>> lista, Map<Integer, Map<String, Integer>> porInstitucion, Map<Integer, Map<String, Integer>> actividadesPorInstitucion, Map<Integer, Map<String, Integer>> antropometriaPorInstitucion, Map<Integer, Map<String, Integer>> antropometriaRegularesPorInstitucion) {}
+    private record MesContext(List<Map<String, Object>> lista, Map<Integer, Map<String, Integer>> porInstitucion, Map<Integer, Map<String, Integer>> actividadesPorInstitucion, Map<Integer, Map<String, Integer>> antropometriaPorInstitucion, Map<Integer, Map<String, Integer>> antropometriaRegularesPorInstitucion, Map<Integer, Map<String, Integer>> antropometriaCombinadaNinos2a9PorInstitucion) {}
 
     // Record para resumen de actividades por tipo
     private record ActividadTipoResumen(Integer tipoId, String tipoNombre, Integer totalParticipantes, Integer totalVeces) {}
@@ -83,11 +83,13 @@ public class ReporteService {
         Map<Integer, Map<String, Integer>> actividadesPorInstitucion = new HashMap<>();
         Map<Integer, Map<String, Integer>> antropometriaPorInstitucion = new HashMap<>();
         Map<Integer, Map<String, Integer>> antropometriaRegularesPorInstitucion = new HashMap<>();
+        Map<Integer, Map<String, Integer>> antropometriaCombinadaNinos2a9PorInstitucion = new HashMap<>();
         for (InstitucionDto ins : instituciones) {
             List<ResumenConsultasEdadDto> resumen = obtenerResumenConsultasPorEdadPorInstitucion(fechaInicioMes, fechaFinMes, ins.getId());
             List<ActividadTipoResumen> actividadesResumen = obtenerResumenActividadesPorTipoPorInstitucion(fechaInicioMes, fechaFinMes, ins.getId());
             List<AntropometriaResumen> antropometriaResumen = obtenerResumenAntropometriaPesoEdadMenores2PorInstitucion(fechaInicioMes, fechaFinMes, ins.getId());
             List<AntropometriaResumen> antropometriaResumenRegulares = obtenerResumenAntropometriaPesoEdadMenores2ConsultasRegularesPorInstitucion(fechaInicioMes, fechaFinMes, ins.getId());
+            List<AntropometriaResumen> antropometriaCombinadaNinos2a9Resumen = obtenerResumenAntropometriaCombinadaNinos2a9PorInstitucion(fechaInicioMes, fechaFinMes, ins.getId());
 
             Map<String, Object> fila = new HashMap<>();
             fila.put("institucion", ins);
@@ -95,13 +97,16 @@ public class ReporteService {
             fila.put("actividades", actividadesResumen);
             fila.put("antropometria", antropometriaResumen);
             fila.put("antropometriaRegulares", antropometriaResumenRegulares);
+            fila.put("antropometriaCombinadaNinos2a9", antropometriaCombinadaNinos2a9Resumen);
             Map<String, Integer> plano = aplanarResumenPorRango(resumen);
             Map<String, Integer> actividadesPlanas = aplanarActividadesPorTipo(actividadesResumen);
             Map<String, Integer> antropometriaPlana = aplanarAntropometriaMenores2(antropometriaResumen);
             Map<String, Integer> antropometriaRegularesPlana = aplanarAntropometriaMenores2(antropometriaResumenRegulares);
+            Map<String, Integer> antropometriaCombinadaNinos2a9Plana = aplanarAntropometriaCombinadaNinos2a9(antropometriaCombinadaNinos2a9Resumen);
             fila.put("actividadesPlanas", actividadesPlanas);
             fila.put("antropometriaPlana", antropometriaPlana);
             fila.put("antropometriaRegularesPlana", antropometriaRegularesPlana);
+            fila.put("antropometriaCombinadaNinos2a9Plana", antropometriaCombinadaNinos2a9Plana);
             datosMes.add(fila);
 
             // Resumen aplanado por rango para acceso directo desde la plantilla
@@ -109,8 +114,9 @@ public class ReporteService {
             actividadesPorInstitucion.put(ins.getId(), actividadesPlanas);
             antropometriaPorInstitucion.put(ins.getId(), antropometriaPlana);
             antropometriaRegularesPorInstitucion.put(ins.getId(), antropometriaRegularesPlana);
+            antropometriaCombinadaNinos2a9PorInstitucion.put(ins.getId(), antropometriaCombinadaNinos2a9Plana);
         }
-        return new MesContext(datosMes, mesPorInstitucion, actividadesPorInstitucion, antropometriaPorInstitucion, antropometriaRegularesPorInstitucion);
+        return new MesContext(datosMes, mesPorInstitucion, actividadesPorInstitucion, antropometriaPorInstitucion, antropometriaRegularesPorInstitucion, antropometriaCombinadaNinos2a9PorInstitucion);
     }
 
     // Helper: Aplana la lista de ResumenConsultasEdadDto a un mapa por rango
@@ -196,6 +202,17 @@ public class ReporteService {
         return result;
     }
 
+    private List<AntropometriaResumen> obtenerResumenAntropometriaCombinadaNinos2a9PorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
+        List<Object[]> raw = reportsQueryRepository.obtenerResumenAntropometriaCombinadaNinos2a9PorInstitucion(fechaInicio, fechaFin, institucionId);
+        List<AntropometriaResumen> result = new ArrayList<>();
+        for (Object[] row : raw) {
+            String categoria = (String) row[0];
+            Integer total = toInteger(row[1]);
+            result.add(new AntropometriaResumen(categoria, total));
+        }
+        return result;
+    }
+
     // Helper: Aplana el resumen antropométrico de Peso/Edad menores de 2 años a un mapa con claves fijas
     private Map<String, Integer> aplanarAntropometriaMenores2(List<AntropometriaResumen> antropometriaResumen) {
         Map<String, Integer> flat = new HashMap<>();
@@ -231,6 +248,36 @@ public class ReporteService {
                 flat.put("pesoEdadMenores2DeficitGrave", total);
             } else if ("Sin Clasificación".equals(cat)) {
                 flat.put("pesoEdadMenores2SinClasificacion", total);
+            }
+        }
+        return flat;
+    }
+
+    // Nuevo: Aplana el resumen antropométrico combinado (P/T y T/E) para niños de 2 a 9 años 11 meses
+    private Map<String, Integer> aplanarAntropometriaCombinadaNinos2a9(List<AntropometriaResumen> resumen) {
+        Map<String, Integer> flat = new HashMap<>();
+        // Inicializar claves para evitar nulls en la plantilla
+        flat.put("antropometriaCombinadaNinos2a9Sobrepeso", 0);
+        flat.put("antropometriaCombinadaNinos2a9Normal", 0);
+        flat.put("antropometriaCombinadaNinos2a9DeficitAgudo", 0);
+        flat.put("antropometriaCombinadaNinos2a9DeficitCronicoCompensado", 0);
+        flat.put("antropometriaCombinadaNinos2a9DeficitCronicoDescompensado", 0);
+        flat.put("antropometriaCombinadaNinos2a9SinClasificacion", 0);
+
+        for (AntropometriaResumen a : resumen) {
+            String categoria = a.categoria();
+            Integer total = a.total() != null ? a.total() : 0;
+            switch (categoria) {
+                case "Sobrepeso" -> flat.put("antropometriaCombinadaNinos2a9Sobrepeso", total);
+                case "Normal" -> flat.put("antropometriaCombinadaNinos2a9Normal", total);
+                case "Déficit Agudo" -> flat.put("antropometriaCombinadaNinos2a9DeficitAgudo", total);
+                case "Déficit Crónico Compensado" -> flat.put("antropometriaCombinadaNinos2a9DeficitCronicoCompensado", total);
+                case "Déficit Crónico Descompensado" -> flat.put("antropometriaCombinadaNinos2a9DeficitCronicoDescompensado", total);
+                case "Sin Clasificación" -> flat.put("antropometriaCombinadaNinos2a9SinClasificacion", total);
+                default -> {
+                    int existente = flat.getOrDefault("antropometriaCombinadaNinos2a9SinClasificacion", 0);
+                    flat.put("antropometriaCombinadaNinos2a9SinClasificacion", existente + total);
+                }
             }
         }
         return flat;
@@ -279,6 +326,8 @@ public class ReporteService {
                 context.putVar("mes" + m + "AntropometriaPorInstitucion", mc.antropometriaPorInstitucion());
                 // Nuevo: antropometría Peso/Edad menores de 2 años para consultas regulares (tipo_actividad_id=1) aplanada por institución
                 context.putVar("mes" + m + "AntropometriaRegularesPorInstitucion", mc.antropometriaRegularesPorInstitucion());
+                // Nuevo: antropometría combinada (P/T y T/E) para niños 2-9 años 11 meses (tipo_actividad_id=10) aplanada por institución
+                context.putVar("mes" + m + "AntropometriaCombinadaNinos2a9PorInstitucion", mc.antropometriaCombinadaNinos2a9PorInstitucion());
             }
             
             // Debug: Verificar el contexto JXLS

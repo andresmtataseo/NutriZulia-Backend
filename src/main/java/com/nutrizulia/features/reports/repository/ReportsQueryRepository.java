@@ -11,4 +11,5 @@ public interface ReportsQueryRepository {
     // Nuevo: resumen de evaluación antropométrica Peso/Edad (tipo_indicador_id=4) en menores de 2 años por institución y rango de fechas
     List<Object[]> obtenerResumenAntropometriaPesoEdadMenores2PorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId);
     List<Object[]> obtenerResumenAntropometriaPesoEdadMenores2ConsultasRegularesPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId);
+    List<Object[]> obtenerResumenAntropometriaCombinadaNinos2a9PorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId);
 }
