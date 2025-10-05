@@ -1,4 +1,4 @@
-package com.nutrizulia.features.health.controller;
+package com.nutrizulia.common.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
