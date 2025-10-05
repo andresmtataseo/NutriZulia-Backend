@@ -200,6 +200,137 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
 
     @Override
     @Transactional(readOnly = true)
+    public List<Object[]> obtenerResumenAntropometriaCombinadaNinos2a9ConsultasRegularesPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
+        String sql = """
+            SELECT t.categoria,
+                   COUNT(DISTINCT t.consulta_id) AS total
+            FROM (
+                SELECT
+                    c.id AS consulta_id,
+                    CASE
+                        WHEN (
+                            CASE WHEN ((DATE_PART('year', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int * 12
+                                        + DATE_PART('mon', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int) < 60)
+                                 THEN wh.valor_calculado
+                                 ELSE bmi.valor_calculado
+                            END
+                        ) > 90 THEN 'Sobrepeso'
+                        WHEN (
+                            CASE WHEN ((DATE_PART('year', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int * 12
+                                        + DATE_PART('mon', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int) < 60)
+                                 THEN wh.valor_calculado
+                                 ELSE bmi.valor_calculado
+                            END
+                        ) <= 90 AND (
+                            CASE WHEN ((DATE_PART('year', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int * 12
+                                        + DATE_PART('mon', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int) < 60)
+                                 THEN wh.valor_calculado
+                                 ELSE bmi.valor_calculado
+                            END
+                        ) > 10 AND (COALESCE(te6.valor_calculado, te7.valor_calculado) >= 10) THEN 'Normal'
+                        WHEN (
+                            CASE WHEN ((DATE_PART('year', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int * 12
+                                        + DATE_PART('mon', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int) < 60)
+                                 THEN wh.valor_calculado
+                                 ELSE bmi.valor_calculado
+                            END
+                        ) < 3 AND (COALESCE(te6.valor_calculado, te7.valor_calculado) >= 10) THEN 'Déficit de Peso'
+                        WHEN (
+                            CASE WHEN ((DATE_PART('year', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int * 12
+                                        + DATE_PART('mon', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int) < 60)
+                                 THEN wh.valor_calculado
+                                 ELSE bmi.valor_calculado
+                            END
+                        ) > 3 AND (
+                            CASE WHEN ((DATE_PART('year', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int * 12
+                                        + DATE_PART('mon', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int) < 60)
+                                 THEN wh.valor_calculado
+                                 ELSE bmi.valor_calculado
+                            END
+                        ) <= 10 AND (COALESCE(te6.valor_calculado, te7.valor_calculado) >= 10) THEN 'Déficit Agudo'
+                        WHEN (COALESCE(te6.valor_calculado, te7.valor_calculado) < 10) AND (
+                            CASE WHEN ((DATE_PART('year', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int * 12
+                                        + DATE_PART('mon', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int) < 60)
+                                 THEN wh.valor_calculado
+                                 ELSE bmi.valor_calculado
+                            END
+                        ) >= 10 THEN 'Déficit Crónico Compensado'
+                        WHEN (COALESCE(te6.valor_calculado, te7.valor_calculado) < 10) AND (
+                            CASE WHEN ((DATE_PART('year', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int * 12
+                                        + DATE_PART('mon', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int) < 60)
+                                 THEN wh.valor_calculado
+                                 ELSE bmi.valor_calculado
+                            END
+                        ) <= 10 THEN 'Déficit Crónico Descompensado'
+                        ELSE 'Sin Clasificación'
+                    END AS categoria
+                FROM consultas c
+                JOIN pacientes pa ON pa.id = c.paciente_id
+                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                LEFT JOIN LATERAL (
+                    SELECT ea.valor_calculado
+                    FROM evaluaciones_antropometricas ea
+                    WHERE ea.consulta_id = c.id
+                      AND ea.tipo_valor_calculado = 'PERCENTIL'
+                      AND ea.tipo_indicador_id IN (5, 3)
+                      AND ea.is_deleted = FALSE
+                    ORDER BY ea.id DESC
+                    LIMIT 1
+                ) wh ON TRUE
+                LEFT JOIN LATERAL (
+                    SELECT ea.valor_calculado
+                    FROM evaluaciones_antropometricas ea
+                    WHERE ea.consulta_id = c.id
+                      AND ea.tipo_valor_calculado = 'PERCENTIL'
+                      AND ea.is_deleted = FALSE
+                      AND ea.tipo_indicador_id = 1
+                    ORDER BY ea.id DESC
+                    LIMIT 1
+                ) bmi ON TRUE
+                LEFT JOIN LATERAL (
+                    SELECT ea.valor_calculado
+                    FROM evaluaciones_antropometricas ea
+                    WHERE ea.consulta_id = c.id
+                      AND ea.tipo_valor_calculado = 'PERCENTIL'
+                      AND ea.tipo_indicador_id = 6
+                      AND ea.is_deleted = FALSE
+                    ORDER BY ea.id DESC
+                    LIMIT 1
+                ) te6 ON TRUE
+                LEFT JOIN LATERAL (
+                    SELECT ea.valor_calculado
+                    FROM evaluaciones_antropometricas ea
+                    WHERE ea.consulta_id = c.id
+                      AND ea.tipo_valor_calculado = 'PERCENTIL'
+                      AND ea.tipo_indicador_id = 7
+                      AND ea.is_deleted = FALSE
+                    ORDER BY ea.id DESC
+                    LIMIT 1
+                ) te7 ON TRUE
+                WHERE c.is_deleted = FALSE
+                  AND pa.is_deleted = FALSE
+                  AND c.estado IN ('COMPLETADA','SIN_PREVIA_CITA')
+                  AND c.fecha_hora_real::date BETWEEN :fechaInicio AND :fechaFin
+                  AND ui.institucion_id = :institucionId
+                  AND ((DATE_PART('year', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int * 12
+                        + DATE_PART('mon', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int) BETWEEN 24 AND 119)
+                  AND c.tipo_actividad_id = 1
+            ) t
+            GROUP BY t.categoria
+            ORDER BY t.categoria
+            """;
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> results = entityManager.createNativeQuery(sql)
+                .setParameter("fechaInicio", fechaInicio)
+                .setParameter("fechaFin", fechaFin)
+                .setParameter("institucionId", institucionId)
+                .getResultList();
+        return results;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<Object[]> obtenerResumenActividadesPorTipoPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
         String sql = """
             SELECT ta.id AS tipo_id,
