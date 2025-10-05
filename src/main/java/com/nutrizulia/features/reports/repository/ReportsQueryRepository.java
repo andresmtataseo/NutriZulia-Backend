@@ -15,4 +15,9 @@ public interface ReportsQueryRepository {
     List<Object[]> obtenerResumenAntropometriaCombinadaNinos2a9ConsultasRegularesPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId);
     // Nuevo: resumen combinado IMC/Edad (id=1) y Altura/Edad (id=7) para 10-18 años 11 meses, tipo_actividad_id=10
     List<Object[]> obtenerResumenAntropometriaCombinadaNinos10a18PorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId);
+    // Nuevo: variante para consultas regulares (tipo_actividad_id=1) en 10-18 años 11 meses
+    List<Object[]> obtenerResumenAntropometriaCombinadaNinos10a18ConsultasRegularesPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId);
+
+    // Nuevo: resumen IMC adultos (tipo_indicador_id=8) para mayores de 19 años, desglosado por grupo de edad (19-59 y 60+)
+    List<Object[]> obtenerResumenImcAdultosPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId);
 }

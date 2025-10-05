@@ -131,6 +131,68 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
 
     @Override
     @Transactional(readOnly = true)
+    public List<Object[]> obtenerResumenAntropometriaCombinadaNinos10a18ConsultasRegularesPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
+        String sql = """
+            SELECT t.categoria,
+                   COUNT(DISTINCT t.consulta_id) AS total
+            FROM (
+                SELECT
+                    c.id AS consulta_id,
+                    CASE
+                        WHEN bmi.valor_calculado > 90 THEN 'Sobrepeso'
+                        WHEN bmi.valor_calculado <= 90 AND bmi.valor_calculado > 10 AND (ae.valor_calculado >= 10) THEN 'Normal'
+                        WHEN bmi.valor_calculado > 3 AND bmi.valor_calculado <= 10 AND (ae.valor_calculado >= 10) THEN 'Déficit Agudo'
+                        WHEN (ae.valor_calculado < 10) AND (bmi.valor_calculado >= 10) THEN 'Déficit Crónico Compensado'
+                        WHEN (ae.valor_calculado < 10) AND (bmi.valor_calculado <= 10) THEN 'Déficit Crónico Descompensado'
+                        ELSE 'Sin Clasificación'
+                    END AS categoria
+                FROM consultas c
+                JOIN pacientes pa ON pa.id = c.paciente_id
+                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                LEFT JOIN LATERAL (
+                    SELECT ea.valor_calculado
+                    FROM evaluaciones_antropometricas ea
+                    WHERE ea.consulta_id = c.id
+                      AND ea.tipo_valor_calculado = 'PERCENTIL'
+                      AND ea.tipo_indicador_id = 1
+                      AND ea.is_deleted = FALSE
+                    ORDER BY ea.id DESC
+                    LIMIT 1
+                ) bmi ON TRUE
+                LEFT JOIN LATERAL (
+                    SELECT ea.valor_calculado
+                    FROM evaluaciones_antropometricas ea
+                    WHERE ea.consulta_id = c.id
+                      AND ea.tipo_valor_calculado = 'PERCENTIL'
+                      AND ea.tipo_indicador_id = 7
+                      AND ea.is_deleted = FALSE
+                    ORDER BY ea.id DESC
+                    LIMIT 1
+                ) ae ON TRUE
+                WHERE c.is_deleted = FALSE
+                  AND pa.is_deleted = FALSE
+                  AND c.estado IN ('COMPLETADA','SIN_PREVIA_CITA')
+                  AND c.fecha_hora_real::date BETWEEN :fechaInicio AND :fechaFin
+                  AND ui.institucion_id = :institucionId
+                  AND ((DATE_PART('year', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int * 12
+                        + DATE_PART('mon', age(c.fecha_hora_real::date, pa.fecha_nacimiento))::int) BETWEEN 120 AND 227)
+                  AND c.tipo_actividad_id = 1
+            ) t
+            GROUP BY t.categoria
+            ORDER BY t.categoria
+            """;
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> results2 = entityManager.createNativeQuery(sql)
+                .setParameter("fechaInicio", fechaInicio)
+                .setParameter("fechaFin", fechaFin)
+                .setParameter("institucionId", institucionId)
+                .getResultList();
+        return results2;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<Object[]> obtenerResumenAntropometriaCombinadaNinos2a9PorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
         String sql = """
             SELECT t.categoria,
@@ -518,5 +580,63 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
                 .setParameter("institucionId", institucionId)
                 .getResultList();
         return results;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Object[]> obtenerResumenImcAdultosPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
+        String sql = """
+            SELECT t.categoria,
+                   t.grupo_edad,
+                   COUNT(DISTINCT t.consulta_id) AS total
+            FROM (
+                SELECT
+                    c.id AS consulta_id,
+                    CASE
+                        WHEN imc.valor_calculado >= 40 THEN 'Obesidad Mórbida (>40)'
+                        WHEN imc.valor_calculado >= 30 AND imc.valor_calculado < 40 THEN 'Obesidad (30,00 - 39,99)'
+                        WHEN imc.valor_calculado >= 25 AND imc.valor_calculado < 30 THEN 'Sobrepeso (25,00 - 29,99)'
+                        WHEN imc.valor_calculado >= 18.5 AND imc.valor_calculado < 25 THEN 'Normal (18,5 - 24,99)'
+                        WHEN imc.valor_calculado >= 17 AND imc.valor_calculado < 18.5 THEN 'Delgadez Leve (17,00 - 18,49)'
+                        WHEN imc.valor_calculado >= 16 AND imc.valor_calculado < 17 THEN 'Delgadez Moderada (16,00 - 16,99)'
+                        WHEN imc.valor_calculado < 16 THEN 'Delgadez Intensa (<16,00)'
+                        ELSE 'Sin Clasificación'
+                    END AS categoria,
+                    CASE
+                        WHEN EXTRACT(YEAR FROM age(c.fecha_hora_real::date, p.fecha_nacimiento))::int BETWEEN 19 AND 59 THEN '19-59'
+                        WHEN EXTRACT(YEAR FROM age(c.fecha_hora_real::date, p.fecha_nacimiento))::int >= 60 THEN '60+'
+                        ELSE 'Otro'
+                    END AS grupo_edad
+                FROM consultas c
+                JOIN pacientes p ON p.id = c.paciente_id
+                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                LEFT JOIN LATERAL (
+                    SELECT ea.valor_calculado
+                    FROM evaluaciones_antropometricas ea
+                    WHERE ea.consulta_id = c.id
+                      AND ea.tipo_valor_calculado = 'IMC'
+                      AND ea.tipo_indicador_id = 8
+                      AND ea.is_deleted = FALSE
+                    ORDER BY ea.id DESC
+                    LIMIT 1
+                ) imc ON TRUE
+                WHERE c.is_deleted = FALSE
+                  AND p.is_deleted = FALSE
+                  AND c.estado IN ('COMPLETADA','SIN_PREVIA_CITA')
+                  AND c.fecha_hora_real::date BETWEEN :fechaInicio AND :fechaFin
+                  AND ui.institucion_id = :institucionId
+                  AND EXTRACT(YEAR FROM age(c.fecha_hora_real::date, p.fecha_nacimiento))::int >= 20
+            ) t
+            GROUP BY t.categoria, t.grupo_edad
+            ORDER BY t.categoria, t.grupo_edad
+            """;
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> resultsImc = entityManager.createNativeQuery(sql)
+                .setParameter("fechaInicio", fechaInicio)
+                .setParameter("fechaFin", fechaFin)
+                .setParameter("institucionId", institucionId)
+                .getResultList();
+        return resultsImc;
     }
 }
