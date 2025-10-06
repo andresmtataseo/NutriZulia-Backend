@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.nutrizulia.features.catalog.repository.MunicipioSanitarioRepository;
 
 @Slf4j
 @Service
@@ -28,6 +29,7 @@ public class ReporteService {
 
     private final InstitucionService institucionService;
     private final ReportsQueryRepository reportsQueryRepository;
+    private final MunicipioSanitarioRepository municipioSanitarioRepository;
 
     public List<ResumenConsultasEdadDto> obtenerResumenConsultasPorEdadPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
         List<Object[]> raw = reportsQueryRepository.obtenerResumenConsultasPorEdadPorInstitucion(fechaInicio, fechaFin, institucionId);
@@ -68,7 +70,7 @@ public class ReporteService {
     }
 
     // Record para encapsular los datos de cada mes
-    private record MesContext(List<Map<String, Object>> lista, Map<Integer, Map<String, Integer>> porInstitucion, Map<Integer, Map<String, Integer>> actividadesPorInstitucion, Map<Integer, Map<String, Integer>> antropometriaPorInstitucion, Map<Integer, Map<String, Integer>> antropometriaRegularesPorInstitucion, Map<Integer, Map<String, Integer>> antropometriaCombinadaNinos2a9PorInstitucion, Map<Integer, Map<String, Integer>> antropometriaCombinadaNinos2a9RegularesPorInstitucion, Map<Integer, Map<String, Integer>> antropometriaCombinadaNinos10a18PorInstitucion, Map<Integer, Map<String, Integer>> antropometriaCombinadaNinos10a18RegularesPorInstitucion, Map<Integer, Map<String, Integer>> imcAdultosPorInstitucion) {}
+    private record MesContext(List<Map<String, Object>> lista, Map<Integer, Map<String, Integer>> porInstitucion, Map<Integer, Map<String, Integer>> actividadesPorInstitucion, Map<Integer, Map<String, Integer>> antropometriaPorInstitucion, Map<Integer, Map<String, Integer>> antropometriaRegularesPorInstitucion, Map<Integer, Map<String, Integer>> antropometriaCombinadaNinos2a9PorInstitucion, Map<Integer, Map<String, Integer>> antropometriaCombinadaNinos2a9RegularesPorInstitucion, Map<Integer, Map<String, Integer>> antropometriaCombinadaNinos10a18PorInstitucion, Map<Integer, Map<String, Integer>> antropometriaCombinadaNinos10a18RegularesPorInstitucion, Map<Integer, Map<String, Integer>> imcAdultosPorInstitucion, Map<Integer, Map<String, Integer>> riesgosBiologicosPorInstitucion) {}
 
     // Record para resumen de actividades por tipo
     private record ActividadTipoResumen(Integer tipoId, String tipoNombre, Integer totalParticipantes, Integer totalVeces) {}
@@ -78,6 +80,9 @@ public class ReporteService {
     
     // Nuevo: Record para resumen IMC adultos por categoría y grupo de edad
     private record AntropometriaImcAdultosResumen(String categoria, String grupoEdad, Integer total) {}
+
+    // Nuevo: Record para resumen de riesgos biológicos por nombre
+    private record RiesgoBiologicoResumen(String nombre, Integer total) {}
 
     // Calcula los datos del contexto por mes, eliminando código repetitivo
     private MesContext calcularContextoMes(List<InstitucionDto> instituciones, LocalDate fechaInicioMes, LocalDate fechaFinMes) {
@@ -91,6 +96,7 @@ public class ReporteService {
         Map<Integer, Map<String, Integer>> antropometriaCombinadaNinos10a18PorInstitucion = new HashMap<>();
         Map<Integer, Map<String, Integer>> antropometriaCombinadaNinos10a18RegularesPorInstitucion = new HashMap<>();
         Map<Integer, Map<String, Integer>> imcAdultosPorInstitucion = new HashMap<>();
+        Map<Integer, Map<String, Integer>> riesgosBiologicosPorInstitucion = new HashMap<>();
         for (InstitucionDto ins : instituciones) {
             List<ResumenConsultasEdadDto> resumen = obtenerResumenConsultasPorEdadPorInstitucion(fechaInicioMes, fechaFinMes, ins.getId());
             List<ActividadTipoResumen> actividadesResumen = obtenerResumenActividadesPorTipoPorInstitucion(fechaInicioMes, fechaFinMes, ins.getId());
@@ -101,6 +107,7 @@ public class ReporteService {
             List<AntropometriaResumen> antropometriaCombinadaNinos10a18Resumen = obtenerResumenAntropometriaCombinadaNinos10a18PorInstitucion(fechaInicioMes, fechaFinMes, ins.getId());
             List<AntropometriaResumen> antropometriaCombinadaNinos10a18ResumenRegulares = obtenerResumenAntropometriaCombinadaNinos10a18ConsultasRegularesPorInstitucion(fechaInicioMes, fechaFinMes, ins.getId());
             List<AntropometriaImcAdultosResumen> imcAdultosResumen = obtenerResumenImcAdultosPorInstitucion(fechaInicioMes, fechaFinMes, ins.getId());
+            List<RiesgoBiologicoResumen> riesgosBiologicosResumen = obtenerResumenRiesgoBiologicoPorInstitucion(fechaInicioMes, fechaFinMes, ins.getId());
 
             Map<String, Object> fila = new HashMap<>();
             fila.put("institucion", ins);
@@ -113,6 +120,7 @@ public class ReporteService {
             fila.put("antropometriaCombinadaNinos10a18", antropometriaCombinadaNinos10a18Resumen);
             fila.put("antropometriaCombinadaNinos10a18Regulares", antropometriaCombinadaNinos10a18ResumenRegulares);
             fila.put("imcAdultos", imcAdultosResumen);
+            fila.put("riesgosBiologicos", riesgosBiologicosResumen);
             Map<String, Integer> plano = aplanarResumenPorRango(resumen);
             Map<String, Integer> actividadesPlanas = aplanarActividadesPorTipo(actividadesResumen);
             Map<String, Integer> antropometriaPlana = aplanarAntropometriaMenores2(antropometriaResumen);
@@ -122,6 +130,7 @@ public class ReporteService {
             Map<String, Integer> antropometriaCombinadaNinos10a18Plana = aplanarAntropometriaCombinadaNinos10a18(antropometriaCombinadaNinos10a18Resumen);
             Map<String, Integer> antropometriaCombinadaNinos10a18RegularesPlana = aplanarAntropometriaCombinadaNinos10a18(antropometriaCombinadaNinos10a18ResumenRegulares);
             Map<String, Integer> imcAdultosPlana = aplanarImcAdultos(imcAdultosResumen);
+            Map<String, Integer> riesgosBiologicosPlana = aplanarRiesgosBiologicos(riesgosBiologicosResumen);
             fila.put("actividadesPlanas", actividadesPlanas);
             fila.put("antropometriaPlana", antropometriaPlana);
             fila.put("antropometriaRegularesPlana", antropometriaRegularesPlana);
@@ -130,6 +139,7 @@ public class ReporteService {
             fila.put("antropometriaCombinadaNinos10a18Plana", antropometriaCombinadaNinos10a18Plana);
             fila.put("antropometriaCombinadaNinos10a18RegularesPlana", antropometriaCombinadaNinos10a18RegularesPlana);
             fila.put("imcAdultosPlana", imcAdultosPlana);
+            fila.put("riesgosBiologicosPlana", riesgosBiologicosPlana);
             datosMes.add(fila);
 
             // Resumen aplanado por rango para acceso directo desde la plantilla
@@ -142,8 +152,9 @@ public class ReporteService {
             antropometriaCombinadaNinos10a18PorInstitucion.put(ins.getId(), antropometriaCombinadaNinos10a18Plana);
             antropometriaCombinadaNinos10a18RegularesPorInstitucion.put(ins.getId(), antropometriaCombinadaNinos10a18RegularesPlana);
             imcAdultosPorInstitucion.put(ins.getId(), imcAdultosPlana);
+            riesgosBiologicosPorInstitucion.put(ins.getId(), riesgosBiologicosPlana);
         }
-        return new MesContext(datosMes, mesPorInstitucion, actividadesPorInstitucion, antropometriaPorInstitucion, antropometriaRegularesPorInstitucion, antropometriaCombinadaNinos2a9PorInstitucion, antropometriaCombinadaNinos2a9RegularesPorInstitucion, antropometriaCombinadaNinos10a18PorInstitucion, antropometriaCombinadaNinos10a18RegularesPorInstitucion, imcAdultosPorInstitucion);
+        return new MesContext(datosMes, mesPorInstitucion, actividadesPorInstitucion, antropometriaPorInstitucion, antropometriaRegularesPorInstitucion, antropometriaCombinadaNinos2a9PorInstitucion, antropometriaCombinadaNinos2a9RegularesPorInstitucion, antropometriaCombinadaNinos10a18PorInstitucion, antropometriaCombinadaNinos10a18RegularesPorInstitucion, imcAdultosPorInstitucion, riesgosBiologicosPorInstitucion);
     }
 
     // Helper: Aplana la lista de ResumenConsultasEdadDto a un mapa por rango
@@ -324,6 +335,18 @@ public class ReporteService {
         return result;
     }
 
+    // Nuevo: obtener resumen de riesgos biológicos por institución y rango de fechas
+    private List<RiesgoBiologicoResumen> obtenerResumenRiesgoBiologicoPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
+        List<Object[]> raw = reportsQueryRepository.obtenerResumenRiesgoBiologicoPorInstitucion(fechaInicio, fechaFin, institucionId);
+        List<RiesgoBiologicoResumen> result = new ArrayList<>();
+        for (Object[] row : raw) {
+            String nombre = (String) row[0];
+            Integer total = toInteger(row[1]);
+            result.add(new RiesgoBiologicoResumen(nombre, total));
+        }
+        return result;
+    }
+
     private List<AntropometriaResumen> obtenerResumenAntropometriaCombinadaNinos10a18ConsultasRegularesPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
         List<Object[]> raw = reportsQueryRepository.obtenerResumenAntropometriaCombinadaNinos10a18ConsultasRegularesPorInstitucion(fechaInicio, fechaFin, institucionId);
         List<AntropometriaResumen> result = new ArrayList<>();
@@ -373,6 +396,50 @@ public class ReporteService {
             }
         }
         return flat;
+    }
+
+    // Helper: Aplana el resumen de riesgos biológicos con claves estables
+    private Map<String, Integer> aplanarRiesgosBiologicos(List<RiesgoBiologicoResumen> resumen) {
+        Map<String, Integer> flat = new HashMap<>();
+        // Inicializar claves conocidas en 0 para evitar nulls en la plantilla
+        flat.put("riesgoBiologicoDesnutricion", 0);
+        flat.put("riesgoBiologicoObesidad", 0);
+        flat.put("riesgoBiologicoDiabetesMellitus", 0);
+        flat.put("riesgoBiologicoEnfermedadCardioVascular", 0);
+        flat.put("riesgoBiologicoEnfermedadHematopoyetica", 0);
+        flat.put("riesgoBiologicoEnfermedadSistemaDigestivo", 0);
+        flat.put("riesgoBiologicoEnfermedadInfecciosaParasitaria", 0);
+        flat.put("riesgoBiologicoEnfermedadGenitalUrinaria", 0);
+        flat.put("riesgoBiologicoEnfermedadPartoYPuerperio", 0);
+        flat.put("riesgoBiologicoEnfermedadInmunologica", 0);
+        flat.put("riesgoBiologicoEnfermedadReumatoidea", 0);
+        flat.put("riesgoBiologicoEnfermedadViasRespiratorias", 0);
+        flat.put("riesgoBiologicoDislipidemia", 0);
+        flat.put("riesgoBiologicoOtros", 0);
+        for (RiesgoBiologicoResumen r : resumen) {
+            String key = mapNombreARiesgoKey(r.nombre());
+            Integer total = r.total() != null ? r.total() : 0;
+            flat.put(key, flat.getOrDefault(key, 0) + total);
+        }
+        return flat;
+    }
+
+    // Helper: Convierte nombres libres de riesgo a una clave camel case estable
+    private String mapNombreARiesgoKey(String nombre) {
+        String base = nombre == null ? "" : nombre;
+        String normalized = java.text.Normalizer.normalize(base, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        normalized = normalized.replaceAll("[^A-Za-z0-9 ]", " ").trim();
+        if (normalized.isEmpty()) {
+            return "riesgoBiologicoSinNombre";
+        }
+        String[] parts = normalized.split("\\s+");
+        StringBuilder sb = new StringBuilder("riesgoBiologico");
+        for (String p : parts) {
+            if (p.isEmpty()) continue;
+            sb.append(Character.toUpperCase(p.charAt(0))).append(p.substring(1).toLowerCase());
+        }
+        return sb.toString();
     }
 
     // Nuevo: Aplana el resumen antropométrico combinado (P/T y T/E) para niños de 2 a 9 años 11 meses
@@ -453,6 +520,11 @@ public class ReporteService {
             throw new RuntimeException("No se encontraron instituciones para el municipio sanitario especificado");
         }
 
+        // Obtener nombre del municipio sanitario para la plantilla JXLS
+        String municipioSanitarioNombre = municipioSanitarioRepository.findById(municipioSanitarioId)
+                .orElseThrow(() -> new RuntimeException("Municipio sanitario no encontrado con ID: " + municipioSanitarioId))
+                .getNombre();
+
         try (InputStream is = getClass().getResourceAsStream("/templates/resumen_trimestral.xlsx")) {
             if (is == null) {
                 throw new RuntimeException("No se pudo encontrar la plantilla resumen_trimestral.xlsx");
@@ -461,6 +533,9 @@ public class ReporteService {
             Context context = new Context();
             // Lista de instituciones disponible para hojas que lo requieran
             context.putVar("instituciones", instituciones);
+            // Variables globales solicitadas
+            context.putVar("anio", anio);
+            context.putVar("municipioSanitarioNombre", municipioSanitarioNombre);
 
             // Construir datos por mes (mes1..mes12) por institución, para el año solicitado
             final int year = anio;
@@ -488,6 +563,8 @@ public class ReporteService {
                 context.putVar("mes" + m + "AntropometriaCombinadaNinos10a18RegularesPorInstitucion", mc.antropometriaCombinadaNinos10a18RegularesPorInstitucion());
                 // Nuevo: IMC adultos aplanado por institución
                 context.putVar("mes" + m + "ImcAdultosPorInstitucion", mc.imcAdultosPorInstitucion());
+                // Nuevo: riesgos biológicos aplanados por institución
+                context.putVar("mes" + m + "RiesgosBiologicosPorInstitucion", mc.riesgosBiologicosPorInstitucion());
             }
             
             // Debug: Verificar el contexto JXLS

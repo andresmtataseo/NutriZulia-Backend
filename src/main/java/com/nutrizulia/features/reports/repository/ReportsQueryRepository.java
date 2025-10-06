@@ -20,4 +20,7 @@ public interface ReportsQueryRepository {
 
     // Nuevo: resumen IMC adultos (tipo_indicador_id=8) para mayores de 19 años, desglosado por grupo de edad (19-59 y 60+)
     List<Object[]> obtenerResumenImcAdultosPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId);
+
+    // Nuevo: resumen de riesgos biológicos por institución considerando solo PRIMERA_CONSULTA y diagnóstico principal
+    List<Object[]> obtenerResumenRiesgoBiologicoPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId);
 }

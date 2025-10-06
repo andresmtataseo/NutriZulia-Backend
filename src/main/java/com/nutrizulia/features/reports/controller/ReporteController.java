@@ -27,7 +27,7 @@ import static com.nutrizulia.common.util.ApiConstants.CATALOG_BASE_URL;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(CATALOG_BASE_URL)
+@RequestMapping("api/v1/report")
 @Tag(
         name = "Reportes del Sistema",
         description = "Genera los reportes del sistema"
@@ -45,8 +45,8 @@ public class ReporteController {
             @ApiResponse(responseCode = "404", description = "No se encontraron instituciones para el municipio sanitario"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/reporte-trimestral")
-    public ResponseEntity<ByteArrayResource> generarReporteTrimestral(
+    @GetMapping("/annual")
+    public ResponseEntity<ByteArrayResource> generarReporteAnual(
             @Parameter(description = "ID del municipio sanitario", required = true)
             @RequestParam Integer municipioSanitarioId,
             @Parameter(description = "Año del reporte (ej. 2025)", required = true)

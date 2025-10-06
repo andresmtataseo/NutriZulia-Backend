@@ -639,4 +639,36 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
                 .getResultList();
         return resultsImc;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Object[]> obtenerResumenRiesgoBiologicoPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
+        String sql = """
+            SELECT rb.nombre AS riesgo_biologico,
+                   COUNT(DISTINCT c.id) AS total
+            FROM diagnosticos d
+            JOIN consultas c ON c.id = d.consulta_id
+            JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+            JOIN pacientes p ON p.id = c.paciente_id
+            JOIN riesgos_biologicos rb ON rb.id = d.riesgo_biologico_id
+            WHERE d.is_deleted = FALSE
+              AND d.is_principal = TRUE
+              AND c.is_deleted = FALSE
+              AND p.is_deleted = FALSE
+              AND c.estado IN ('COMPLETADA','SIN_PREVIA_CITA')
+              AND c.tipo_consulta = 'PRIMERA_CONSULTA'
+              AND c.fecha_hora_real::date BETWEEN :fechaInicio AND :fechaFin
+              AND ui.institucion_id = :institucionId
+            GROUP BY rb.nombre
+            ORDER BY rb.nombre
+            """;
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> results = entityManager.createNativeQuery(sql)
+                .setParameter("fechaInicio", fechaInicio)
+                .setParameter("fechaFin", fechaFin)
+                .setParameter("institucionId", institucionId)
+                .getResultList();
+        return results;
+    }
 }
