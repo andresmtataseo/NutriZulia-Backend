@@ -21,6 +21,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.nutrizulia.features.catalog.repository.MunicipioSanitarioRepository;
+import com.nutrizulia.features.reports.dto.InstitucionDataFreshnessDto;
+import com.nutrizulia.features.reports.dto.UsuarioDataFreshnessDto;
+import com.nutrizulia.features.user.model.UsuarioInstitucion;
+import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 
 @Slf4j
 @Service
@@ -30,6 +44,7 @@ public class ReporteService {
     private final InstitucionService institucionService;
     private final ReportsQueryRepository reportsQueryRepository;
     private final MunicipioSanitarioRepository municipioSanitarioRepository;
+    private final UsuarioInstitucionRepository usuarioInstitucionRepository;
 
     public List<ResumenConsultasEdadDto> obtenerResumenConsultasPorEdadPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
         List<Object[]> raw = reportsQueryRepository.obtenerResumenConsultasPorEdadPorInstitucion(fechaInicio, fechaFin, institucionId);
@@ -577,6 +592,66 @@ public class ReporteService {
             Transformer transformer  = jxlsHelper.createTransformer(is, os);
             jxlsHelper.processTemplate(context, transformer);
             log.info("Reporte generado exitosamente en memoria");
+        }
+    }
+
+    // Data Freshness: retorna JSON con la última actualización por usuario activo en cada institución del municipio
+    public List<InstitucionDataFreshnessDto> obtenerDataFreshnessPorMunicipio(Integer municipioSanitarioId) {
+        if (municipioSanitarioId == null || municipioSanitarioId <= 0) {
+            throw new IllegalArgumentException("El ID del municipio sanitario debe ser un número positivo");
+        }
+        List<InstitucionDto> instituciones = institucionService.getInstitucionesByMunicipioSanitario(municipioSanitarioId);
+        List<InstitucionDataFreshnessDto> resultado = new ArrayList<>();
+        if (instituciones.isEmpty()) {
+            return resultado;
+        }
+        for (InstitucionDto institucion : instituciones) {
+            List<UsuarioInstitucion> usuariosActivos = usuarioInstitucionRepository.findActiveUsersByInstitucionId(institucion.getId());
+            List<Integer> usuarioInstitucionIds = usuariosActivos.stream().map(UsuarioInstitucion::getId).toList();
+            Map<Integer, LocalDateTime> ultimaActualizacionPorUi = new HashMap<>();
+            if (!usuarioInstitucionIds.isEmpty()) {
+                List<Object[]> raw = reportsQueryRepository.obtenerUltimaActualizacionPorUsuarioInstitucionIds(usuarioInstitucionIds);
+                for (Object[] row : raw) {
+                    Integer uiId = toInteger(row[0]);
+                    LocalDateTime ts = toLocalDateTime(row[1]);
+                    ultimaActualizacionPorUi.put(uiId, ts);
+                }
+            }
+            List<UsuarioDataFreshnessDto> usuariosDto = new ArrayList<>();
+            for (UsuarioInstitucion ui : usuariosActivos) {
+                usuariosDto.add(
+                    UsuarioDataFreshnessDto.builder()
+                            .usuarioInstitucionId(ui.getId())
+                            .usuarioId(ui.getUsuario().getId())
+                            .cedula(ui.getUsuario().getCedula())
+                            .nombres(ui.getUsuario().getNombres())
+                            .apellidos(ui.getUsuario().getApellidos())
+                            .rolNombre(ui.getRol() != null ? ui.getRol().getDescripcion() : null)
+                            .ultimaActualizacion(ultimaActualizacionPorUi.get(ui.getId()))
+                            .build()
+                );
+            }
+            resultado.add(
+                InstitucionDataFreshnessDto.builder()
+                        .institucionId(institucion.getId())
+                        .institucionNombre(institucion.getNombre())
+                        .usuarios(usuariosDto)
+                        .build()
+            );
+        }
+        return resultado;
+    }
+
+    private LocalDateTime toLocalDateTime(Object value) {
+        if (value == null) return null;
+        if (value instanceof LocalDateTime ldt) return ldt;
+        if (value instanceof java.sql.Timestamp ts) return ts.toLocalDateTime();
+        if (value instanceof Date d) return LocalDateTime.ofInstant(d.toInstant(), ZoneId.systemDefault());
+        try {
+            return LocalDateTime.parse(value.toString());
+        } catch (Exception e) {
+            log.warn("No se pudo convertir a LocalDateTime: {}", value);
+            return null;
         }
     }
 }

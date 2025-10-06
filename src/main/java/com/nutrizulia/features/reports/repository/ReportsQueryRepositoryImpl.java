@@ -671,4 +671,26 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
                 .getResultList();
         return results;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Object[]> obtenerUltimaActualizacionPorUsuarioInstitucionIds(List<Integer> usuarioInstitucionIds) {
+        String sql = """
+            SELECT c.usuario_institucion_id AS usuario_institucion_id,
+                   MAX(c.updated_at) AS ultima_actualizacion
+            FROM consultas c
+            JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+            WHERE c.is_deleted = FALSE
+              AND c.estado IN ('COMPLETADA','SIN_PREVIA_CITA')
+              AND c.usuario_institucion_id IN (:usuarioInstitucionIds)
+            GROUP BY c.usuario_institucion_id
+            ORDER BY c.usuario_institucion_id
+            """;
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> results = entityManager.createNativeQuery(sql)
+                .setParameter("usuarioInstitucionIds", usuarioInstitucionIds)
+                .getResultList();
+        return results;
+    }
 }

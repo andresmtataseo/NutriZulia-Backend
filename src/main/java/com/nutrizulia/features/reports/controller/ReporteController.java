@@ -85,4 +85,29 @@ public class ReporteController {
             throw new RuntimeException("Error interno al generar el reporte", e);
         }
     }
+
+    @Operation(
+            summary = "Frescura de datos por municipio (JSON)",
+            description = "**Requiere autenticación.** Retorna la última actualización por usuario activo en cada institución del municipio sanitario.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Datos obtenidos exitosamente"),
+            @ApiResponse(responseCode = "400", description = "ID de municipio sanitario inválido"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/data-freshness")
+    public ResponseEntity<?> obtenerDataFreshness(
+            @Parameter(description = "ID del municipio sanitario", required = true)
+            @RequestParam Integer municipioSanitarioId) {
+        try {
+            log.info("Solicitud de data freshness para municipio sanitario ID: {}", municipioSanitarioId);
+            return ResponseEntity.ok(reporteService.obtenerDataFreshnessPorMunicipio(municipioSanitarioId));
+        } catch (IllegalArgumentException e) {
+            log.error("Error de validación: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Error al obtener data freshness para municipio sanitario ID {}: {}", municipioSanitarioId, e.getMessage(), e);
+            throw new RuntimeException("Error interno al obtener data freshness", e);
+        }
+    }
+
 }

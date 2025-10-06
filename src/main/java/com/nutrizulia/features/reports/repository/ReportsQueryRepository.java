@@ -23,4 +23,7 @@ public interface ReportsQueryRepository {
 
     // Nuevo: resumen de riesgos biológicos por institución considerando solo PRIMERA_CONSULTA y diagnóstico principal
     List<Object[]> obtenerResumenRiesgoBiologicoPorInstitucion(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId);
+
+    // Nuevo: última actualización (MAX(updated_at)) por usuario_institucion_id para un conjunto de IDs
+    List<Object[]> obtenerUltimaActualizacionPorUsuarioInstitucionIds(List<Integer> usuarioInstitucionIds);
 }
