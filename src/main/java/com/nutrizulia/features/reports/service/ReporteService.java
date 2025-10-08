@@ -540,9 +540,9 @@ public class ReporteService {
                 .orElseThrow(() -> new RuntimeException("Municipio sanitario no encontrado con ID: " + municipioSanitarioId))
                 .getNombre();
 
-        try (InputStream is = getClass().getResourceAsStream("/templates/resumen_trimestral.xlsx")) {
+        try (InputStream is = getClass().getResourceAsStream("/templates/resumen_anual.xlsx")) {
             if (is == null) {
-                throw new RuntimeException("No se pudo encontrar la plantilla resumen_trimestral.xlsx");
+                throw new RuntimeException("No se pudo encontrar la plantilla resumen_anual.xlsx");
             }
 
             Context context = new Context();
