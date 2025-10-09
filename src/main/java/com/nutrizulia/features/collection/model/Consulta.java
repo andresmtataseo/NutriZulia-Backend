@@ -13,7 +13,11 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "consultas")
+@Table(name = "consultas", indexes = {
+    @Index(name = "idx_consultas_usuario_institucion_fecha", columnList = "usuario_institucion_id, fecha_hora_real"),
+    @Index(name = "idx_consultas_estado_actividad_deleted", columnList = "estado, tipo_actividad_id, is_deleted"),
+    @Index(name = "idx_consultas_paciente", columnList = "paciente_id")
+})
 public class Consulta {
 
     @Id

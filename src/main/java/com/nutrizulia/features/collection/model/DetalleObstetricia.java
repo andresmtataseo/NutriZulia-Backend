@@ -3,7 +3,6 @@ package com.nutrizulia.features.collection.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -11,7 +10,9 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "detalles_obstetricias")
+@Table(name = "detalles_obstetricias", indexes = {
+    @Index(name = "idx_detalles_obstetricias_consulta_deleted", columnList = "consulta_id, is_deleted")
+})
 public class DetalleObstetricia {
 
     @Id

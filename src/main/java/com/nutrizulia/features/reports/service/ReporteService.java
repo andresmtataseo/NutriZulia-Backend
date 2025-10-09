@@ -172,6 +172,34 @@ public class ReporteService {
         return new MesContext(datosMes, mesPorInstitucion, actividadesPorInstitucion, antropometriaPorInstitucion, antropometriaRegularesPorInstitucion, antropometriaCombinadaNinos2a9PorInstitucion, antropometriaCombinadaNinos2a9RegularesPorInstitucion, antropometriaCombinadaNinos10a18PorInstitucion, antropometriaCombinadaNinos10a18RegularesPorInstitucion, imcAdultosPorInstitucion, riesgosBiologicosPorInstitucion);
     }
 
+    // Nuevo: método genérico para poblar el Context JXLS con una lista de meses
+    // useActualMonthNumber = true para anual (mes1..mes12 usando número real de mes)
+    // useActualMonthNumber = false para trimestral (mes1..mes3 indexados)
+    private void fillContextForMonths(Context context, List<InstitucionDto> instituciones, int year, List<Integer> months, boolean useActualMonthNumber) {
+        for (int i = 0; i < months.size(); i++) {
+            int month = months.get(i);
+            YearMonth ym = YearMonth.of(year, month);
+            LocalDate fechaInicioMes = ym.atDay(1);
+            LocalDate fechaFinMes = ym.atEndOfMonth();
+
+            MesContext mc = calcularContextoMes(instituciones, fechaInicioMes, fechaFinMes);
+            String keySuffix = useActualMonthNumber ? String.valueOf(month) : String.valueOf(i + 1);
+            String baseKey = "mes" + keySuffix;
+            context.putVar(baseKey, mc.lista());
+            context.putVar(baseKey + "PorInstitucion", mc.porInstitucion());
+            context.putVar(baseKey + "ActividadesPorInstitucion", mc.actividadesPorInstitucion());
+            context.putVar(baseKey + "AntropometriaPorInstitucion", mc.antropometriaPorInstitucion());
+            context.putVar(baseKey + "AntropometriaRegularesPorInstitucion", mc.antropometriaRegularesPorInstitucion());
+            context.putVar(baseKey + "AntropometriaCombinadaNinos2a9PorInstitucion", mc.antropometriaCombinadaNinos2a9PorInstitucion());
+            context.putVar(baseKey + "AntropometriaCombinadaNinos2a9RegularesPorInstitucion", mc.antropometriaCombinadaNinos2a9RegularesPorInstitucion());
+            context.putVar(baseKey + "AntropometriaCombinadaNinos10a18PorInstitucion", mc.antropometriaCombinadaNinos10a18PorInstitucion());
+            context.putVar(baseKey + "AntropometriaCombinadaNinos10a18RegularesPorInstitucion", mc.antropometriaCombinadaNinos10a18RegularesPorInstitucion());
+            context.putVar(baseKey + "ImcAdultosPorInstitucion", mc.imcAdultosPorInstitucion());
+            context.putVar(baseKey + "RiesgosBiologicosPorInstitucion", mc.riesgosBiologicosPorInstitucion());
+        }
+        log.info("Contexto JXLS poblado para {} meses del año {}", months.size(), year);
+    }
+
     // Helper: Aplana la lista de ResumenConsultasEdadDto a un mapa por rango
     private Map<String, Integer> aplanarResumenPorRango(List<ResumenConsultasEdadDto> resumen) {
         Map<String, Integer> flat = new HashMap<>();
@@ -517,8 +545,7 @@ public class ReporteService {
         return flat;
     }
 
-    public void generarReporteTrimestralPorMunicipio(Integer municipioSanitarioId, Integer anio, OutputStream os) throws Exception {
-        
+    public void generarReporteAnualPorMunicipio(Integer municipioSanitarioId, Integer anio, OutputStream os) throws Exception {
         if (municipioSanitarioId == null || municipioSanitarioId <= 0) {
             log.warn("ID de municipio sanitario inválido: {}", municipioSanitarioId);
             throw new IllegalArgumentException("El ID del municipio sanitario debe ser un número positivo");
@@ -529,13 +556,11 @@ public class ReporteService {
         }
 
         List<InstitucionDto> instituciones = institucionService.getInstitucionesByMunicipioSanitario(municipioSanitarioId);
-        
         if (instituciones.isEmpty()) {
             log.warn("No se encontraron instituciones para el municipio sanitario ID: {}", municipioSanitarioId);
             throw new RuntimeException("No se encontraron instituciones para el municipio sanitario especificado");
         }
 
-        // Obtener nombre del municipio sanitario para la plantilla JXLS
         String municipioSanitarioNombre = municipioSanitarioRepository.findById(municipioSanitarioId)
                 .orElseThrow(() -> new RuntimeException("Municipio sanitario no encontrado con ID: " + municipioSanitarioId))
                 .getNombre();
@@ -544,54 +569,73 @@ public class ReporteService {
             if (is == null) {
                 throw new RuntimeException("No se pudo encontrar la plantilla resumen_anual.xlsx");
             }
-
             Context context = new Context();
-            // Lista de instituciones disponible para hojas que lo requieran
             context.putVar("instituciones", instituciones);
-            // Variables globales solicitadas
             context.putVar("anio", anio);
             context.putVar("municipioSanitarioNombre", municipioSanitarioNombre);
 
-            // Construir datos por mes (mes1..mes12) por institución, para el año solicitado
-            final int year = anio;
-            for (int m = 1; m <= 12; m++) {
-                YearMonth ym = YearMonth.of(year, m);
-                LocalDate fechaInicioMes = ym.atDay(1);
-                LocalDate fechaFinMes = ym.atEndOfMonth();
+            // Poblar contexto con meses reales (mes1..mes12) usando número de mes como sufijo
+            List<Integer> months = new ArrayList<>();
+            for (int m = 1; m <= 12; m++) { months.add(m); }
+            fillContextForMonths(context, instituciones, anio, months, true);
 
-                MesContext mc = calcularContextoMes(instituciones, fechaInicioMes, fechaFinMes);
-                context.putVar("mes" + m, mc.lista());
-                context.putVar("mes" + m + "PorInstitucion", mc.porInstitucion());
-                // Nuevo: actividades por tipo (participantes y veces) aplanadas por institución
-                context.putVar("mes" + m + "ActividadesPorInstitucion", mc.actividadesPorInstitucion());
-                // Nuevo: antropometría Peso/Edad menores de 2 años aplanada por institución
-                context.putVar("mes" + m + "AntropometriaPorInstitucion", mc.antropometriaPorInstitucion());
-                // Nuevo: antropometría Peso/Edad menores de 2 años para consultas regulares (tipo_actividad_id=1) aplanada por institución
-                context.putVar("mes" + m + "AntropometriaRegularesPorInstitucion", mc.antropometriaRegularesPorInstitucion());
-                // Nuevo: antropometría combinada (P/T y T/E) para niños 2-9 años 11 meses (tipo_actividad_id=10) aplanada por institución
-                context.putVar("mes" + m + "AntropometriaCombinadaNinos2a9PorInstitucion", mc.antropometriaCombinadaNinos2a9PorInstitucion());
-                // Nuevo: sección paralela de antropometría combinada para consultas regulares (tipo_actividad_id=1) aplanada por institución
-                context.putVar("mes" + m + "AntropometriaCombinadaNinos2a9RegularesPorInstitucion", mc.antropometriaCombinadaNinos2a9RegularesPorInstitucion());
-                // Nuevo: antropometría combinada (IMC/E y T/E) para niños 10-18 años 11 meses (tipo_actividad_id=10) aplanada por institución
-                context.putVar("mes" + m + "AntropometriaCombinadaNinos10a18PorInstitucion", mc.antropometriaCombinadaNinos10a18PorInstitucion());
-                // Nuevo: sección paralela de antropometría combinada para consultas regulares (tipo_actividad_id=1) aplanada por institución
-                context.putVar("mes" + m + "AntropometriaCombinadaNinos10a18RegularesPorInstitucion", mc.antropometriaCombinadaNinos10a18RegularesPorInstitucion());
-                // Nuevo: IMC adultos aplanado por institución
-                context.putVar("mes" + m + "ImcAdultosPorInstitucion", mc.imcAdultosPorInstitucion());
-                // Nuevo: riesgos biológicos aplanados por institución
-                context.putVar("mes" + m + "RiesgosBiologicosPorInstitucion", mc.riesgosBiologicosPorInstitucion());
-            }
-            
-            // Debug: Verificar el contexto JXLS
-            log.info("Contexto JXLS creado con {} instituciones y datos del año {}", instituciones.size(), year);
-            
-            // Configurar JXLS para mejor procesamiento
             JxlsHelper jxlsHelper = JxlsHelper.getInstance();
             jxlsHelper.setHideTemplateSheet(true);
             jxlsHelper.setDeleteTemplateSheet(true);
             Transformer transformer  = jxlsHelper.createTransformer(is, os);
             jxlsHelper.processTemplate(context, transformer);
-            log.info("Reporte generado exitosamente en memoria");
+            log.info("Reporte anual generado exitosamente en memoria");
+        }
+    }
+
+    public void generarReporteTrimestralPorMunicipio(Integer municipioSanitarioId, Integer anio, Integer trimestre, OutputStream os) throws Exception {
+        if (municipioSanitarioId == null || municipioSanitarioId <= 0) {
+            log.warn("ID de municipio sanitario inválido: {}", municipioSanitarioId);
+            throw new IllegalArgumentException("El ID del municipio sanitario debe ser un número positivo");
+        }
+        if (anio == null || anio < 1900 || anio > 2100) {
+            log.warn("Año del reporte inválido: {}", anio);
+            throw new IllegalArgumentException("El año del reporte debe ser un número válido entre 1900 y 2100");
+        }
+        if (trimestre == null || trimestre < 1 || trimestre > 4) {
+            log.warn("Trimestre inválido: {}", trimestre);
+            throw new IllegalArgumentException("El trimestre debe ser un número entre 1 y 4");
+        }
+
+        List<InstitucionDto> instituciones = institucionService.getInstitucionesByMunicipioSanitario(municipioSanitarioId);
+        if (instituciones.isEmpty()) {
+            log.warn("No se encontraron instituciones para el municipio sanitario ID: {}", municipioSanitarioId);
+            throw new RuntimeException("No se encontraron instituciones para el municipio sanitario especificado");
+        }
+
+        String municipioSanitarioNombre = municipioSanitarioRepository.findById(municipioSanitarioId)
+                .orElseThrow(() -> new RuntimeException("Municipio sanitario no encontrado con ID: " + municipioSanitarioId))
+                .getNombre();
+
+        // Determinar meses del trimestre
+        List<Integer> months = new ArrayList<>();
+        int startMonth = (trimestre - 1) * 3 + 1;
+        for (int m = startMonth; m < startMonth + 3; m++) { months.add(m); }
+
+        String templatePath = "/templates/resumen_trim_" + trimestre + ".xlsx";
+        try (InputStream is = getClass().getResourceAsStream(templatePath)) {
+            if (is == null) {
+                throw new RuntimeException("No se pudo encontrar la plantilla " + templatePath);
+            }
+            Context context = new Context();
+            context.putVar("instituciones", instituciones);
+            context.putVar("anio", anio);
+            context.putVar("municipioSanitarioNombre", municipioSanitarioNombre);
+
+            // Poblar contexto para los 3 meses del trimestre usando meses reales (mes4..mes6 según el trimestre)
+            fillContextForMonths(context, instituciones, anio, months, true);
+
+            JxlsHelper jxlsHelper = JxlsHelper.getInstance();
+            jxlsHelper.setHideTemplateSheet(true);
+            jxlsHelper.setDeleteTemplateSheet(true);
+            Transformer transformer  = jxlsHelper.createTransformer(is, os);
+            jxlsHelper.processTemplate(context, transformer);
+            log.info("Reporte trimestral T{} generado exitosamente en memoria para municipio {}", trimestre, municipioSanitarioNombre);
         }
     }
 

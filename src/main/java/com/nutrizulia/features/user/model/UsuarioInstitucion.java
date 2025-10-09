@@ -9,7 +9,11 @@ import java.time.LocalDate;
 
 @Data
 @Entity
-@Table(name = "usuarios_instituciones")
+@Table(name = "usuarios_instituciones", indexes = {
+    @Index(name = "idx_usuarios_instituciones_institucion_enabled", columnList = "institucion_id, is_enabled"),
+    @Index(name = "idx_usuarios_instituciones_usuario", columnList = "usuario_id"),
+    @Index(name = "idx_usuarios_instituciones_rol", columnList = "rol_id")
+})
 public class UsuarioInstitucion {
 
     @Id

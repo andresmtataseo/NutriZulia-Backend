@@ -17,6 +17,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "pacientes", uniqueConstraints = {
         @UniqueConstraint(name = "uk_paciente_cedula_institucion", columnNames = {"cedula", "usuario_institucion_id"})
+}, indexes = {
+        @Index(name = "idx_pacientes_is_deleted", columnList = "is_deleted"),
+        @Index(name = "idx_pacientes_usuario_institucion", columnList = "usuario_institucion_id")
 })
 public class Paciente {
 

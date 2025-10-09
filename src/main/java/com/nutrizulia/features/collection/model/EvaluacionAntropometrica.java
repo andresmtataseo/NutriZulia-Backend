@@ -5,7 +5,6 @@ import com.nutrizulia.features.catalog.model.TipoIndicador;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -13,7 +12,10 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "evaluaciones_antropometricas")
+@Table(name = "evaluaciones_antropometricas", indexes = {
+    @Index(name = "idx_eval_ant_consulta_indicador_tipo_deleted", columnList = "consulta_id, tipo_indicador_id, tipo_valor_calculado, is_deleted"),
+    @Index(name = "idx_eval_ant_consulta_ind_tipo_tipo_deleted_id", columnList = "consulta_id, tipo_indicador_id, tipo_valor_calculado, is_deleted, id")
+})
 public class EvaluacionAntropometrica {
 
     @Id

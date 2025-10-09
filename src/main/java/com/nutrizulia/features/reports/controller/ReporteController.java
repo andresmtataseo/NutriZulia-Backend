@@ -22,8 +22,6 @@ import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import static com.nutrizulia.common.util.ApiConstants.CATALOG_BASE_URL;
-
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -37,8 +35,8 @@ public class ReporteController {
     private final ReporteService reporteService;
 
     @Operation(
-            summary = "Generar reporte trimestral de instituciones",
-            description = "**Requiere autenticación.** Genera un reporte Excel con las instituciones del municipio sanitario especificado.")
+            summary = "Generar reporte anual de instituciones",
+            description = "**Requiere autenticación.** Genera un reporte Excel ANUAL con las instituciones del municipio sanitario especificado.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Reporte generado exitosamente"),
             @ApiResponse(responseCode = "400", description = "ID de municipio sanitario inválido"),
@@ -54,22 +52,18 @@ public class ReporteController {
             HttpServletRequest request) {
 
         try {
-            log.info("Solicitud de reporte trimestral para municipio sanitario ID: {} y año: {}", municipioSanitarioId, anio);
+            log.info("Solicitud de reporte anual para municipio sanitario ID: {} y año: {}", municipioSanitarioId, anio);
 
-            // Generar el reporte usando ByteArrayOutputStream
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            reporteService.generarReporteTrimestralPorMunicipio(municipioSanitarioId, anio, outputStream);
+            reporteService.generarReporteAnualPorMunicipio(municipioSanitarioId, anio, outputStream);
 
-            // Crear el recurso de bytes
             ByteArrayResource resource = new ByteArrayResource(outputStream.toByteArray());
 
-            // Generar nombre del archivo con timestamp
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-            String filename = String.format("reporte_trimestral_municipio_%d_%d_%s.xlsx", municipioSanitarioId, anio, timestamp);
+            String filename = String.format("reporte_anual_municipio_%d_%d_%s.xlsx", municipioSanitarioId, anio, timestamp);
 
-            log.info("Reporte generado exitosamente: {}", filename);
+            log.info("Reporte anual generado exitosamente: {}", filename);
 
-            // Configurar headers para descarga
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
@@ -80,8 +74,55 @@ public class ReporteController {
             log.error("Error de validación: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("Error al generar reporte trimestral para municipio sanitario ID {} y año {}: {}", 
+            log.error("Error al generar reporte anual para municipio sanitario ID {} y año {}: {}", 
                     municipioSanitarioId, anio, e.getMessage(), e);
+            throw new RuntimeException("Error interno al generar el reporte", e);
+        }
+    }
+
+    @Operation(
+            summary = "Generar reporte trimestral de instituciones",
+            description = "**Requiere autenticación.** Genera un reporte Excel TRIMESTRAL con las instituciones del municipio sanitario especificado.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reporte generado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Parámetros inválidos"),
+            @ApiResponse(responseCode = "404", description = "No se encontraron instituciones para el municipio sanitario"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/quarterly")
+    public ResponseEntity<ByteArrayResource> generarReporteTrimestral(
+            @Parameter(description = "ID del municipio sanitario", required = true)
+            @RequestParam Integer municipioSanitarioId,
+            @Parameter(description = "Año del reporte (ej. 2025)", required = true)
+            @RequestParam Integer anio,
+            @Parameter(description = "Trimestre del año [1..4]", required = true)
+            @RequestParam Integer trimestre,
+            HttpServletRequest request) {
+
+        try {
+            log.info("Solicitud de reporte trimestral T{} para municipio sanitario ID: {} y año: {}", trimestre, municipioSanitarioId, anio);
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            reporteService.generarReporteTrimestralPorMunicipio(municipioSanitarioId, anio, trimestre, outputStream);
+
+            ByteArrayResource resource = new ByteArrayResource(outputStream.toByteArray());
+
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String filename = String.format("reporte_trimestral_municipio_%d_%d_T%d_%s.xlsx", municipioSanitarioId, anio, trimestre, timestamp);
+
+            log.info("Reporte trimestral generado exitosamente: {}", filename);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
+                    .contentLength(resource.contentLength())
+                    .body(resource);
+
+        } catch (IllegalArgumentException e) {
+            log.error("Error de validación: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Error al generar reporte trimestral T{} para municipio sanitario ID {} y año {}: {}", trimestre, municipioSanitarioId, anio, e.getMessage(), e);
             throw new RuntimeException("Error interno al generar el reporte", e);
         }
     }
