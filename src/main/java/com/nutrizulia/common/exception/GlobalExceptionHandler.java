@@ -21,8 +21,13 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     private String getCurrentPath() {
         try {
@@ -263,6 +268,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponseDto<String>> handleGenericException(Exception ex) {
+        // Log detallado del error para diagnóstico
+        log.error("Error inesperado en {}: {}", getCurrentPath(), ex.getMessage(), ex);
         ApiResponseDto<String> response = ApiResponseDto.<String>builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .message("Ha ocurrido un error inesperado. Por favor, intente nuevamente o contacte al administrador del sistema.")

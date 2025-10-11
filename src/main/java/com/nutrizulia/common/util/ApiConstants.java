@@ -90,4 +90,12 @@ public class ApiConstants {
     public static final String USERS_GET_DETAIL = "/detail";
     public static final String USERS_ASSIGN_INSTITUTION = "/assign-institution";
     public static final String USERS_UPDATE_INSTITUTION = "/update-institution";
+
+    // ========== DASHBOARD API ==========
+    public static final String DASHBOARD_BASE_URL = "/api/v1/dashboard";
+    public static final String DASHBOARD_CONSULTATIONS_PER_MONTH = "/consultations-per-month";
+    public static final String DASHBOARD_ACTIVE_INSTITUTIONS_BY_MUNICIPALITY = "/active-institutions-by-municipality";
+    public static final String DASHBOARD_ACTIVE_USERS_BY_INSTITUTION = "/active-users-by-institution";
+    public static final String DASHBOARD_AGE_GROUP_DISTRIBUTION = "/age-group-distribution";
+    public static final String DASHBOARD_NUTRITIONAL_STATUS_BY_AGE_GROUP = "/nutritional-status-by-age-group";
 }
