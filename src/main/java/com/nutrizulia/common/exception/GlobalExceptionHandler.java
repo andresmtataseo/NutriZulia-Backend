@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -217,6 +218,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ApiResponseDto<String>> handleLockedException(LockedException ex) {
+        ApiResponseDto<String> response = ApiResponseDto.<String>builder()
+                .status(HttpStatus.LOCKED.value())
+                .message("Su cuenta está bloqueada por múltiples intentos fallidos. Por favor, recupere su contraseña para desbloquearla.")
+                .timestamp(LocalDateTime.now())
+                .path(getCurrentPath())
+                .build();
+        return ResponseEntity.status(HttpStatus.LOCKED).body(response);
+    }
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiResponseDto<String>> handleNoResourceFoundException(NoResourceFoundException ex) {
         ApiResponseDto<String> response = ApiResponseDto.<String>builder()

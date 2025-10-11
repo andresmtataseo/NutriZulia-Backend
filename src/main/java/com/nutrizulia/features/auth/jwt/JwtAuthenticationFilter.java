@@ -45,6 +45,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
+            // Evitar autenticación si la cuenta está bloqueada o deshabilitada
+            if (!userDetails.isAccountNonLocked() || !userDetails.isEnabled()) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             if (jwtService.isTokenValid(token, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(

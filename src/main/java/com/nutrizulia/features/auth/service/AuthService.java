@@ -10,11 +10,13 @@ import com.nutrizulia.features.user.mapper.UsuarioMapper;
 import com.nutrizulia.features.user.model.Usuario;
 import com.nutrizulia.features.user.model.UsuarioInstitucion;
 import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
+import com.nutrizulia.features.user.repository.UsuarioRepository;
 import com.nutrizulia.features.user.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +27,7 @@ import org.springframework.security.authentication.DisabledException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,29 +40,34 @@ public class AuthService implements IAuthService {
     private final UsuarioMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final UsuarioInstitucionRepository usuarioInstitucionRepository;
+    private final UsuarioRepository usuarioRepository;
 
 
     public ApiResponseDto<AuthResponseDto> signIn(SignInRequestDto request) {
         try {
+            Optional<Usuario> userOpt = usuarioRepository.findByCedula(request.getCedula());
+            if (userOpt.isPresent() && Boolean.TRUE.equals(userOpt.get().getAccountLocked())) {
+                throw new LockedException("La cuenta está bloqueada por múltiples intentos fallidos. Por favor recupere su contraseña.");
+            }
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getCedula(), request.getClave())
             );
             Usuario user = usuarioService.findByCedula(request.getCedula());
-            
-            // Verificar que el usuario esté activo en al menos una institución
+            resetLoginAttempts(user);
+            usuarioRepository.save(user);
+            // Verificar que el usuario esté activo en al menos una institución (incluyendo institución central con roles permitidos)
             List<UsuarioInstitucion> institucionesActivas = usuarioInstitucionRepository.findActiveInstitutionsByUserId(user.getId());
-            if (institucionesActivas.isEmpty()) {
+            boolean tieneInstitucionActiva = !institucionesActivas.isEmpty()
+                    || usuarioInstitucionRepository.findActiveUserInstitutionWithSpecificRoles(user.getId()).isPresent();
+            if (!tieneInstitucionActiva) {
                 throw new DisabledException("El usuario no está activo en ninguna institución");
             }
-
             String token = jwtService.generateToken(user);
-
             AuthResponseDto authData = AuthResponseDto.builder()
                     .token(token)
                     .type("Bearer")
                     .user(userMapper.toDto(user))
                     .build();
-
             return ApiResponseDto.<AuthResponseDto>builder()
                     .status(HttpStatus.OK.value())
                     .message("Inicio de sesión exitoso")
@@ -68,7 +76,11 @@ public class AuthService implements IAuthService {
                     .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_SIGN_IN)
                     .build();
         } catch (BadCredentialsException e) {
+            Optional<Usuario> userOpt = usuarioRepository.findByCedula(request.getCedula());
+            handleFailedLoginAttempt(userOpt);
             throw new BadCredentialsException("Credenciales inválidas. Verifique su cédula y contraseña.");
+        } catch (LockedException e) {
+            throw e; // Propaga para que el GlobalExceptionHandler retorne una respuesta amigable y estandarizada
         } catch (UsernameNotFoundException e) {
             throw new BadCredentialsException("Credenciales inválidas. Verifique su cédula y contraseña.");
         } catch (DisabledException e) {
@@ -81,27 +93,19 @@ public class AuthService implements IAuthService {
     @Transactional
     public ApiResponseDto<Object> forgotPassword(ForgotPasswordRequestDto request) {
         try {
-            // Buscar el usuario por cédula
             Usuario user = usuarioService.findByCedula(request.getCedula());
-
-            // Generar nueva contraseña temporal usando PasswordUtils
             String nuevaClaveTemp = PasswordUtils.generateRandomPassword();
-            
-            // Actualizar la contraseña en la base de datos
-            // El método updatePassword ya se encarga de la encriptación
             usuarioService.updatePassword(user.getId(), nuevaClaveTemp);
-            
+            resetLoginAttempts(user);
+            usuarioRepository.save(user);
             emailService.recuperacionClave(user.getCorreo(), user.getNombres() + " " + user.getApellidos(), nuevaClaveTemp);
-            
             return ApiResponseDto.builder()
                     .status(HttpStatus.OK.value())
                     .message("Si la cédula existe en nuestro sistema, se ha enviado una nueva contraseña temporal a su correo electrónico.")
                     .timestamp(LocalDateTime.now())
                     .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_FORGOT_PASSWORD)
                     .build();
-                    
         } catch (UsernameNotFoundException e) {
-            // Por seguridad, devolvemos el mismo mensaje aunque el usuario no exista
             return ApiResponseDto.builder()
                     .status(HttpStatus.OK.value())
                     .message("Si la cédula existe en nuestro sistema, se ha enviado una nueva contraseña temporal a su correo electrónico.")
@@ -208,5 +212,26 @@ public class AuthService implements IAuthService {
                     .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_LOGOUT)
                     .build();
         }
+    }
+
+    private void handleFailedLoginAttempt(Optional<Usuario> userOpt) {
+        if (userOpt.isEmpty()) {
+            return;
+        }
+        Usuario user = userOpt.get();
+        int attempts = user.getFailedLoginAttempts() == null ? 0 : user.getFailedLoginAttempts();
+        attempts++;
+        user.setFailedLoginAttempts(attempts);
+        user.setLastFailedLoginAt(LocalDateTime.now());
+        if (attempts >= 3) {
+            user.setAccountLocked(true);
+        }
+        usuarioRepository.save(user);
+    }
+
+    private void resetLoginAttempts(Usuario user) {
+        user.setFailedLoginAttempts(0);
+        user.setLastFailedLoginAt(null);
+        user.setAccountLocked(false);
     }
 }

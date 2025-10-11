@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -93,7 +94,7 @@ public class Usuario implements Serializable, UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return this.accountLocked == null || !this.accountLocked;
     }
 
     @Override
@@ -103,4 +104,17 @@ public class Usuario implements Serializable, UserDetails {
 
     @Override
     public boolean isEnabled() { return this.isEnabled != null && this.isEnabled; }
+
+    @ColumnDefault("0")
+    @Column(name = "failed_login_attempts", nullable = false)
+    @Builder.Default
+    private Integer failedLoginAttempts = 0;
+    
+    @ColumnDefault("false")
+    @Column(name = "account_locked", nullable = false)
+    @Builder.Default
+    private Boolean accountLocked = false;
+    
+    @Column(name = "last_failed_login_at")
+    private LocalDateTime lastFailedLoginAt;
 }
