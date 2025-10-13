@@ -652,7 +652,6 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
             JOIN pacientes p ON p.id = c.paciente_id
             JOIN riesgos_biologicos rb ON rb.id = d.riesgo_biologico_id
             WHERE d.is_deleted = FALSE
-              AND d.is_principal = TRUE
               AND c.is_deleted = FALSE
               AND p.is_deleted = FALSE
               AND c.estado IN ('COMPLETADA','SIN_PREVIA_CITA')
