@@ -199,27 +199,29 @@ public class DashboardQueryRepositoryImpl implements DashboardQueryRepository {
                  FROM consultas c
                  JOIN pacientes p ON p.id = c.paciente_id AND p.is_deleted = FALSE
                  JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
-                                -- JOINs legacy removidos: bmi y ae
-                                LEFT JOIN LATERAL (
-                                    SELECT ea.valor_calculado
-                                    FROM evaluaciones_antropometricas ea
-                                    WHERE ea.consulta_id = c.id
-                                      AND ea.tipo_valor_calculado = 'PERCENTIL'
-                                      AND ea.tipo_indicador_id = 1 -- IMC/Edad
-                                      AND ea.is_deleted = FALSE
-                                    ORDER BY ea.id DESC
-                                    LIMIT 1
-                                ) imcedad ON TRUE
-                                LEFT JOIN LATERAL (
-                                    SELECT ea.valor_calculado
-                                    FROM evaluaciones_antropometricas ea
-                                    WHERE ea.consulta_id = c.id
-                                      AND ea.tipo_valor_calculado = 'IMC'
-                                      AND ea.tipo_indicador_id = 8 -- IMC
-                                      AND ea.is_deleted = FALSE
-                                    ORDER BY ea.id DESC
-                                    LIMIT 1
-                                ) imc ON TRUE
+                 JOIN instituciones i ON i.id = ui.institucion_id
+                 JOIN municipios_sanitarios ms ON ms.id = i.municipio_sanitario_id
+                                 -- JOINs legacy removidos: bmi y ae
+                                 LEFT JOIN LATERAL (
+                                     SELECT ea.valor_calculado
+                                     FROM evaluaciones_antropometricas ea
+                                     WHERE ea.consulta_id = c.id
+                                       AND ea.tipo_valor_calculado = 'PERCENTIL'
+                                       AND ea.tipo_indicador_id = 1 -- IMC/Edad
+                                       AND ea.is_deleted = FALSE
+                                     ORDER BY ea.id DESC
+                                     LIMIT 1
+                                 ) imcedad ON TRUE
+                                 LEFT JOIN LATERAL (
+                                     SELECT ea.valor_calculado
+                                     FROM evaluaciones_antropometricas ea
+                                     WHERE ea.consulta_id = c.id
+                                       AND ea.tipo_valor_calculado = 'IMC'
+                                       AND ea.tipo_indicador_id = 8 -- IMC
+                                       AND ea.is_deleted = FALSE
+                                     ORDER BY ea.id DESC
+                                     LIMIT 1
+                                 ) imc ON TRUE
                  WHERE c.is_deleted = FALSE
                    AND c.estado IN ('COMPLETADA','SIN_PREVIA_CITA')
                    AND c.fecha_hora_real::date BETWEEN :fechaInicio AND :fechaFin
