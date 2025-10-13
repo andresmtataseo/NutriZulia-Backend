@@ -62,7 +62,7 @@ public class DashboardQueryRepositoryImpl implements DashboardQueryRepository {
             SELECT ms.nombre AS municipio, COUNT(DISTINCT i.id) AS total
             FROM instituciones i
             JOIN municipios_sanitarios ms ON ms.id = i.municipio_sanitario_id
-            JOIN usuarios_instituciones ui ON ui.institucion_id = i.id AND ui.is_enabled = TRUE
+            LEFT JOIN usuarios_instituciones ui ON ui.institucion_id = i.id
             WHERE 1=1
         """);
         if (municipioId != null) {
