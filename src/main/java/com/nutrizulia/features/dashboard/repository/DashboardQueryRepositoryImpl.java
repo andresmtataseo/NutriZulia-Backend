@@ -116,7 +116,7 @@ public class DashboardQueryRepositoryImpl implements DashboardQueryRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Object[]> distribucionGrupoEtario(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
+    public List<Object[]> distribucionGrupoEtario(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId, Integer municipioId) {
         StringBuilder sql = new StringBuilder();
         sql.append("""
             SELECT bucket AS grupo, COUNT(*) AS total
@@ -132,12 +132,17 @@ public class DashboardQueryRepositoryImpl implements DashboardQueryRepository {
                 FROM consultas c
                 JOIN pacientes p ON p.id = c.paciente_id AND p.is_deleted = FALSE
                 JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                JOIN instituciones i ON i.id = ui.institucion_id
+                JOIN municipios_sanitarios ms ON ms.id = i.municipio_sanitario_id
                 WHERE c.is_deleted = FALSE
                   AND c.estado IN ('COMPLETADA','SIN_PREVIA_CITA')
                   AND c.fecha_hora_real::date BETWEEN :fechaInicio AND :fechaFin
         """);
         if (institucionId != null) {
             sql.append(" AND ui.institucion_id = :institucionId");
+        }
+        if (municipioId != null) {
+            sql.append(" AND ms.id = :municipioId");
         }
         sql.append(" ) t GROUP BY bucket ORDER BY bucket");
         @SuppressWarnings("unchecked")
@@ -147,13 +152,16 @@ public class DashboardQueryRepositoryImpl implements DashboardQueryRepository {
         if (institucionId != null) {
             query.setParameter("institucionId", institucionId);
         }
+        if (municipioId != null) {
+            query.setParameter("municipioId", municipioId);
+        }
         List<Object[]> rows = query.getResultList();
         return rows;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Object[]> estadoNutricionalPorGrupoEtario(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId) {
+    public List<Object[]> estadoNutricionalPorGrupoEtario(LocalDate fechaInicio, LocalDate fechaFin, Integer institucionId, Integer municipioId) {
         StringBuilder sql = new StringBuilder();
         sql.append("""
             SELECT bucket AS grupo, categoria, COUNT(*) AS total
@@ -219,12 +227,18 @@ public class DashboardQueryRepositoryImpl implements DashboardQueryRepository {
         if (institucionId != null) {
             sql.append(" AND ui.institucion_id = :institucionId");
         }
+        if (municipioId != null) {
+            sql.append(" AND ms.id = :municipioId");
+        }
         sql.append(" ) t GROUP BY bucket, categoria ORDER BY bucket, categoria");
         jakarta.persistence.Query query = entityManager.createNativeQuery(sql.toString());
         query.setParameter("fechaInicio", fechaInicio);
         query.setParameter("fechaFin", fechaFin);
         if (institucionId != null) {
             query.setParameter("institucionId", institucionId);
+        }
+        if (municipioId != null) {
+            query.setParameter("municipioId", municipioId);
         }
         @SuppressWarnings("unchecked")
         List<Object[]> rows = query.getResultList();

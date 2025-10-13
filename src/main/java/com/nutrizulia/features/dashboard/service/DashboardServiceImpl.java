@@ -95,10 +95,10 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public ChartResponseDto getDistribucionGrupoEtario(YearMonth inicio, YearMonth fin, Integer institucionId) {
+    public ChartResponseDto getDistribucionGrupoEtario(YearMonth inicio, YearMonth fin, Integer institucionId, Integer municipioId) {
         LocalDate fInicio = inicio.atDay(1);
         LocalDate fFin = fin.atEndOfMonth();
-        List<Object[]> rows = queryRepository.distribucionGrupoEtario(fInicio, fFin, institucionId);
+        List<Object[]> rows = queryRepository.distribucionGrupoEtario(fInicio, fFin, institucionId, municipioId);
         List<String> labels = new ArrayList<>();
         double[] data = new double[rows.size()];
         for (int i = 0; i < rows.size(); i++) {
@@ -112,10 +112,10 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public ChartResponseDto getEstadoNutricionalPorGrupoEtario(YearMonth inicio, YearMonth fin, Integer institucionId) {
+    public ChartResponseDto getEstadoNutricionalPorGrupoEtario(YearMonth inicio, YearMonth fin, Integer institucionId, Integer municipioId) {
         LocalDate fInicio = inicio.atDay(1);
         LocalDate fFin = fin.atEndOfMonth();
-        List<Object[]> rows = queryRepository.estadoNutricionalPorGrupoEtario(fInicio, fFin, institucionId);
+        List<Object[]> rows = queryRepository.estadoNutricionalPorGrupoEtario(fInicio, fFin, institucionId, municipioId);
 
         Map<String, Map<String, Integer>> byGroupCategory = new LinkedHashMap<>();
         for (Object[] r : rows) {

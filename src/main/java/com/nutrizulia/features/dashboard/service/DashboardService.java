@@ -14,7 +14,7 @@ public interface DashboardService {
     // Simplificado: conteo actual, opcional filtro por municipio sanitario
     ChartResponseDto getUsuariosActivosPorInstitucion(Integer municipioId);
 
-    ChartResponseDto getDistribucionGrupoEtario(YearMonth inicio, YearMonth fin, Integer institucionId);
+    ChartResponseDto getDistribucionGrupoEtario(YearMonth inicio, YearMonth fin, Integer institucionId, Integer municipioId);
 
-    ChartResponseDto getEstadoNutricionalPorGrupoEtario(YearMonth inicio, YearMonth fin, Integer institucionId);
+    ChartResponseDto getEstadoNutricionalPorGrupoEtario(YearMonth inicio, YearMonth fin, Integer institucionId, Integer municipioId);
 }

@@ -145,13 +145,14 @@ public class DashboardController {
             @RequestParam String inicio,
             @RequestParam String fin,
             @RequestParam(required = false) Integer institucionId,
+            @RequestParam(required = false) Integer municipioId,
             HttpServletRequest request
     ) {
         try {
             YearMonth ymInicio = parseYearMonth(inicio, "inicio");
             YearMonth ymFin = parseYearMonth(fin, "fin");
 
-            ChartResponseDto chart = dashboardService.getDistribucionGrupoEtario(ymInicio, ymFin, institucionId);
+            ChartResponseDto chart = dashboardService.getDistribucionGrupoEtario(ymInicio, ymFin, institucionId, municipioId);
 
             return ResponseEntity.ok(
                     ApiResponseDto.<ChartResponseDto>builder()
@@ -188,13 +189,14 @@ public class DashboardController {
             @RequestParam String inicio,
             @RequestParam String fin,
             @RequestParam(required = false) Integer institucionId,
+            @RequestParam(required = false) Integer municipioId,
             HttpServletRequest request
     ) {
         try {
             YearMonth ymInicio = parseYearMonth(inicio, "inicio");
             YearMonth ymFin = parseYearMonth(fin, "fin");
 
-            ChartResponseDto chart = dashboardService.getEstadoNutricionalPorGrupoEtario(ymInicio, ymFin, institucionId);
+            ChartResponseDto chart = dashboardService.getEstadoNutricionalPorGrupoEtario(ymInicio, ymFin, institucionId, municipioId);
 
             return ResponseEntity.ok(
                     ApiResponseDto.<ChartResponseDto>builder()

@@ -98,4 +98,8 @@ public class ApiConstants {
     public static final String DASHBOARD_ACTIVE_USERS_BY_INSTITUTION = "/active-users-by-institution";
     public static final String DASHBOARD_AGE_GROUP_DISTRIBUTION = "/age-group-distribution";
     public static final String DASHBOARD_NUTRITIONAL_STATUS_BY_AGE_GROUP = "/nutritional-status-by-age-group";
+
+    // ========== PUBLIC API ==========
+    public static final String PUBLIC_BASE_URL = "/api/v1/public";
+    public static final String PUBLIC_MANUAL_APP = "/manual-app";
 }

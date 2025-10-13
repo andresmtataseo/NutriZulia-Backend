@@ -10,7 +10,7 @@ public interface DashboardQueryRepository {
 
     List<Object[]> usuariosActivosPorInstitucion(Integer municipioId);
 
-    List<Object[]> distribucionGrupoEtario(java.time.LocalDate fechaInicio, java.time.LocalDate fechaFin, Integer institucionId);
+    List<Object[]> distribucionGrupoEtario(java.time.LocalDate fechaInicio, java.time.LocalDate fechaFin, Integer institucionId, Integer municipioId);
 
-    List<Object[]> estadoNutricionalPorGrupoEtario(java.time.LocalDate fechaInicio, java.time.LocalDate fechaFin, Integer institucionId);
+    List<Object[]> estadoNutricionalPorGrupoEtario(java.time.LocalDate fechaInicio, java.time.LocalDate fechaFin, Integer institucionId, Integer municipioId);
 }

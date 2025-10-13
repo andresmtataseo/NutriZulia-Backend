@@ -40,6 +40,8 @@ public class SecurityConfig {
                                         ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_SIGN_IN_ADMIN,
                                         "/healt"
                                 ).permitAll()
+                                // Endpoint público para descarga del manual de la aplicación
+                                .requestMatchers(ApiConstants.PUBLIC_BASE_URL + ApiConstants.PUBLIC_MANUAL_APP).permitAll()
                                 // Permitir temporalmente el acceso al dashboard sin autenticación para pruebas en entorno de desarrollo
                                 .requestMatchers(ApiConstants.DASHBOARD_BASE_URL + "/**").permitAll()
                                 // Asegurar explícitamente que cada endpoint del dashboard esté permitido (por si falla el patrón anterior)
