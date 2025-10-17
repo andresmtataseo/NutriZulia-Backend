@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class EmailService {
-    @Value("${mailersend.api.token}")
+    @Value("${mailersend.api.token:}")
     private String apiToken;
 
     @Value("${mailersend.from:}")
@@ -34,6 +34,9 @@ public class EmailService {
     void init() {
         this.mailerSend = new MailerSend();
         this.mailerSend.setToken(apiToken);
+        if (apiToken == null || apiToken.isBlank()) {
+            log.warn("MAILERSEND_API_TOKEN ausente; el envío de correos quedará inoperativo.");
+        }
     }
 
 
