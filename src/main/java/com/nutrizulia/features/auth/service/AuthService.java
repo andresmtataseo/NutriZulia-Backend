@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import jakarta.mail.MessagingException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -106,6 +107,14 @@ public class AuthService implements IAuthService {
                     .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_FORGOT_PASSWORD)
                     .build();
         } catch (UsernameNotFoundException e) {
+            return ApiResponseDto.builder()
+                    .status(HttpStatus.OK.value())
+                    .message("Si la cédula existe en nuestro sistema, se ha enviado una nueva contraseña temporal a su correo electrónico.")
+                    .timestamp(LocalDateTime.now())
+                    .path(ApiConstants.AUTH_BASE_URL + ApiConstants.AUTH_FORGOT_PASSWORD)
+                    .build();
+        } catch (MessagingException e) {
+            // No revelamos si el correo se envió o no (trial MailerSend puede bloquear envíos)
             return ApiResponseDto.builder()
                     .status(HttpStatus.OK.value())
                     .message("Si la cédula existe en nuestro sistema, se ha enviado una nueva contraseña temporal a su correo electrónico.")

@@ -1,42 +1,103 @@
 package com.nutrizulia.common.service;
 
+import com.mailersend.sdk.MailerSend;
+import com.mailersend.sdk.MailerSendResponse;
+import com.mailersend.sdk.exceptions.MailerSendException;
+import com.mailersend.sdk.emails.Email;
+import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Slf4j
-@RequiredArgsConstructor
 @Service
 public class EmailService {
+    @Value("${mailersend.api.token}")
+    private String apiToken;
 
-    private final JavaMailSender mailSender;
+    @Value("${mailersend.from:}")
+    private String configuredFrom;
+
+    @Value("${spring.application.name:nutrizulia}")
+    private String applicationName;
+
+    @Value("${mailersend.trial.enabled:false}")
+    private boolean trialEnabled;
+
+    @Value("${mailersend.trial.admin.email:}")
+    private String trialAdminEmail;
+
+    private MailerSend mailerSend;
+
+    @PostConstruct
+    void init() {
+        this.mailerSend = new MailerSend();
+        this.mailerSend.setToken(apiToken);
+    }
 
 
     public void enviarCorreoHtml(String destinatario, String asunto, String htmlContenido) throws MessagingException {
-        MimeMessage mensaje = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(mensaje, true);
-        helper.setTo(destinatario);
-        helper.setSubject(asunto);
-        helper.setText(htmlContenido, true);
+        String defaultFromName = applicationName;
+        String defaultFromEmail = "no-reply@example.com";
 
-        mailSender.send(mensaje);
+        String[] fromParts = parseNameAndEmail(configuredFrom);
+        String fromName = fromParts[0] != null ? fromParts[0] : defaultFromName;
+        String fromEmail = fromParts[1] != null ? fromParts[1] : defaultFromEmail;
+
+        // Redirección en modo trial: solo se permite enviar al correo del administrador
+        String finalRecipient = destinatario;
+        if (trialEnabled) {
+            if (trialAdminEmail != null && !trialAdminEmail.isBlank()) {
+                if (!trialAdminEmail.equalsIgnoreCase(destinatario)) {
+                    log.warn("Trial activo: redirigiendo correo de {} a admin {}", destinatario, trialAdminEmail);
+                    finalRecipient = trialAdminEmail;
+                }
+            } else {
+                log.warn("Trial activo sin 'mailersend.trial.admin.email' configurado; se intentará enviar al destinatario original");
+            }
+        }
+
+        Email email = new Email();
+        email.setFrom(fromName, fromEmail);
+        email.addRecipient("Usuario", finalRecipient);
+        email.setSubject(asunto);
+        email.setHtml(htmlContenido);
+
+        try {
+            MailerSendResponse response = mailerSend.emails().send(email);
+        } catch (MailerSendException e) {
+            log.error("Error al enviar correo via MailerSend a {}: {}", destinatario, e.getMessage());
+            throw new MessagingException("Fallo en el envío de correo", e);
+        }
+    }
+
+    private String[] parseNameAndEmail(String header) {
+        if (header == null || header.isBlank()) {
+            return new String[] { null, null };
+        }
+        int lt = header.indexOf('<');
+        int gt = header.indexOf('>');
+        if (lt >= 0 && gt > lt) {
+            String name = header.substring(0, lt).trim();
+            String email = header.substring(lt + 1, gt).trim();
+            return new String[] { name, email };
+        }
+        // If only an email is provided
+        if (!header.contains(" ") && header.contains("@")) {
+            return new String[] { null, header.trim() };
+        }
+        return new String[] { header.trim(), null };
     }
 
     public void recuperacionClave(String destinatario, String nombreUsuario, String clave) throws MessagingException {
         String asunto = "Recuperación de Contraseña - Nutrizulia";
         String htmlContenido = construirHtmlRecuperacionClave(nombreUsuario, clave);
         
-        log.info("Enviando correo de recuperación a: {}", destinatario);
-        log.debug("Asunto del correo: {}", asunto);
-        log.debug("Clave: {}", clave);
+        // No registrar asunto ni clave por seguridad y evitar ruido en logs
         
         try {
             enviarCorreoHtml(destinatario, asunto, htmlContenido);
-            log.info("Correo de recuperación enviado exitosamente a: {}", destinatario);
         } catch (MessagingException e) {
             log.error("Error detallado al enviar correo a {}: {}", destinatario, e.getMessage());
             log.error("Causa raíz: {}", e.getCause() != null ? e.getCause().getMessage() : "No disponible");
@@ -48,7 +109,6 @@ public class EmailService {
         try {
             String htmlContent = construirHtmlCreacionUsuario(nombreUsuario, clave);
             enviarCorreoHtml(email, "Bienvenido a NutriZulia - Tu cuenta ha sido creada", htmlContent);
-            log.info("Correo de creación de usuario enviado exitosamente a: {}", email);
         } catch (Exception e) {
             log.error("Error al enviar correo de creación de usuario a {}: {}", email, e.getMessage());
             throw new RuntimeException("Error al enviar correo de creación de usuario", e);
