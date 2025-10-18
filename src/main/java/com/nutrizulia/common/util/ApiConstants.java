@@ -102,4 +102,6 @@ public class ApiConstants {
     // ========== PUBLIC API ==========
     public static final String PUBLIC_BASE_URL = "/api/v1/public";
     public static final String PUBLIC_MANUAL_APP = "/manual-app";
+    public static final String PUBLIC_MANUAL_WEB = "/manual-web";
+    public static final String PUBLIC_APK = "/apk";
 }
