@@ -343,7 +343,7 @@ public class UsuarioService implements IUsuarioService {
     @Override
     public List<UsuarioInstitucionDto> getUsuarioInstituciones(Integer idUsuario) {
         ValidationUtils.validateId(idUsuario.longValue(), "ID de usuario");
-        return usuarioInstitucionRepository.findActiveInstitutionsByUserId(idUsuario).stream().map(usuarioInstitucionMapper::toDto).collect(Collectors.toList());
+        return usuarioInstitucionRepository.findInstitutionsByUserId(idUsuario).stream().map(usuarioInstitucionMapper::toDto).collect(Collectors.toList());
     }
 
 

@@ -36,6 +36,11 @@ public interface UsuarioInstitucionRepository extends JpaRepository<UsuarioInsti
             "AND ui.isEnabled = true")
     List<UsuarioInstitucion> findActiveInstitutionsByUserId(@Param("usuarioId") Integer usuarioId);
 
+    @Query("SELECT ui FROM UsuarioInstitucion ui " +
+            "WHERE ui.usuario.id = :usuarioId " +
+            "AND ui.institucion.id != 1 ")
+    List<UsuarioInstitucion> findInstitutionsByUserId(@Param("usuarioId") Integer usuarioId);
+
     @Query("SELECT COUNT(ui) > 0 FROM UsuarioInstitucion ui " +
             "WHERE ui.usuario.id = :usuarioId " +
             "AND ui.institucion.id = :institucionId " +
