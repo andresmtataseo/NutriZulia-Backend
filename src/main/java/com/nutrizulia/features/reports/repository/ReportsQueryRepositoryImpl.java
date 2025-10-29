@@ -38,7 +38,7 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
                 FROM consultas c
                 JOIN pacientes p ON p.id = c.paciente_id
                 LEFT JOIN detalles_obstetricias d ON d.consulta_id = c.id AND d.is_deleted = FALSE
-                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id
                 WHERE c.is_deleted = FALSE
                   AND p.is_deleted = FALSE
                   AND c.estado IN ('COMPLETADA','SIN_PREVIA_CITA')
@@ -86,7 +86,7 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
                     END AS categoria
                 FROM consultas c
                 JOIN pacientes pa ON pa.id = c.paciente_id
-                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id
                 LEFT JOIN LATERAL (
                     SELECT ea.valor_calculado
                     FROM evaluaciones_antropometricas ea
@@ -148,7 +148,7 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
                     END AS categoria
                 FROM consultas c
                 JOIN pacientes pa ON pa.id = c.paciente_id
-                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id
                 LEFT JOIN LATERAL (
                     SELECT ea.valor_calculado
                     FROM evaluaciones_antropometricas ea
@@ -259,7 +259,7 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
                     END AS categoria
                 FROM consultas c
                 JOIN pacientes pa ON pa.id = c.paciente_id
-                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id
                 LEFT JOIN LATERAL (
                     SELECT ea.valor_calculado
                     FROM evaluaciones_antropometricas ea
@@ -390,7 +390,7 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
                     END AS categoria
                 FROM consultas c
                 JOIN pacientes pa ON pa.id = c.paciente_id
-                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id
                 LEFT JOIN LATERAL (
                     SELECT ea.valor_calculado
                     FROM evaluaciones_antropometricas ea
@@ -462,7 +462,7 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
                    COALESCE(SUM(a.cantidad_participantes), 0) AS total_participantes,
                    COALESCE(SUM(COALESCE(a.cantidad_sesiones, 0)), 0) AS total_veces
             FROM actividades a
-            JOIN usuarios_instituciones ui ON ui.id = a.usuario_institucion_id AND ui.is_enabled = TRUE
+            JOIN usuarios_instituciones ui ON ui.id = a.usuario_institucion_id
             JOIN tipos_actividades ta ON ta.id = a.tipo_actividad_id
             WHERE a.is_deleted = FALSE
               AND a.fecha BETWEEN :fechaInicio AND :fechaFin
@@ -506,7 +506,7 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
                     AND p.is_deleted = FALSE
                 JOIN consultas c ON c.id = z.consulta_id
                 JOIN pacientes pa ON pa.id = c.paciente_id
-                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id
                 WHERE z.tipo_indicador_id = 4
                   AND z.tipo_valor_calculado = 'Z_SCORE'
                   AND z.is_deleted = FALSE
@@ -557,7 +557,7 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
                     AND p.is_deleted = FALSE
                 JOIN consultas c ON c.id = z.consulta_id
                 JOIN pacientes pa ON pa.id = c.paciente_id
-                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id
                 WHERE z.tipo_indicador_id = 4
                   AND z.tipo_valor_calculado = 'Z_SCORE'
                   AND z.is_deleted = FALSE
@@ -609,7 +609,7 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
                     END AS grupo_edad
                 FROM consultas c
                 JOIN pacientes p ON p.id = c.paciente_id
-                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id
                 LEFT JOIN LATERAL (
                     SELECT ea.valor_calculado
                     FROM evaluaciones_antropometricas ea
@@ -648,7 +648,7 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
                    COUNT(DISTINCT c.id) AS total
             FROM diagnosticos d
             JOIN consultas c ON c.id = d.consulta_id
-            JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+            JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id
             JOIN pacientes p ON p.id = c.paciente_id
             JOIN riesgos_biologicos rb ON rb.id = d.riesgo_biologico_id
             WHERE d.is_deleted = FALSE
@@ -678,7 +678,7 @@ public class ReportsQueryRepositoryImpl implements ReportsQueryRepository {
             SELECT c.usuario_institucion_id AS usuario_institucion_id,
                    MAX(c.updated_at) AS ultima_actualizacion
             FROM consultas c
-            JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+            JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id
             WHERE c.is_deleted = FALSE
               AND c.estado IN ('COMPLETADA','SIN_PREVIA_CITA')
               AND c.usuario_institucion_id IN (:usuarioInstitucionIds)

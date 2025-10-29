@@ -25,7 +25,7 @@ public class DashboardQueryRepositoryImpl implements DashboardQueryRepository {
             SELECT to_char(c.fecha_hora_real::date, 'YYYY-MM') AS periodo,
                    COUNT(*) AS total
             FROM consultas c
-            JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+            JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id
             JOIN instituciones i ON i.id = ui.institucion_id
             JOIN municipios_sanitarios ms ON ms.id = i.municipio_sanitario_id
             WHERE c.is_deleted = FALSE
@@ -90,7 +90,7 @@ public class DashboardQueryRepositoryImpl implements DashboardQueryRepository {
         sql.append("""
             SELECT i.nombre AS institucion, COUNT(DISTINCT u.id) AS total
             FROM usuarios u
-            JOIN usuarios_instituciones ui ON ui.usuario_id = u.id AND ui.is_enabled = TRUE
+            JOIN usuarios_instituciones ui ON ui.usuario_id = u.id
             JOIN instituciones i ON i.id = ui.institucion_id
             JOIN municipios_sanitarios ms ON ms.id = i.municipio_sanitario_id
             WHERE u.is_enabled = TRUE
@@ -131,7 +131,7 @@ public class DashboardQueryRepositoryImpl implements DashboardQueryRepository {
                 END AS bucket
                 FROM consultas c
                 JOIN pacientes p ON p.id = c.paciente_id AND p.is_deleted = FALSE
-                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id
                 JOIN instituciones i ON i.id = ui.institucion_id
                 JOIN municipios_sanitarios ms ON ms.id = i.municipio_sanitario_id
                 WHERE c.is_deleted = FALSE
@@ -198,7 +198,7 @@ public class DashboardQueryRepositoryImpl implements DashboardQueryRepository {
                  END AS categoria
                  FROM consultas c
                  JOIN pacientes p ON p.id = c.paciente_id AND p.is_deleted = FALSE
-                 JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id AND ui.is_enabled = TRUE
+                 JOIN usuarios_instituciones ui ON ui.id = c.usuario_institucion_id
                  JOIN instituciones i ON i.id = ui.institucion_id
                  JOIN municipios_sanitarios ms ON ms.id = i.municipio_sanitario_id
                                  -- JOINs legacy removidos: bmi y ae
