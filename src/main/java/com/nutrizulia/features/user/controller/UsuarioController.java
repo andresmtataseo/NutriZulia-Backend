@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -48,6 +49,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @PostMapping(USERS_CREATE)
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<ApiResponseDto<UsuarioDto>> createUsuario(@Valid @RequestBody UsuarioDto usuarioDto) {
         UsuarioDto usuarioCreado = usuarioService.createUsuario(usuarioDto);
         ApiResponseDto<UsuarioDto> response = ApiResponseDto.<UsuarioDto>builder()
@@ -68,6 +70,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(USERS_CHECK_CEDULA)
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPERVISOR')")
     public ResponseEntity<Boolean> checkCedulaAvailability(@RequestParam String cedula) {
         boolean isAvailable = usuarioService.isCedulaAvailable(cedula);
         return ResponseEntity.ok(isAvailable);
@@ -83,6 +86,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(USERS_CHECK_EMAIL)
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPERVISOR')")
     public ResponseEntity<Boolean> checkEmailAvailability(@RequestParam String email) {
         boolean isAvailable = usuarioService.isEmailAvailable(email);
         return ResponseEntity.ok(isAvailable);
@@ -98,6 +102,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(USERS_CHECK_PHONE)
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPERVISOR')")
     public ResponseEntity<Boolean> checkPhoneAvailability(@RequestParam String phone) {
         boolean isAvailable = usuarioService.isPhoneAvailable(phone);
         return ResponseEntity.ok(isAvailable);
@@ -113,6 +118,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(USERS_GET_ALL_WITH_INSTITUTIONS)
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPERVISOR')")
     public ResponseEntity<PageResponseDto<UsuarioConInstitucionesDto>> getUsuariosConInstituciones(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -137,6 +143,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(USERS_GET_DETAIL)
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPERVISOR')")
     public ResponseEntity<ApiResponseDto<UsuarioDetallesDto>> getUsuarioDetail(@RequestParam Integer idUsuario) {
         UsuarioDetallesDto usuarioDetalles = usuarioService.getUsuarioDetalles(idUsuario);
         ApiResponseDto<UsuarioDetallesDto> response = ApiResponseDto.<UsuarioDetallesDto>builder()
@@ -160,6 +167,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @PutMapping(USERS_SAVE_PHONE)
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<ApiResponseDto<Void>> savePhone(@Valid @RequestBody SavePhoneDto savePhoneDto) {
         usuarioService.savePhone(savePhoneDto.getIdUsuario(), savePhoneDto.getTelefono());
         
@@ -183,6 +191,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @PutMapping(USERS_SAVE_EMAIL)
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<ApiResponseDto<Void>> saveEmail(@Valid @RequestBody SaveEmailDto saveEmailDto) {
         usuarioService.saveEmail(saveEmailDto.getIdUsuario(), saveEmailDto.getCorreo());
         
@@ -207,6 +216,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @PutMapping(USERS_UPDATE)
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<ApiResponseDto<UsuarioDto>> updateUsuario(
             @RequestParam Integer idUsuario,
             @Valid @RequestBody UpdateUsuarioDto updateUsuarioDto) {
@@ -234,6 +244,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(USER_INSTITUTIONS_GET_BY_USER)
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPERVISOR')")
     public ResponseEntity<ApiResponseDto<List<UsuarioInstitucionDto>>> getUsuariosInstituciones(@RequestParam Integer idUsuario) {
 
         List<UsuarioInstitucionDto> usuarios = usuarioService.getUsuarioInstituciones(idUsuario);
@@ -260,6 +271,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @PostMapping(USERS_ASSIGN_INSTITUTION)
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<ApiResponseDto<UsuarioInstitucionDto>> assignUserToInstitution(
             @Valid @RequestBody CreateUsuarioInstitucionDto createUsuarioInstitucionDto) {
         
@@ -286,6 +298,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @PutMapping(USERS_UPDATE_INSTITUTION)
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<ApiResponseDto<UsuarioInstitucionDto>> updateUserInstitutionAssignment(
             @RequestParam Integer id,
             @Valid @RequestBody UpdateUsuarioInstitucionDto updateUsuarioInstitucionDto) {

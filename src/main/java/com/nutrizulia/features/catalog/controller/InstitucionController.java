@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,6 +45,7 @@ public class InstitucionController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(CATALOG_INSTITUTIONS)
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPERVISOR')")
     public ResponseEntity<ApiResponseDto<List<InstitucionDto>>> getInstituciones(
             HttpServletRequest request
     ) {
@@ -69,6 +71,7 @@ public class InstitucionController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(CATALOG_INSTITUTIONS_GET_ALL_WITH_USERS)
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPERVISOR')")
     public ResponseEntity<PageResponseDto<InstitucionConUsuariosDto>> getInstitucionConUsuarios(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -91,6 +94,7 @@ public class InstitucionController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(CATALOG_INSTITUTIONS + "/{id}")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPERVISOR')")
     public ResponseEntity<ApiResponseDto<InstitucionConUsuariosDto>> getInstitucionById(
             @PathVariable Integer id,
             HttpServletRequest request
@@ -118,6 +122,7 @@ public class InstitucionController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @GetMapping(CATALOG_INSTITUTIONS_GET_BY_MUNICIPIO_SANITARIO)
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPERVISOR')")
     public ResponseEntity<ApiResponseDto<List<InstitucionDto>>> getInstitucionesByMunicipioSanitario(
             @RequestParam Integer municipioSanitarioId,
             HttpServletRequest request
@@ -144,6 +149,7 @@ public class InstitucionController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @PostMapping(CATALOG_INSTITUTIONS)
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<ApiResponseDto<InstitucionDto>> createInstitucion(
             @RequestBody @Valid InstitucionDto institucionDto,
             HttpServletRequest request
@@ -171,6 +177,7 @@ public class InstitucionController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @PutMapping(CATALOG_INSTITUTIONS + "/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<ApiResponseDto<InstitucionDto>> updateInstitucion(
             @PathVariable Integer id,
             @RequestBody @Valid InstitucionDto institucionDto,
@@ -199,6 +206,7 @@ public class InstitucionController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
     @DeleteMapping(CATALOG_INSTITUTIONS + "/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<ApiResponseDto<Void>> deleteInstitucion(
             @PathVariable Integer id,
             HttpServletRequest request

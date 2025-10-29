@@ -10,6 +10,9 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -227,6 +230,42 @@ public class GlobalExceptionHandler {
                 .path(getCurrentPath())
                 .build();
         return ResponseEntity.status(HttpStatus.LOCKED).body(response);
+    }
+
+    // Seguridad: acceso denegado por falta de permisos (403)
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ApiResponseDto<String>> handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
+        ApiResponseDto<String> response = ApiResponseDto.<String>builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .message("Acceso denegado: no tienes permisos para realizar esta acción.")
+                .timestamp(LocalDateTime.now())
+                .path(getCurrentPath())
+                .build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    // Seguridad: acceso denegado genérico (403) desde filtros u otros componentes
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponseDto<String>> handleAccessDeniedException(AccessDeniedException ex) {
+        ApiResponseDto<String> response = ApiResponseDto.<String>builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .message("Acceso denegado: no cuentas con los privilegios necesarios.")
+                .timestamp(LocalDateTime.now())
+                .path(getCurrentPath())
+                .build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    // Seguridad: autenticación insuficiente o ausente (401)
+    @ExceptionHandler(InsufficientAuthenticationException.class)
+    public ResponseEntity<ApiResponseDto<String>> handleInsufficientAuthenticationException(InsufficientAuthenticationException ex) {
+        ApiResponseDto<String> response = ApiResponseDto.<String>builder()
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .message("No autenticado o autenticación insuficiente. Por favor, inicie sesión e intente nuevamente.")
+                .timestamp(LocalDateTime.now())
+                .path(getCurrentPath())
+                .build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiResponseDto<String>> handleNoResourceFoundException(NoResourceFoundException ex) {

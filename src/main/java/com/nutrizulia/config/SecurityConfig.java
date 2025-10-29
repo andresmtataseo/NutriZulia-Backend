@@ -19,7 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -44,14 +44,6 @@ public class SecurityConfig {
                                 .requestMatchers(ApiConstants.PUBLIC_BASE_URL + ApiConstants.PUBLIC_MANUAL_APP).permitAll()
                                 .requestMatchers(ApiConstants.PUBLIC_BASE_URL + ApiConstants.PUBLIC_MANUAL_WEB).permitAll()
                                 .requestMatchers(ApiConstants.PUBLIC_BASE_URL + ApiConstants.PUBLIC_APK).permitAll()
-                                // Permitir temporalmente el acceso al dashboard sin autenticación para pruebas en entorno de desarrollo
-                                .requestMatchers(ApiConstants.DASHBOARD_BASE_URL + "/**").permitAll()
-                                // Asegurar explícitamente que cada endpoint del dashboard esté permitido (por si falla el patrón anterior)
-                                .requestMatchers(ApiConstants.DASHBOARD_BASE_URL + ApiConstants.DASHBOARD_CONSULTATIONS_PER_MONTH).permitAll()
-                                .requestMatchers(ApiConstants.DASHBOARD_BASE_URL + ApiConstants.DASHBOARD_ACTIVE_INSTITUTIONS_BY_MUNICIPALITY).permitAll()
-                                .requestMatchers(ApiConstants.DASHBOARD_BASE_URL + ApiConstants.DASHBOARD_ACTIVE_USERS_BY_INSTITUTION).permitAll()
-                                .requestMatchers(ApiConstants.DASHBOARD_BASE_URL + ApiConstants.DASHBOARD_AGE_GROUP_DISTRIBUTION).permitAll()
-                                .requestMatchers(ApiConstants.DASHBOARD_BASE_URL + ApiConstants.DASHBOARD_NUTRITIONAL_STATUS_BY_AGE_GROUP).permitAll()
                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**").permitAll()
                                 .anyRequest().authenticated()
                 )
