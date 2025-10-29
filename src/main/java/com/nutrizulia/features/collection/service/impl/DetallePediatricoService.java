@@ -8,7 +8,6 @@ import com.nutrizulia.features.collection.model.DetallePediatrico;
 import com.nutrizulia.features.collection.repository.DetallePediatricoRepository;
 import com.nutrizulia.features.collection.service.IDetallePediatricoService;
 import com.nutrizulia.features.user.model.Usuario;
-import com.nutrizulia.features.user.model.UsuarioInstitucion;
 import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
 import com.nutrizulia.features.user.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -152,28 +150,8 @@ public class DetallePediatricoService implements IDetallePediatricoService {
         Usuario usuario = usuarioRepository.findByCedula(cedula)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + cedula));
         
-        // Obtener las instituciones activas del usuario
-        List<UsuarioInstitucion> institucionesActivas = usuarioInstitucionRepository
-                .findActiveInstitutionsByUserId(usuario.getId());
-        
-        if (institucionesActivas.isEmpty()) {
-            log.warn("El usuario {} no tiene instituciones activas", cedula);
-            return FullSyncResponseDTO.<DetallePedriatricoDto>builder()
-                    .tabla("detalles_pediatricos")
-                    .totalRegistros(0)
-                    .datos(new ArrayList<>())
-                    .build();
-        }
-        
-        // Extraer los IDs de las instituciones activas
-        List<Integer> institucionIds = institucionesActivas.stream()
-                .map(ui -> ui.getInstitucion().getId())
-                .toList();
-        
-        log.info("Filtrando detalles pediátricos para las instituciones: {}", institucionIds);
-        
-        // Obtener detalles pediátricos filtrados por instituciones activas del usuario
-        List<DetallePediatrico> detallesActivos = detallePediatricoRepository.findAllActiveByInstitutionIds(institucionIds);
+        // Obtener detalles pediátricos filtrados por el usuario autenticado
+        List<DetallePediatrico> detallesActivos = detallePediatricoRepository.findAllActiveByUserId(usuario.getId());
         List<DetallePedriatricoDto> detallesDto = detallesActivos.stream()
                 .map(detallePediatricoMapper::toDto)
                 .toList();

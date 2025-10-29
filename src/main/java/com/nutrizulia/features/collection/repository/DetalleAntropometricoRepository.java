@@ -10,10 +10,10 @@ import java.util.List;
 
 @Repository
 public interface DetalleAntropometricoRepository extends JpaRepository<DetalleAntropometrico, String> {
-    
+
     @Query("SELECT da FROM DetalleAntropometrico da " +
-           "WHERE da.isDeleted = false " +
-           "AND da.consulta.usuarioInstitucion.institucion.id IN :institutionIds " +
-           "ORDER BY da.updatedAt DESC")
-    List<DetalleAntropometrico> findAllActiveByInstitutionIds(@Param("institutionIds") List<Integer> institutionIds);
+            "WHERE da.isDeleted = false " +
+            "AND da.consulta.usuarioInstitucion.usuario.id = :userId " +
+            "ORDER BY da.updatedAt DESC")
+    List<DetalleAntropometrico> findAllActiveByUserId(@Param("userId") Integer userId);
 }

@@ -10,10 +10,10 @@ import java.util.List;
 
 @Repository
 public interface ConsultaRepository extends JpaRepository<Consulta, String> {
-    
+
     @Query("SELECT p FROM Consulta p " +
             "WHERE p.isDeleted = false " +
-            "AND p.usuarioInstitucion.institucion.id IN :institutionIds " +
+            "AND p.usuarioInstitucion.usuario.id = :userId " +
             "ORDER BY p.updatedAt DESC")
-    List<Consulta> findAllActiveByInstitutionIds(@Param("institutionIds") List<Integer> institutionIds);
+    List<Consulta> findAllActiveByUserId(@Param("userId") Integer userId);
 }

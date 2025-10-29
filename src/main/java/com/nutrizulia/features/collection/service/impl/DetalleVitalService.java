@@ -1,16 +1,13 @@
 package com.nutrizulia.features.collection.service.impl;
 
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
-import com.nutrizulia.features.collection.dto.DetalleAntropometricoDto;
 import com.nutrizulia.features.collection.dto.DetalleVitalDto;
 import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
 import com.nutrizulia.features.collection.mapper.DetalleVitalMapper;
-import com.nutrizulia.features.collection.model.DetalleAntropometrico;
 import com.nutrizulia.features.collection.model.DetalleVital;
 import com.nutrizulia.features.collection.repository.DetalleVitalRepository;
 import com.nutrizulia.features.collection.service.IDetalleVitalService;
 import com.nutrizulia.features.user.model.Usuario;
-import com.nutrizulia.features.user.model.UsuarioInstitucion;
 import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
 import com.nutrizulia.features.user.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +19,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -155,28 +151,8 @@ public class DetalleVitalService implements IDetalleVitalService {
         Usuario usuario = usuarioRepository.findByCedula(cedula)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + cedula));
 
-        // Obtener las instituciones activas del usuario
-        List<UsuarioInstitucion> institucionesActivas = usuarioInstitucionRepository
-                .findActiveInstitutionsByUserId(usuario.getId());
-
-        if (institucionesActivas.isEmpty()) {
-            log.warn("El usuario {} no tiene instituciones activas", cedula);
-            return FullSyncResponseDTO.<DetalleVitalDto>builder()
-                    .tabla("detalles_vitales")
-                    .totalRegistros(0)
-                    .datos(new ArrayList<>())
-                    .build();
-        }
-
-        // Extraer los IDs de las instituciones activas
-        List<Integer> institucionIds = institucionesActivas.stream()
-                .map(ui -> ui.getInstitucion().getId())
-                .toList();
-
-        log.info("Filtrando detalles vitales para las instituciones: {}", institucionIds);
-
-        // Obtener detalles vitales filtrados por instituciones activas del usuario
-        List<DetalleVital> detallesActivos = detalleVitalRepository.findAllActiveByInstitutionIds(institucionIds);
+        // Obtener detalles vitales filtrados por el usuario autenticado
+        List<DetalleVital> detallesActivos = detalleVitalRepository.findAllActiveByUserId(usuario.getId());
         List<DetalleVitalDto> detallesDto = detallesActivos.stream()
                 .map(detalleVitalMapper::toDto)
                 .toList();

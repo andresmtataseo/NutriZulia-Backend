@@ -13,8 +13,8 @@ public interface EvaluacionAntropometricaRepository extends JpaRepository<Evalua
 
     @Query("SELECT d FROM EvaluacionAntropometrica d " +
             "WHERE d.isDeleted = false " +
-            "AND d.consulta.usuarioInstitucion.institucion.id IN :institutionIds " +
+            "AND d.consulta.usuarioInstitucion.usuario.id = :userId " +
             "ORDER BY d.updatedAt DESC")
-    List<EvaluacionAntropometrica> findAllActiveByInstitutionIds(@Param("institutionIds") List<Integer> institutionIds);
+    List<EvaluacionAntropometrica> findAllActiveByUserId(@Param("userId") Integer userId);
 
 }

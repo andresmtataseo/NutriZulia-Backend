@@ -10,10 +10,10 @@ import java.util.List;
 
 @Repository
 public interface DetallePediatricoRepository extends JpaRepository<DetallePediatrico, String> {
-    
+
     @Query("SELECT d FROM DetallePediatrico d " +
-           "WHERE d.isDeleted = false " +
-           "AND d.consulta.usuarioInstitucion.institucion.id IN :institutionIds " +
+            "WHERE d.isDeleted = false " +
+            "AND d.consulta.usuarioInstitucion.usuario.id = :userId " +
             "ORDER BY d.updatedAt DESC")
-    List<DetallePediatrico> findAllActiveByInstitutionIds(@Param("institutionIds") List<Integer> institutionIds);
+    List<DetallePediatrico> findAllActiveByUserId(@Param("userId") Integer userId);
 }

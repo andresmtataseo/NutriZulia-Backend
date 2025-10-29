@@ -8,9 +8,7 @@ import com.nutrizulia.features.collection.mapper.ActividadMapper;
 import com.nutrizulia.features.collection.repository.ActividadRepository;
 import com.nutrizulia.features.collection.service.IActividadService;
 import com.nutrizulia.features.user.model.Usuario;
-import com.nutrizulia.features.user.model.UsuarioInstitucion;
 import com.nutrizulia.features.user.repository.UsuarioRepository;
-import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,8 +18,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,7 +30,6 @@ public class ActividadService implements IActividadService {
     private final ActividadRepository actividadRepository;
     private final ActividadMapper actividadMapper;
     private final UsuarioRepository usuarioRepository;
-    private final UsuarioInstitucionRepository usuarioInstitucionRepository;
 
     @Override
     public List<ActividadDto> getActividades() {
@@ -66,28 +61,8 @@ public class ActividadService implements IActividadService {
         Usuario usuario = usuarioRepository.findByCedula(cedula)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + cedula));
 
-        // Obtener las instituciones activas del usuario
-        List<UsuarioInstitucion> institucionesActivas = usuarioInstitucionRepository
-                .findActiveInstitutionsByUserId(usuario.getId());
-
-        if (institucionesActivas.isEmpty()) {
-            log.warn("El usuario {} no tiene instituciones activas", cedula);
-            return FullSyncResponseDTO.<ActividadDto>builder()
-                    .tabla("actividades")
-                    .totalRegistros(0)
-                    .datos(new ArrayList<>())
-                    .build();
-        }
-
-        // Extraer los IDs de las instituciones activas
-        List<Integer> institucionIds = institucionesActivas.stream()
-                .map(ui -> ui.getInstitucion().getId())
-                .collect(Collectors.toList());
-
-        log.info("Filtrando actividades para las instituciones: {}", institucionIds);
-
-        // Obtener consultas filtradas por instituciones activas del usuario
-        List<Actividad> actividadesActivas = actividadRepository.findAllActiveByInstitutionIds(institucionIds);
+        // Obtener actividades filtradas por el usuario autenticado
+        List<Actividad> actividadesActivas = actividadRepository.findAllActiveByUserId(usuario.getId());
         List<ActividadDto> actividadesDto = actividadesActivas.stream()
                 .map(actividadMapper::toDto)
                 .collect(Collectors.toList());

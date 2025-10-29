@@ -8,9 +8,7 @@ import com.nutrizulia.features.collection.model.DetalleObstetricia;
 import com.nutrizulia.features.collection.repository.DetalleObstetriciaRepository;
 import com.nutrizulia.features.collection.service.IDetalleObstetriciaService;
 import com.nutrizulia.features.user.model.Usuario;
-import com.nutrizulia.features.user.model.UsuarioInstitucion;
 import com.nutrizulia.features.user.repository.UsuarioRepository;
-import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,7 +18,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +29,6 @@ public class DetalleObstetriciaService implements IDetalleObstetriciaService {
     private final DetalleObstetriciaRepository detalleObstetriciaRepository;
     private final DetalleObstetriciaMapper detalleObstetriciaMapper;
     private final UsuarioRepository usuarioRepository;
-    private final UsuarioInstitucionRepository usuarioInstitucionRepository;
 
     @Override
     @Transactional
@@ -152,28 +148,8 @@ public class DetalleObstetriciaService implements IDetalleObstetriciaService {
         Usuario usuario = usuarioRepository.findByCedula(cedula)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + cedula));
         
-        // Obtener las instituciones activas del usuario
-        List<UsuarioInstitucion> institucionesActivas = usuarioInstitucionRepository
-                .findActiveInstitutionsByUserId(usuario.getId());
-        
-        if (institucionesActivas.isEmpty()) {
-            log.warn("El usuario {} no tiene instituciones activas", cedula);
-            return FullSyncResponseDTO.<DetalleObstetriciaDto>builder()
-                    .tabla("detalles_obstetricias")
-                    .totalRegistros(0)
-                    .datos(new ArrayList<>())
-                    .build();
-        }
-        
-        // Extraer los IDs de las instituciones activas
-        List<Integer> institucionIds = institucionesActivas.stream()
-                .map(ui -> ui.getInstitucion().getId())
-                .toList();
-        
-        log.info("Filtrando detalles obstétricos para las instituciones: {}", institucionIds);
-        
-        // Obtener detalles obstétricos filtrados por instituciones activas del usuario
-        List<DetalleObstetricia> detallesActivos = detalleObstetriciaRepository.findAllActiveByInstitutionIds(institucionIds);
+        // Obtener detalles obstétricos filtrados por el usuario autenticado
+        List<DetalleObstetricia> detallesActivos = detalleObstetriciaRepository.findAllActiveByUserId(usuario.getId());
         List<DetalleObstetriciaDto> detallesDto = detallesActivos.stream()
                 .map(detalleObstetriciaMapper::toDto)
                 .toList();

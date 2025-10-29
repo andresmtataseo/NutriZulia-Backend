@@ -13,7 +13,7 @@ public interface DiagnosticoRepository extends JpaRepository<Diagnostico, String
 
     @Query("SELECT d FROM Diagnostico d " +
             "WHERE d.isDeleted = false " +
-            "AND d.consulta.usuarioInstitucion.institucion.id IN :institutionIds " +
+            "AND d.consulta.usuarioInstitucion.usuario.id = :userId " +
             "ORDER BY d.updatedAt DESC")
-    List<Diagnostico> findAllActiveByInstitutionIds(@Param("institutionIds") List<Integer> institutionIds);
+    List<Diagnostico> findAllActiveByUserId(@Param("userId") Integer userId);
 }

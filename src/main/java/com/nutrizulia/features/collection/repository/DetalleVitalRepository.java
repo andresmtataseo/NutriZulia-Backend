@@ -10,10 +10,10 @@ import java.util.List;
 
 @Repository
 public interface DetalleVitalRepository extends JpaRepository<DetalleVital, String> {
-    
+
     @Query("SELECT dv FROM DetalleVital dv " +
             "WHERE dv.isDeleted = false " +
-            "AND dv.consulta.usuarioInstitucion.institucion.id IN :institutionIds " +
+            "AND dv.consulta.usuarioInstitucion.usuario.id = :userId " +
             "ORDER BY dv.updatedAt DESC")
-    List<DetalleVital> findAllActiveByInstitutionIds(@Param("institutionIds") List<Integer> institutionIds);
+    List<DetalleVital> findAllActiveByUserId(@Param("userId") Integer userId);
 }
