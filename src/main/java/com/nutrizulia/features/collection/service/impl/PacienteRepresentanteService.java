@@ -149,7 +149,7 @@ public class PacienteRepresentanteService implements IPacienteRepresentanteServi
 
     @Override
     public FullSyncResponseDTO<PacienteRepresentanteDto> findAllActive() {
-        log.info("Iniciando sincronización completa de relaciones paciente-representante");
+        log.info("Obteniendo relaciones paciente-representante pertenecientes al usuario autenticado");
         
         // Obtener el usuario autenticado
         String cedula = getCurrentUserCedula();
@@ -159,36 +159,17 @@ public class PacienteRepresentanteService implements IPacienteRepresentanteServi
         Usuario usuario = usuarioRepository.findByCedula(cedula)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + cedula));
         
-        // Obtener las instituciones activas del usuario
-        List<UsuarioInstitucion> usuarioInstituciones = usuarioInstitucionRepository
-                .findActiveInstitutionsByUserId(usuario.getId());
-        
-        if (usuarioInstituciones.isEmpty()) {
-            log.warn("Usuario {} no tiene instituciones activas asignadas", cedula);
-            return FullSyncResponseDTO.<PacienteRepresentanteDto>builder()
-                    .tabla("pacientes_representantes")
-                    .totalRegistros(0)
-                    .datos(new ArrayList<>())
-                    .build();
-        }
-        
-        // Extraer los IDs de las instituciones
-        List<Integer> institutionIds = usuarioInstituciones.stream()
-                .map(ui -> ui.getInstitucion().getId())
-                .toList();
-        
-        log.debug("Filtrando relaciones paciente-representante por instituciones: {}", institutionIds);
-        
-        // Obtener relaciones activas filtradas por las instituciones del usuario
-        List<PacienteRepresentante> pacienteRepresentantes = pacienteRepresentanteRepository.findAllActiveByInstitutionIds(institutionIds);
+        // Filtrar relaciones pertenecientes al usuario autenticado
+        log.debug("Filtrando relaciones paciente-representante por usuario: {}", usuario.getId());
+        List<PacienteRepresentante> pacienteRepresentantes = pacienteRepresentanteRepository.findAllActiveByUserId(usuario.getId());
         
         // Mapear a DTOs
         List<PacienteRepresentanteDto> pacienteRepresentanteDtos = pacienteRepresentantes.stream()
                 .map(pacienteRepresentanteMapper::toDto)
                 .toList();
         
-        log.info("Sincronización completa completada: {} relaciones paciente-representante activas encontradas", 
-                pacienteRepresentanteDtos.size());
+        log.info("Sincronización completa: {} relaciones paciente-representante activas del usuario {}", 
+                pacienteRepresentanteDtos.size(), cedula);
 
         return FullSyncResponseDTO.<PacienteRepresentanteDto>builder()
                 .tabla("pacientes_representantes")

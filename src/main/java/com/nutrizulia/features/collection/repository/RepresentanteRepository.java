@@ -10,10 +10,10 @@ import java.util.List;
 
 @Repository
 public interface RepresentanteRepository extends JpaRepository<Representante, String> {
-    
+
     @Query("SELECT r FROM Representante r " +
             "WHERE r.isDeleted = false " +
-            "AND r.usuarioInstitucion.institucion.id IN :institutionIds " +
+            "AND r.usuarioInstitucion.usuario.id = :userId " +
             "ORDER BY r.updatedAt DESC")
-    List<Representante> findAllActiveByInstitutionIds(@Param("institutionIds") List<Integer> institutionIds);
+    List<Representante> findAllActiveByUserId(@Param("userId") Integer userId);
 }

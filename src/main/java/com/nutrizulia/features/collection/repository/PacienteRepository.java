@@ -16,4 +16,10 @@ public interface PacienteRepository extends JpaRepository<Paciente, String> {
             "AND p.usuarioInstitucion.institucion.id IN :institucionIds " +
             "ORDER BY p.updatedAt DESC")
     List<Paciente> findAllActiveByInstitutionIds(@Param("institucionIds") List<Integer> institucionIds);
+
+    @Query("SELECT p FROM Paciente p " +
+            "WHERE p.isDeleted = false " +
+            "AND p.usuarioInstitucion.usuario.id = :userId " +
+            "ORDER BY p.updatedAt DESC")
+    List<Paciente> findAllActiveByUserId(@Param("userId") Integer userId);
 }

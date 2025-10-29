@@ -16,4 +16,10 @@ public interface PacienteRepresentanteRepository extends JpaRepository<PacienteR
             "AND pr.usuarioInstitucion.institucion.id IN :institutionIds " +
             "ORDER BY pr.updatedAt DESC")
     List<PacienteRepresentante> findAllActiveByInstitutionIds(@Param("institutionIds") List<Integer> institutionIds);
+
+    @Query("SELECT pr FROM PacienteRepresentante pr " +
+            "WHERE pr.isDeleted = false " +
+            "AND pr.usuarioInstitucion.usuario.id = :userId " +
+            "ORDER BY pr.updatedAt DESC")
+    List<PacienteRepresentante> findAllActiveByUserId(@Param("userId") Integer userId);
 }

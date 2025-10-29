@@ -2,16 +2,13 @@ package com.nutrizulia.features.collection.service.impl;
 
 import com.nutrizulia.features.collection.dto.BatchSyncResponseDTO;
 import com.nutrizulia.features.collection.dto.FullSyncResponseDTO;
-import com.nutrizulia.features.collection.dto.PacienteDto;
 import com.nutrizulia.features.collection.dto.RepresentanteDto;
 import com.nutrizulia.features.collection.mapper.RepresentanteMapper;
 import com.nutrizulia.features.collection.model.Representante;
 import com.nutrizulia.features.collection.repository.RepresentanteRepository;
 import com.nutrizulia.features.collection.service.IRepresentanteService;
 import com.nutrizulia.features.user.model.Usuario;
-import com.nutrizulia.features.user.model.UsuarioInstitucion;
 import com.nutrizulia.features.user.repository.UsuarioRepository;
-import com.nutrizulia.features.user.repository.UsuarioInstitucionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,10 +18,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -34,7 +29,6 @@ public class RepresentanteService implements IRepresentanteService {
     private final RepresentanteRepository representanteRepository;
     private final RepresentanteMapper representanteMapper;
     private final UsuarioRepository usuarioRepository;
-    private final UsuarioInstitucionRepository usuarioInstitucionRepository;
 
     @Override
     @Transactional
@@ -157,29 +151,10 @@ public class RepresentanteService implements IRepresentanteService {
         Usuario usuario = usuarioRepository.findByCedula(cedula)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + cedula));
         
-        // Obtener las instituciones activas del usuario
-        List<UsuarioInstitucion> usuarioInstituciones = usuarioInstitucionRepository
-                .findActiveInstitutionsByUserId(usuario.getId());
-        
-        if (usuarioInstituciones.isEmpty()) {
-            log.warn("Usuario {} no tiene instituciones activas asignadas", cedula);
-            return FullSyncResponseDTO.<RepresentanteDto>builder()
-                    .tabla("representantes")
-                    .totalRegistros(0)
-                    .datos(new ArrayList<>())
-                    .build();
-        }
-        
-        // Extraer los IDs de las instituciones
-        List<Integer> institutionIds = usuarioInstituciones.stream()
-                .map(ui -> ui.getInstitucion().getId())
-                .toList();
-        
-        log.debug("Filtrando representantes por instituciones: {}", institutionIds);
-        
-        // Obtener representantes activos filtrados por las instituciones del usuario
+        // Filtrar representantes pertenecientes al usuario autenticado
+        log.debug("Filtrando representantes por usuario: {}", usuario.getId());
         List<Representante> representantes = representanteRepository
-                .findAllActiveByInstitutionIds(institutionIds);
+                .findAllActiveByUserId(usuario.getId());
         
         // Mapear a DTOs
         List<RepresentanteDto> representanteDtos = representantes.stream()
